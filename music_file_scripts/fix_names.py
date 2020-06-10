@@ -128,18 +128,18 @@ class StringEditor(object):
 
     def replace_invalid_char(self, name, invalid_char):
 
-        replacement_char = get_invalid_char_replacement(invalid_char)
+        replacement_char = self.get_invalid_char_replacement(invalid_char)
 
         if replacement_char == invalid_char:
             # Unhandled case
-            self.editor.process_unhandled_char(name, invalid_char)
+            self.process_unhandled_char(name, invalid_char)
             return name
 
         elif not replacement_char:
-            return self.editor.remove_string(name, invalid_char)
+            return self.remove_string(name, invalid_char)
 
         else:
-            return self.editor.replace_string(name, invalid_char, replacement_char)
+            return self.replace_string(name, invalid_char, replacement_char)
 
     def find_bad_string_patterns(self, name):
         bad_strings = []
@@ -154,7 +154,7 @@ class StringEditor(object):
     def clean_whitespace_and_cruft(self, name):
 
         while '  ' in name:
-            name = self.editor.replace_string(name, '  ', ' ')
+            name = self.replace_string(name, '  ', ' ')
 
         # Remove cruft from the start and end
         for regex in ['^[-_ ]+', '[-_ ]+$']:
