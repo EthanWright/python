@@ -8,22 +8,21 @@ replace_strings = [
     ('&', 'and'),
     (' _ ', ' '),
     ('.0', '_0'),
-    ('[', '('),  # TODO ?
-    (']', ')'),  # TODO ?
+    ('[', '('),  # TODO
+    (']', ')'),  # TODO
     ('  ', ' '),
-    # ('$', 'S'),  # TODO ?
+    # ('$', 'S'),  # TODO
     (' x ', ' and '),
-    (',', ' and'),  # TODO ??
+    (',', ' and'),  # TODO
 ]
 
 remove_strings = [
     # Single Characters
     '?', '\'', '\\', '/', '"', '`', '.',
 
-    # Phrases
+    # Specific Phrases
     'Melodic Dubstep',
     'MrSuicideSheep',
-    'A Thousand Arms',
     # 'Official',
     'lyrics',
     'Lyrics',
@@ -36,21 +35,13 @@ remove_strings = [
 ]
 
 replace_chars_mapping = {
-    200: 'E',
-    201: 'E',
+    200: 'E', 201: 'E',
     216: 'O',
     220: 'U',
-    225: 'a',
-    228: 'a',
-    229: 'a',
-    232: 'e',
-    233: 'e',
-    235: 'e',
-    237: 'i',
-    239: 'i',
-    243: 'o',
-    246: 'o',
-    248: 'o',
+    225: 'a', 228: 'a', 229: 'a',
+    232: 'e', 233: 'e', 235: 'e',
+    237: 'i', 239: 'i',
+    243: 'o', 246: 'o', 248: 'o',
     251: 'u',
     770: '^',
     8210: '-',
@@ -62,13 +53,16 @@ replace_chars_mapping = {
 }
 
 remove_char_codes = [
-    176, 768, 769, 776, 1770, 1771, 1776, 3663, 8217, 12511, 65366, 24417
+    176, 768, 769, 776, 1770, 1771, 1776, 3663, 8203, 8217, 12511, 65366, 24417
 ]
 
 invalid_extensions = ['jpg', 'txt', 'png', 'py', 'ini']
 
 ###################################################
 
+improper_format_regexes = [
+    '[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
+]
 # Find parts of the title that potentially should be removed
 potential_problem_regexes = [
     '(\[[^\]]*\])',  # [string]
@@ -105,6 +99,7 @@ acceptable_phrases = [
     '(Inspired by',  # lol
     #  Specific songs
     '(III)',
+    'to gold)',
     'Breathe in)',
     'Hit Rewind)',
     'Everything is Everything)',

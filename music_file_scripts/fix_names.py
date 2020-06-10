@@ -18,8 +18,10 @@ class FixFileNames(object):
         self.editor = StringEditor()
         self.commit = commit
         if not self.commit:
-            print('NOT ', end='', flush=True)
-        print("Commiting Changes")
+            print('~~~ NOT Commiting Changes! ~~~')
+            print('Change the commit flag to persist changes')
+        else:
+            print("Commiting Changes!")
 
     def fix_file_names(self, directory):
         for file_name in os.listdir(directory):
@@ -38,7 +40,7 @@ class FixFileNames(object):
             self.editor.rename_file(
                 os.path.join(directory, file_name),
                 os.path.join(directory, new_file_name),
-                commit=self.commit  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
+                commit=self.commit
             )
 
     def get_new_name(self, file_name):
@@ -168,6 +170,10 @@ class StringEditor(object):
         # Ensure formatting is correct
         if ' - ' not in name:
             return False
+
+        for regex in improper_format_regexes:
+            if re.findall(regex, name):
+                return False
 
         # Is there repetitive information in the title?
         sections = name.lower().strip().split(' - ')
@@ -305,8 +311,7 @@ class Stats(object):
 ########################################################################################################
 
 if __name__ == '__main__':
-
-    music_directory = r'C:\Users\Mimorox\Documents\Music\post_rock\full_albums\liked\individual_songs'
+    music_directory = r'C:\Users\Mimorox\Documents\Programming\Python\youtube_song_downloader\output'
 
     # commit = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
     commit = False
