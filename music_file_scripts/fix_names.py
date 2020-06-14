@@ -11,22 +11,20 @@ import re
 from string_definitions import *
 from functools import reduce
 
+from common import list_music_files, rename_file_safe
+from paths import MUSIC_DIR
+
 
 class FixFileNames(object):
 
-    def __init__(self, commit=False):
-        self.editor = StringEditor()
-        self.commit = commit
-        if not self.commit:
-            print('~~~ NOT Commiting Changes! ~~~')
-            print('Change the commit flag to persist changes')
-        else:
-            print("Commiting Changes!")
+    def __init__(self, verbose=False, commit=False):
+        self.editor = StringEditor(verbose=verbose, commit=commit)
 
-    def fix_file_names(self, directory):
-        for file_name in os.listdir(directory):
-            if os.path.isfile(os.path.join(directory, file_name)):
-                self.fix_file_name(directory, file_name)
+    def fix_file_names(self, sub_directory):
+        self.editor._print_is_commit_true_or_false()
+        directory = os.path.join(MUSIC_DIR, sub_directory)
+        for file_name in list_music_files(directory):
+            self.fix_file_name(directory, file_name)
 
         self.editor.stats.print_final_report()
 
@@ -35,13 +33,9 @@ class FixFileNames(object):
         if extension not in invalid_extensions:
             new_song_title = self.get_new_name(song_title)
             self.editor.check_formatting(new_song_title)
-            new_file_name = new_song_title + '.' + extension
-
-            self.editor.rename_file(
-                os.path.join(directory, file_name),
-                os.path.join(directory, new_file_name),
-                commit=self.commit
-            )
+            if new_song_title != song_title:
+                new_file_name = new_song_title + '.' + extension
+                self.editor.rename_file(directory, file_name, new_file_name)
 
     def get_new_name(self, file_name):
         new_name = copy.deepcopy(file_name)
@@ -87,15 +81,17 @@ class FixFileNames(object):
 
 class StringEditor(object):
 
-    def __init__(self):
+    def __init__(self, verbose=False, commit=False):
         self.stats = Stats()
+        self.verbose = verbose
+        self.commit = commit
 
     def replace_string(self, name, find_val, replace_val):
         if find_val not in name:
             return name
 
         if not replace_val:
-            return remove_string(name, find_val)
+            return self.remove_string(name, find_val)
 
         self._log(f'\'{find_val}\' is going to replaced with \'{replace_val}\' in\n{name}')
         self.stats.replaced.append(find_val)
@@ -167,29 +163,23 @@ class StringEditor(object):
         return name
 
     def check_formatting(self, name):
-        # Ensure formatting is correct
-        if ' - ' not in name:
-            return False
+        if not self._check_formatting(name):
+            self.stats.improper_formatting.append(name)
 
-        for regex in improper_format_regexes:
-            if re.findall(regex, name):
-                return False
+    def rename_file(self, directory, file_name, new_file_name):
+        # self._log(f'Original |{current_path}\nUpdated  |{new_path}\n')
+        rename_file_safe(directory, file_name, new_file_name, verbose=self.verbose,  commit=self.commit)
 
-        # Is there repetitive information in the title?
-        sections = name.lower().strip().split(' - ')
-        length = len(sections)
-        if length > 2:
-            for x in range(length):
-                for y in range(length):
-                    if y != x and sections[x] in sections[y] and 'mix' not in sections[y].lower():
-                        self.stats.improper_formatting.append(name)
-                        return False
-        return True
+    def _print_is_commit_true_or_false(self):
+        if not self.commit:
+            print('~~~ NOT Commiting Changes! ~~~')
+            print('Change the commit flag to persist changes')
+        else:
+            print("!!! Commiting Changes !!!")
 
-    def rename_file(self, current_name, new_name, commit=False):
-        self._log(f'Original |{current_name}\nUpdated  |{new_name}\n')
-        if commit:
-            os.rename(current_name, new_name)
+    def _log(self, message):
+        if self.verbose:
+            print(message)
 
     ######################################################
     ### String Utils ###
@@ -243,6 +233,26 @@ class StringEditor(object):
         return False
 
     @staticmethod
+    def _check_formatting(name):
+        # Ensure formatting is correct
+        if ' - ' not in name:
+            return False
+
+        for regex in improper_format_regexes:
+            if re.findall(regex, name):
+                return False
+
+        # Is there repetitive information in the title?
+        sections = name.lower().strip().split(' - ')
+        length = len(sections)
+        if length > 2:
+            for x in range(length):
+                for y in range(length):
+                    if y != x and sections[x] in sections[y] and 'mix' not in sections[y].lower():
+                        return False
+        return True
+
+    @staticmethod
     def _execute_replace(name, find_val, replace_val):
         return name.replace(find_val, replace_val)
 
@@ -250,15 +260,10 @@ class StringEditor(object):
     def _execute_crop(name, start, end):
         return name[start:end], name[0:start] + name[end:-1]
 
-    @staticmethod
-    def _log(message):
-        return
-        print(message)
-
-
 ######################################################
 ### Stats ###
 ######################################################
+
 
 class Stats(object):
 
@@ -311,11 +316,17 @@ class Stats(object):
 ########################################################################################################
 
 if __name__ == '__main__':
-    music_directory = r'C:\Users\Mimorox\Documents\Programming\Python\youtube_song_downloader\output'
+    # music_directory = 'most_music'
+    # music_directory = 'liked'
+    # music_directory = 'post_rock'
+    # music_directory = r'post_rock\full_albums\liked'
+    # music_directory = r'post_rock\full_albums\liked_plus\individual_songs'
+    # music_directory = r'post_rock\full_albums\liked\individual_songs'
+    music_directory = r'post_rock\full_albums\to_listen_to'
 
-    # commit = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
-    commit = False
-    name_fixer = FixFileNames(commit)
+    PERFORM_COMMIT = False
+    # PERFORM_COMMIT = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
+    name_fixer = FixFileNames(verbose=False, commit=PERFORM_COMMIT)
     name_fixer.fix_file_names(music_directory)
 
 ########################################################################################################

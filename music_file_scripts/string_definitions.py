@@ -14,11 +14,12 @@ replace_strings = [
     # ('$', 'S'),  # TODO
     (' x ', ' and '),
     (',', ' and'),  # TODO
+    # ('April Rain - April Rain', 'April Rain'),
 ]
 
 remove_strings = [
     # Single Characters
-    '?', '\'', '\\', '/', '"', '`', '.',
+    '?', '\'', '\\', '/', '"', '`', '.', '#', '*'
 
     # Specific Phrases
     'Melodic Dubstep',
@@ -32,19 +33,24 @@ remove_strings = [
     'HQ',
     # '(Dubstep ',
     # '(DnB ',
+    'Post rock and Post metal Compilation - ',
+    'Post Rock Mix - ',
 ]
 
 replace_chars_mapping = {
+    198: 'AE',
     200: 'E', 201: 'E',
     216: 'O',
     220: 'U',
     225: 'a', 228: 'a', 229: 'a',
+    230: 'ae',
     232: 'e', 233: 'e', 235: 'e',
     237: 'i', 239: 'i',
     243: 'o', 246: 'o', 248: 'o',
     251: 'u',
     770: '^',
     8210: '-',
+    8211: '-',
     8710: 'A',
     10096: '(',
     10097: ')',
@@ -68,6 +74,7 @@ potential_problem_regexes = [
     '(\[[^\]]*\])',  # [string]
     '(\([^\)]*\))',  # (string)
     '- ([01]?[0-9]) ',  # (1 ) / (01 ) / (15 ) / etc
+    '\)( 20[12][0-9])',
 ]
 acceptable_regexes = [
     '([rR][eE]?)?[mM][iI]?[xX][\)\]]',  # Remix) or Mix)  # TODO Test that this works
@@ -94,9 +101,11 @@ acceptable_phrases = [
     'Refix)',
     '(Full Album',
     '(Full EP',
-    '(Side A',
+    '(The best of',
+    '(Side ',
     '(with ',
     '(Inspired by',  # lol
+
     #  Specific songs
     '(III)',
     'to gold)',
@@ -105,4 +114,18 @@ acceptable_phrases = [
     'Everything is Everything)',
     'Everything Oscillates)',
     'they are everyone)',
+
+    '(1 and 2',
+    '(3)',
+    '(4)',
+    '(5)',
+    '(Mars)',
+    '(Black Sky)',
+    '(Theories)',
+    '(Bones)',
+    '(Ocean)',
+    '(Question)',
+    '(Land)',
+    '(Think)',
+    '(Temple Keepers)',
 ]
