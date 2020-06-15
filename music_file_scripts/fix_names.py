@@ -21,7 +21,7 @@ class FixFileNames(object):
         self.editor = StringEditor(verbose=verbose, commit=commit)
 
     def fix_file_names(self, sub_directory):
-        self.editor._print_is_commit_true_or_false()
+        self.editor.print_is_commit_true_or_false()
         directory = os.path.join(MUSIC_DIR, sub_directory)
         for file_name in list_music_files(directory):
             self.fix_file_name(directory, file_name)
@@ -29,6 +29,7 @@ class FixFileNames(object):
         self.editor.stats.print_final_report()
 
     def fix_file_name(self, directory, file_name):
+        self.editor.log_message(f'Checking: "{file_name}"')
         song_title, extension = file_name.rsplit('.', 1)
         if extension not in invalid_extensions:
             new_song_title = self.get_new_name(song_title)
@@ -93,20 +94,20 @@ class StringEditor(object):
         if not replace_val:
             return self.remove_string(name, find_val)
 
-        self._log(f'\'{find_val}\' is going to replaced with \'{replace_val}\' in\n{name}')
+        self.log_message(f'\'{find_val}\' is going to replaced with \'{replace_val}\' in\n{name}')
         self.stats.replaced.append(find_val)
         return self._execute_replace(name, find_val, replace_val)
 
     def crop_string(self, name, start, end):
         removed_string, remaining_string = self._execute_crop(name, start, end)
-        self._log(f'\'{name}\' is going to be cropped of \'{removed_string}\'')
+        self.log_message(f'\'{name}\' is going to be cropped of \'{removed_string}\'')
         self.stats.removed.append(removed_string)
         return remaining_string
 
     def remove_string(self, name, bad_string):
         if bad_string not in name:
             return name
-        self._log(f'\'{bad_string}\' Is going to be Removed in\n{name}')
+        self.log_message(f'\'{bad_string}\' Is going to be Removed in\n{name}')
         self.stats.removed.append(bad_string)
         return self._execute_replace(name, bad_string, '')
 
@@ -115,13 +116,13 @@ class StringEditor(object):
         if not remix_artist or self.already_has_remix_artist(name, remix_artist):
             return name
 
-        self._log(f'Pre-pending Remix Artist: \'{remix_artist}\'')
+        self.log_message(f'Pre-pending Remix Artist: \'{remix_artist}\'')
         self.stats.remixed.append(remix_artist)
         return remix_artist + ' - ' + name
 
     def process_unhandled_char(self, name, invalid_char):
-        print(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided.\n{name}')
-        self._log(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + ') No replacement provided')
+        self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided\n{name}', loud=True)
+        # self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided', loud=True)
         self.stats.unhandled.append(invalid_char)
 
     def replace_invalid_char(self, name, invalid_char):
@@ -167,18 +168,20 @@ class StringEditor(object):
             self.stats.improper_formatting.append(name)
 
     def rename_file(self, directory, file_name, new_file_name):
-        # self._log(f'Original |{current_path}\nUpdated  |{new_path}\n')
+        if file_name == new_file_name:
+            return
+        # self.log_message(f'Original |{file_name}\nUpdated  |{new_file_name}\n')  # Spammy
         rename_file_safe(directory, file_name, new_file_name, verbose=self.verbose,  commit=self.commit)
 
-    def _print_is_commit_true_or_false(self):
+    def print_is_commit_true_or_false(self):
         if not self.commit:
             print('~~~ NOT Commiting Changes! ~~~')
             print('Change the commit flag to persist changes')
         else:
             print("!!! Commiting Changes !!!")
 
-    def _log(self, message):
-        if self.verbose:
+    def log_message(self, message, loud=False):
+        if self.verbose or loud:
             print(message)
 
     ######################################################
@@ -320,12 +323,14 @@ if __name__ == '__main__':
     # music_directory = 'liked'
     # music_directory = 'post_rock'
     # music_directory = r'post_rock\full_albums\liked'
-    # music_directory = r'post_rock\full_albums\liked_plus\individual_songs'
     # music_directory = r'post_rock\full_albums\liked\individual_songs'
-    music_directory = r'post_rock\full_albums\to_listen_to'
+    # music_directory = r'post_rock\full_albums\liked_plus'
+    # music_directory = r'post_rock\full_albums\liked_plus\individual_songs'
+    # music_directory = r'post_rock\full_albums\to_listen_to'
+    music_directory = r'post_rock\full_albums\to_listen_to\individual_songs'
 
-    PERFORM_COMMIT = False
     # PERFORM_COMMIT = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
+    PERFORM_COMMIT = False
     name_fixer = FixFileNames(verbose=False, commit=PERFORM_COMMIT)
     name_fixer.fix_file_names(music_directory)
 

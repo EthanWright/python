@@ -7,6 +7,7 @@ def call_ffmpeg(command):
 
     stdout = stdout.decode('utf-8', 'replace')
     if p.returncode != 0:
+        print(stdout)
         raise Exception(stdout.strip().split('\n')[-1])
 
     return result.decode('utf-8', 'replace'), stdout

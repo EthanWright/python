@@ -14,14 +14,15 @@ replace_strings = [
     # ('$', 'S'),  # TODO
     (' x ', ' and '),
     (',', ' and'),  # TODO
-    # ('April Rain - April Rain', 'April Rain'),
+    (' - - ', ' - '),
+    # ('(A)', 'A'),
 ]
 
-remove_strings = [
-    # Single Characters
+remove_chars = [
     '?', '\'', '\\', '/', '"', '`', '.', '#', '*'
+]
 
-    # Specific Phrases
+remove_phrases = [
     'Melodic Dubstep',
     'MrSuicideSheep',
     # 'Official',
@@ -35,40 +36,57 @@ remove_strings = [
     # '(DnB ',
     'Post rock and Post metal Compilation - ',
     'Post Rock Mix - ',
+    'Psybient Greatest Anthems All Time Mix - ',
+    'A Thousand Arms -',
+    'Best Of Post Rock - ',
+    'Black Hill and heklAa - ',
+    'Alienation (Synthwave - ',
+    'Below The Frost Line - ',
 ]
 
+remove_strings = remove_chars + remove_phrases
+
 replace_chars_mapping = {
+    171: '(', 187: ')',
+    192: 'A', 193: 'A', 194: 'A', 195: 'A', 196: 'A', 197: 'A',
     198: 'AE',
-    200: 'E', 201: 'E',
-    216: 'O',
-    220: 'U',
-    225: 'a', 228: 'a', 229: 'a',
+    199: 'C',
+    200: 'E', 201: 'E', 202: 'E', 203: 'E',
+    204: 'I', 205: 'I', 206: 'I', 207: 'I',
+    208: 'D',
+    209: 'N',
+    210: 'O', 211: 'O', 212: 'O', 213: 'O', 214: 'O', 216: 'O',
+    217: 'U', 218: 'U', 219: 'U', 220: 'U',
+    221: 'Y',
+    224: 'a', 225: 'a', 226: 'a', 227: 'a', 228: 'a', 229: 'a',
     230: 'ae',
-    232: 'e', 233: 'e', 235: 'e',
-    237: 'i', 239: 'i',
-    243: 'o', 246: 'o', 248: 'o',
-    251: 'u',
+    231: 'c',
+    232: 'e', 233: 'e', 234: 'e', 235: 'e',
+    236: 'i', 237: 'i', 238: 'i', 239: 'i',
+    241: 'n',
+    240: 'o', 242: 'o', 243: 'o', 244: 'o', 245: 'o', 246: 'o', 248: 'o',
+    251: 'u', 252: 'u',
+    337: 'o',
     770: '^',
-    8210: '-',
-    8211: '-',
+    8210: '-', 8211: '-', 8212: '-',
     8710: 'A',
-    10096: '(',
-    10097: ')',
-    12304: '(',
-    12305: ')',
+    10096: '(', 10097: ')', 12304: '(', 12305: ')',
 }
 
 remove_char_codes = [
-    176, 768, 769, 776, 1770, 1771, 1776, 3663, 8203, 8217, 12511, 65366, 24417
+    176, 768, 769, 776, 1770, 1771, 1776, 3663, 8203, 8217, 8220, 8221, 12511, 24417, 65366,
 ]
 
-invalid_extensions = ['jpg', 'txt', 'png', 'py', 'ini']
+invalid_extensions = ['txt', 'jpg', 'png', 'py', 'ini']
 
 ###################################################
 
 improper_format_regexes = [
     '[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
 ]
+
+###################################################
+
 # Find parts of the title that potentially should be removed
 potential_problem_regexes = [
     '(\[[^\]]*\])',  # [string]
@@ -103,6 +121,7 @@ acceptable_phrases = [
     '(Full EP',
     '(The best of',
     '(Side ',
+    '(Part',
     '(with ',
     '(Inspired by',  # lol
 
@@ -115,7 +134,8 @@ acceptable_phrases = [
     'Everything Oscillates)',
     'they are everyone)',
 
-    '(1 and 2',
+    '17',
+    '(1 and 2)',
     '(3)',
     '(4)',
     '(5)',
@@ -128,4 +148,8 @@ acceptable_phrases = [
     '(Land)',
     '(Think)',
     '(Temple Keepers)',
+    '(Second Chance)',
+    '(New Born)',
+    '(lat)',
+    '(Sleep Paralysis)',
 ]

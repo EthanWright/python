@@ -1,19 +1,29 @@
+"""
+Use ffmpeg CLI commands to split songs based on their chapter metadata
+
+Expected format of metadata is:
+;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=274000\ntitle=On Fire\n[CHAPTER]\n...
+With each [CHAPTER] delineating track info.
+Timestamps are in milliseconds (?)
+
+Ethan Wright 6/15/20
+"""
+
 import os
 import re
-import subprocess
-import time
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from paths import MUSIC_DIR
 
 
-def run(source_file_path, song_dir=None, error_dir=None):
+def run(source_file_path, song_dir=None, error_dir=None, done_dir=None):
     metadata, stdout = get_metadata(source_file_path)
     split_data = parse_metadata_for_chapters(metadata)
     if len(split_data) == 0:
         return mark_as_error(source_file_path, error_dir)
     purl = extract_field_from_stdout(stdout, 'purl')
     split_file(source_file_path, split_data, purl, output_subdir=song_dir)
+    mark_as_done(source_file_path, output_subdir=done_dir)
 
 
 def extract_field_from_stdout(stdout, stdout_field):
@@ -47,17 +57,27 @@ def clean_title(title):
         title = title.split('.', 1)[1].strip()
 
     # Remove characters that mess with ffmpeg cli commands
-    bad_chars = ['?', '\'', '\\', '"', '`', '#', '*']
+    bad_chars = '?"`#*<>:|.,\'\\'
     for char in bad_chars:
         title = title.replace(char, '')
     title = title.replace('/', ' ')
-    return title
+
+    # Limit of 159 chars for a file name. '.opus' is 5, so trim title to 154
+    return title[:154]
+
+
+def mark_as_done(source_file_path, output_subdir=None):
+    move_to_subdir(source_file_path, output_subdir)
 
 
 def mark_as_error(source_file_path, output_subdir=None):
-    source_dir, name = source_file_path.rsplit('\\', 1)
+    print(f'Can not split file. Marking as error: {source_file_path}')
+    move_to_subdir(source_file_path, output_subdir)
+
+
+def move_to_subdir(source_file_path, output_subdir):
     if output_subdir:
-        print(f'Can not split file. Marking as error: {target_file_path}')
+        source_dir, name = source_file_path.rsplit('\\', 1)
         target_file_path = os.path.join(source_dir, output_subdir, name)
         os.rename(source_file_path, target_file_path)
 
@@ -73,8 +93,13 @@ def split_file(source_file_path, split_data, purl, output_subdir=None):
         raise Exception(f'Output directory does not exist: {output_directory}')
 
     print(f'Splitting File: {source_file_name}')
-    artist = source_file_name.split(' - ', 1)[0]
     extension = source_file_name.rsplit('.', 1)[1]
+    artist = source_file_name.split(' - ', 1)[0]
+
+    # Remove `Best of`
+    result = re.match(f'[bB]est of (.*)\.{extension}', artist)
+    if result:
+        artist = result.group(1).strip()
 
     for data in split_data:
         start_timestamp = data.get('start_timestamp')
@@ -103,9 +128,11 @@ def split_file(source_file_path, split_data, purl, output_subdir=None):
 if __name__ == '__main__':
 
     song_output_dir = 'individual_songs'
-    error_output_dir = 'can_not_split'
+    error_output_dir = 'no_metadata'
+    done_output_dir = 'already_split'
     input_subdirectory = r'post_rock\full_albums\to_listen_to'
     # input_subdirectory = r'post_rock\full_albums\liked_plus'
+    # input_subdirectory = r'post_rock\full_albums\liked'
     directory = os.path.join(MUSIC_DIR, input_subdirectory)
 
     files = os.listdir(directory)
@@ -114,4 +141,4 @@ if __name__ == '__main__':
         # continue
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
-            run(file_path, song_dir=song_output_dir, error_dir=error_output_dir)
+            run(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir)
