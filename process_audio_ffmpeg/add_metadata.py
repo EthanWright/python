@@ -1,3 +1,24 @@
+"""
+Use ffmpeg CLI commands to add metadata to a song
+The metadata should be supplied in a txt file named
+the same name as the song file + '.txt'
+
+Expected format of metadata is:
+;FFMETADATA1
+[CHAPTER]
+TIMEBASE=1/1000
+START=0
+END=274000
+title=On Fire
+[CHAPTER]
+...
+
+With each [CHAPTER] delineating track info.
+Timestamps are in milliseconds (?)
+
+Ethan Wright - 6/11/20
+"""
+
 import io
 import os
 import re

@@ -2,7 +2,15 @@
 Use ffmpeg CLI commands to split songs based on their chapter metadata
 
 Expected format of metadata is:
-;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=274000\ntitle=On Fire\n[CHAPTER]\n...
+;FFMETADATA1
+[CHAPTER]
+TIMEBASE=1/1000
+START=0
+END=274000
+title=On Fire
+[CHAPTER]
+...
+
 With each [CHAPTER] delineating track info.
 Timestamps are in milliseconds (?)
 
