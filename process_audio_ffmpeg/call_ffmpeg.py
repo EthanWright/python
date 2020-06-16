@@ -1,3 +1,8 @@
+"""
+Execute ffmpeg CLI commands via subprocess calls
+
+Ethan Wright - 6/11/20
+"""
 import subprocess
 
 

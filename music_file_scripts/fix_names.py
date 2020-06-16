@@ -11,7 +11,7 @@ import re
 from string_definitions import *
 from functools import reduce
 
-from common import list_music_files, rename_file_safe
+from common import list_music_files, rename_file_safe, invalid_music_extensions
 from paths import MUSIC_DIR
 
 
@@ -31,7 +31,7 @@ class FixFileNames(object):
     def fix_file_name(self, directory, file_name):
         self.editor.log_message(f'Checking: "{file_name}"')
         song_title, extension = file_name.rsplit('.', 1)
-        if extension not in invalid_extensions:
+        if extension not in invalid_music_extensions:
             new_song_title = self.get_new_name(song_title)
             self.editor.check_formatting(new_song_title)
             if new_song_title != song_title:
@@ -328,6 +328,7 @@ if __name__ == '__main__':
     # music_directory = r'post_rock\full_albums\liked_plus\individual_songs'
     # music_directory = r'post_rock\full_albums\to_listen_to'
     music_directory = r'post_rock\full_albums\to_listen_to\individual_songs'
+    # music_directory = r'post_rock\to_sort\individual_songs_liked_plus'
 
     # PERFORM_COMMIT = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
     PERFORM_COMMIT = False

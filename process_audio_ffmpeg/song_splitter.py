@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     song_output_dir = 'individual_songs'
     error_output_dir = 'no_metadata'
-    done_output_dir = 'already_split'
+    done_output_dir = 'split_albums'
     input_subdirectory = r'post_rock\full_albums\to_listen_to'
     # input_subdirectory = r'post_rock\full_albums\liked_plus'
     # input_subdirectory = r'post_rock\full_albums\liked'

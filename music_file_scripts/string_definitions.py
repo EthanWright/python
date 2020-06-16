@@ -42,9 +42,12 @@ remove_phrases = [
     'Black Hill and heklAa - ',
     'Alienation (Synthwave - ',
     'Below The Frost Line - ',
+    'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3) - ',
 ]
 
 remove_strings = remove_chars + remove_phrases
+
+#####################################################################################################
 
 replace_chars_mapping = {
     171: '(', 187: ')',
@@ -69,6 +72,7 @@ replace_chars_mapping = {
     337: 'o',
     770: '^',
     8210: '-', 8211: '-', 8212: '-',
+    8226: 'and',
     8710: 'A',
     10096: '(', 10097: ')', 12304: '(', 12305: ')',
 }
@@ -77,15 +81,13 @@ remove_char_codes = [
     176, 768, 769, 776, 1770, 1771, 1776, 3663, 8203, 8217, 8220, 8221, 12511, 24417, 65366,
 ]
 
-invalid_extensions = ['txt', 'jpg', 'png', 'py', 'ini']
-
-###################################################
+#####################################################################################################
 
 improper_format_regexes = [
     '[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
 ]
 
-###################################################
+#####################################################################################################
 
 # Find parts of the title that potentially should be removed
 potential_problem_regexes = [
@@ -117,8 +119,8 @@ acceptable_phrases = [
     'Explicit)',
     'Japanese)',
     'Refix)',
+    'EP)',
     '(Full Album',
-    '(Full EP',
     '(The best of',
     '(Side ',
     '(Part',
@@ -134,6 +136,7 @@ acceptable_phrases = [
     'Everything Oscillates)',
     'they are everyone)',
 
+    # '3',
     '17',
     '(1 and 2)',
     '(3)',
@@ -152,4 +155,5 @@ acceptable_phrases = [
     '(New Born)',
     '(lat)',
     '(Sleep Paralysis)',
+    '(The Ash of Ruin)',
 ]
