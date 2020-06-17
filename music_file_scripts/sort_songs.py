@@ -70,8 +70,8 @@ POSSIBLE_RATINGS = ['', '-', '+', '++', '--']
 
 """
 TODO
-Rearrange classes
 Add process_diff and print_new_master_list to the diff class?
+Move list comparing to it's own file?
 Invert dictionaries to list of tuples (name, rating) for easier parsing during the diff?
 """
 

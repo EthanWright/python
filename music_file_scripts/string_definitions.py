@@ -23,6 +23,7 @@ remove_chars = [
 ]
 
 remove_phrases = [
+    'added_metadata_',
     'Melodic Dubstep',
     'MrSuicideSheep',
     # 'Official',
@@ -156,4 +157,18 @@ acceptable_phrases = [
     '(lat)',
     '(Sleep Paralysis)',
     '(The Ash of Ruin)',
+
+    '(The Last Dawn)',
+    '(Hymn to the Immortal Wind)',
+    '(Walking Cloud and Deep Red Sky Flag Fluttered and the Sun Shined)',
+    '(Requiem for Hell)',
+    '(You Are There)',
+    '(For My Parents)',
+    '(Bonus track)',
+    '(Rays of Darkness)',
+    '(Trails of the Winter Storm)',
+    '(One Step More and You’ll Die)',
+    '(beautiful days)',
+    '(Together We Go)',
+
 ]

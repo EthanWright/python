@@ -113,7 +113,7 @@ def run(directory):
 
     files = os.listdir(directory)
     for file_name in files:
-        if not os.path.isdir(os.path.join(directory, file_name)) and not file_name.startswith('added_me'):
+        if not os.path.isdir(os.path.join(directory, file_name)) and not file_name.startswith('added_metadata'):
             add_metadata_from_file(directory, file_name)
 
 

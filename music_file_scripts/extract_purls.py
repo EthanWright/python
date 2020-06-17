@@ -1,3 +1,8 @@
+"""
+Traverse directories and extract the `purl` metadata value from the files
+
+Ethan Wright - 6/11/20
+"""
 import os
 import re
 

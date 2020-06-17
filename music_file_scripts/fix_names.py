@@ -326,8 +326,8 @@ if __name__ == '__main__':
     # music_directory = r'post_rock\full_albums\liked\individual_songs'
     # music_directory = r'post_rock\full_albums\liked_plus'
     # music_directory = r'post_rock\full_albums\liked_plus\individual_songs'
-    # music_directory = r'post_rock\full_albums\to_listen_to'
-    music_directory = r'post_rock\full_albums\to_listen_to\individual_songs'
+    music_directory = r'post_rock\full_albums\to_listen_to'
+    # music_directory = r'post_rock\full_albums\to_listen_to\individual_songs'
     # music_directory = r'post_rock\to_sort\individual_songs_liked_plus'
 
     # PERFORM_COMMIT = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
