@@ -11,10 +11,17 @@ from credentials import Credentials
 SLASH = '/'
 
 
-def call_youtube_api(url_base, api_endpoint, params, headers=None):
-    # Add API key
+def get_api_key():
     credentials = Credentials('youtube')
-    params['key'] = credentials.get('api_key')
+    return credentials.get('api_key')
+
+
+def get_client_id_and_secret():
+    credentials = Credentials('youtube')
+    return credentials.get('client_id'), credentials.get('client_secret')
+
+
+def call_youtube_api(url_base, api_endpoint, params, headers=None):
 
     api_endpoint = api_endpoint.replace(SLASH, '')
     if url_base[-1] != SLASH:
@@ -23,6 +30,7 @@ def call_youtube_api(url_base, api_endpoint, params, headers=None):
     response = requests.get(url_base + api_endpoint, params=params, headers=headers)
 
     if response.status_code == 200:
+        import pdb;pdb.set_trace()
         result = response.json()
     else:
         import pdb;pdb.set_trace()

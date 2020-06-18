@@ -6,7 +6,7 @@ https://developers.google.com/youtube/v3/docs/playlistItems/list
 import json
 import os
 
-from call_youtube_api import call_youtube_api
+from call_youtube_api import call_youtube_api, get_api_key
 
 url_base = 'https://www.googleapis.com/youtube/v3'
 youtube_video_url = r'https://www.youtube.com/watch?v='
@@ -17,7 +17,9 @@ def get_videos_by_playlist_id(playlist_id):
 
     results_per_page = 50
     videos = []
+
     params = {
+        'api_key': get_api_key(),
         'part': 'snippet',
         'playlistId': playlist_id,
         'maxResults': results_per_page,
