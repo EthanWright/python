@@ -82,7 +82,7 @@ def run():
     song_file_name = r'input\post_rock_songs_all.txt'
     song_file_path = os.path.join(files_to_sort_path, song_file_name)
 
-    # Terms: missing and extra are from the perspective of the computer
+    # Terms: `missing` and `extra` are from the perspective of the computer
     song_rating_dict = read_song_file(song_file_path)
     song_list_diff = compute_diff(files_to_sort_path, song_rating_dict)
     missing_entirely, super_extra = process_diff(files_to_sort_path, song_list_diff.missing, song_list_diff.extra, song_list_diff.mapping)

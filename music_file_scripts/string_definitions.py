@@ -35,15 +35,16 @@ remove_phrases = [
     'HQ',
     # '(Dubstep ',
     # '(DnB ',
-    'Post rock and Post metal Compilation - ',
-    'Post Rock Mix - ',
-    'Psybient Greatest Anthems All Time Mix - ',
+    'Post rock and Post metal Compilation',
+    'Post Rock Mix',
+    'Psybient Greatest Anthems All Time Mix',
     'A Thousand Arms -',
-    'Best Of Post Rock - ',
-    'Black Hill and heklAa - ',
-    'Alienation (Synthwave - ',
-    'Below The Frost Line - ',
-    'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3) - ',
+    'Best Of Post Rock',
+    'Black Hill and heklAa',
+    'Alienation (Synthwave',
+    'Below The Frost Line',
+    'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3)',
+    'Post-Whatever Switzerland',
 ]
 
 remove_strings = remove_chars + remove_phrases
@@ -167,8 +168,9 @@ acceptable_phrases = [
     '(Bonus track)',
     '(Rays of Darkness)',
     '(Trails of the Winter Storm)',
-    '(One Step More and You’ll Die)',
+    '(One Step More and Youll Die)',
     '(beautiful days)',
     '(Together We Go)',
+    '(Live At Old South Church)',
 
 ]
