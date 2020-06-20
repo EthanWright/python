@@ -12,7 +12,7 @@ import urllib.parse
 
 from call_youtube_api import call_youtube_api, get_client_id_and_secret
 
-token = 'ya29.a0AfH6SMBow9OfFLapK5dIJ6JXr2B-qHi_PHymM0eQ1JnaWssXRx_g1S7Bk7xS5DFeMrbU8PxsnoSwSemVU-BzEEnXuX0tsqnwp4LwAOAXr40HhfS4ekKxvFkTEGOgJdj5D7snhHpgzJo7ioOjkWMAJOpFNT4ELZl4Lvk'
+token = ''
 
 
 def get_oauth_token():
@@ -68,6 +68,6 @@ def write_to_txt(video_ids):
 
 if __name__ == '__main__':
     # Need to get a new access_token every hour(?) or so
-    # get_oauth_token()
-    liked_video_ids = get_liked_videos()
-    write_to_txt(liked_video_ids)
+    get_oauth_token()
+    # liked_video_ids = get_liked_videos()
+    # write_to_txt(liked_video_ids)

@@ -32,5 +32,9 @@ def split_into_file_name_and_extension(file_name):
     return file_name, None
 
 
+def has_file_extension(file_name):
+    return '.' in file_name[-5:]
+
+
 def remove_file_extension(file_name):
-    return split_file_name_from_extension(file_name)[0]
+    return split_into_file_name_and_extension(file_name)[0]

@@ -3,7 +3,7 @@ Rename Songs according to my liking
 
 Ethan Wright - 6/10/20
 """
-
+import argparse
 import copy
 import os
 import re
@@ -20,9 +20,8 @@ class FixFileNames(object):
     def __init__(self, verbose=False, commit=False):
         self.editor = StringEditor(verbose=verbose, commit=commit)
 
-    def fix_file_names(self, sub_directory):
+    def fix_file_names(self, directory):
         self.editor.print_is_commit_true_or_false()
-        directory = os.path.join(MUSIC_DIR, sub_directory)
         for file_name in list_music_files(directory):
             self.fix_file_name(directory, file_name)
 
@@ -121,8 +120,7 @@ class StringEditor(object):
         return remix_artist + ' - ' + name
 
     def process_unhandled_char(self, name, invalid_char):
-        self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided\n{name}', loud=True)
-        # self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided', loud=True)
+        self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided\n{name}', level=0)
         self.stats.unhandled.append(invalid_char)
 
     def replace_invalid_char(self, name, invalid_char):
@@ -170,7 +168,7 @@ class StringEditor(object):
     def rename_file(self, directory, file_name, new_file_name):
         if file_name == new_file_name:
             return
-        # self.log_message(f'Original |{file_name}\nUpdated  |{new_file_name}\n')  # Spammy
+        self.log_message(f'Original |{file_name}\nUpdated  |{new_file_name}\n', level=3)  # Spammy
         rename_file_safe(directory, file_name, new_file_name, verbose=self.verbose,  commit=self.commit)
 
     def print_is_commit_true_or_false(self):
@@ -180,8 +178,8 @@ class StringEditor(object):
         else:
             print("!!! Commiting Changes !!!")
 
-    def log_message(self, message, loud=False):
-        if self.verbose or loud:
+    def log_message(self, message, level=1):
+        if level >= self.verbose:
             print(message)
 
     ######################################################
@@ -319,19 +317,24 @@ class Stats(object):
 ########################################################################################################
 
 if __name__ == '__main__':
-    # music_directory = 'most_music'
-    # music_directory = 'liked'
-    # music_directory = 'post_rock'
-    # music_directory = r'post_rock\full_albums\liked'
-    # music_directory = r'post_rock\full_albums\liked\individual_songs'
-    # music_directory = r'post_rock\full_albums\liked_plus'
-    # music_directory = r'post_rock\full_albums\liked_plus\individual_songs'
-    # music_directory = r'post_rock\full_albums\to_listen_to'
-    music_directory = r'post_rock\full_albums\to_listen_to\individual_songs'
 
-    # PERFORM_COMMIT = True  # DO YOU ACTUALLY WANT TO RENAME THE FILE?
-    PERFORM_COMMIT = False
-    name_fixer = FixFileNames(verbose=False, commit=PERFORM_COMMIT)
+    parser = argparse.ArgumentParser(description='Fix Song Names')
+    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('--commit', action='store_true', help='Rename Files')
+    parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    args = parser.parse_args()
+
+    music_directory = args.directory
+    if not music_directory.startswith('C:/'):
+        music_directory = os.path.join(MUSIC_DIR, music_directory)
+
+    name_fixer = FixFileNames(verbose=args.verbose, commit=args.commit)
     name_fixer.fix_file_names(music_directory)
 
 ########################################################################################################
+
+r"""
+python fix_names.py post_rock\full_albums\to_listen_to -v
+python fix_names.py post_rock\full_albums\to_listen_to --commit
+python fix_names.py post_rock\full_albums\to_listen_to\individual_songs
+"""

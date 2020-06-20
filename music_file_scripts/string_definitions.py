@@ -45,6 +45,7 @@ remove_phrases = [
     'Below The Frost Line',
     'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3)',
     'Post-Whatever Switzerland',
+    'Post-Whatever India',
 ]
 
 remove_strings = remove_chars + remove_phrases
@@ -80,7 +81,7 @@ replace_chars_mapping = {
 }
 
 remove_char_codes = [
-    176, 768, 769, 776, 1770, 1771, 1776, 3663, 8203, 8217, 8220, 8221, 12511, 24417, 65366,
+    176, 768, 769, 776, 778, 1770, 1771, 1776, 3663, 8203, 8217, 8220, 8221, 12511, 24417, 65366,
 ]
 
 #####################################################################################################
