@@ -23,7 +23,7 @@ import io
 import os
 import re
 
-from call_ffmpeg import call_ffmpeg, get_metadata
+from call_ffmpeg import call_ffmpeg
 from paths import MUSIC_DIR
 
 

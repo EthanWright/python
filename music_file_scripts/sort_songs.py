@@ -58,6 +58,7 @@ Print sorted list back out, with `++` and `--` in a separate list
 import copy
 import os
 import re
+from pprint import pprint
 
 from common import (
     list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files, has_file_extension
@@ -66,31 +67,30 @@ from fix_names import FixFileNames
 from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR
 
 POSSIBLE_RATINGS = ['', '-', '+', '++', '--']
-END_OF_LIST = chr(128) * 8
-
-"""
-TODO
-Separate mapping 1 and 2
-Move dupes into folder
-Split DiffMultiLevelLists into sub class of something?
-If there is a duplicate in one list and both map to the same song in the other list, what happens?
-
-"""
+# END_OF_LIST = chr(128) * 8
+ffn = FixFileNames()
 
 
 def run():
-    files_to_sort_path = os.path.join(MUSIC_DIR, r'post_rock\to_sort')
+    file_sorting_path = os.path.join(MUSIC_DIR, r'post_rock\to_sort')
     song_file_name = r'input\post_rock_songs_all_sorted.txt'
-    song_file_path = os.path.join(files_to_sort_path, song_file_name)
+    song_file_path = os.path.join(file_sorting_path, song_file_name)
 
-    # Terms: `missing` and `extra` are from the perspective of the computer
+    song_file_dict = gather_file_names_from_path(file_sorting_path)
     song_rating_dict = read_song_file(song_file_path)
-    song_file_dict = gather_file_names_from_path(files_to_sort_path)
 
-    diff_lists = DiffMultiLevelLists(song_file_dict, song_rating_dict)
-    wrong_dir, missing, extra = diff_lists.compute_diff()
-    # diff_lists.apply_diff(wrong_dir, files_to_sort_path)
-    diff_lists.print_new_master_list(missing, extra)
+    song_file_list = MultiLevelList(song_file_dict, "Computer")
+    song_rating_list = MultiLevelList(song_rating_dict, "Master List")
+
+    diff = CompareMultiLevelLists(song_file_list, song_rating_list)
+    diff.print_results()
+    # TODO print list
+    # diff.print_new_master_list()
+
+    file_mover = ExecuteMove(file_sorting_path)
+    file_mover.apply_diff(diff.reconciled_1, diff.reconciled_2)
+    # TODO Get Dupes
+    # file_mover.move_dupes()
 
 
 def gather_file_names_from_path(files_to_sort_path):
@@ -118,264 +118,277 @@ def read_song_file(song_file_path):
     return song_rating_dict
 
 
-class CompareLists(object):
+class SongData(object):
+    def __init__(self, name, rating):
+        self.rating = rating
+        self.raw_text = name
+        self.id = self.simplify_file_name_fuzzier(name)
 
-    def __init__(self, list_1, list_2):
-        if not isinstance(list_1, SongList):
-            list_1 = SongList(list_1)
-        if not isinstance(list_2, SongList):
-            list_2 = SongList(list_2)
-        self.list_1 = list_1
-        self.list_2 = list_2
-        self.only_list_2 = []
-        self.only_list_1 = []
-        self.all_items = []
-        self._compare_lists()
+    def simplify_file_name_fuzzier(self, name):
+        return ffn.get_new_name(remove_file_extension(name)).lower()
 
-    def _compare_lists(self):
+    def __eq__(self, song_data):
 
-        while self.list_1.current_song != END_OF_LIST or self.list_2.current_song != END_OF_LIST:
+        if 7 < abs(len(remove_file_extension(self.raw_text)) - len(remove_file_extension(song_data.raw_text))):
+            return False
 
-            string_1 = self.list_1.current_song
-            string_2 = self.list_2.current_song
+        if self.id == song_data.id:
+            return True
 
-            # Track unique elements
-            if string_1 < string_2:
-                self.only_list_1.append(string_1)
-            elif string_1 > string_2:
-                self.only_list_2.append(string_2)
+        if self.id in song_data.id or song_data.id in self.id:
+            if self.id[-1] != song_data.id[-1]:
+                return True
 
-            # Advance position by removing whichever item comes first alphabetically
-            if string_1 <= string_2:
-                self.all_items.append('M: ' + string_1)
-                self.list_1.advance_position()
-            if string_1 >= string_2:
-                self.all_items.append('E: ' + string_2)
-                self.list_2.advance_position()
+        return False
+
+    def __gt__(self, song_data):
+        return self.id > song_data.id
+
+    def __repr__(self):
+        return self.rating + self.raw_text
 
 
-class SongList(object):
+class PrintList(object):
+
+    # def print_multi_list(self, multi_list, list_name):
+    #     all_items = self.flatten_dict_to_sorted_tuples(multi_list, [])  # , ['++', '--'])
+    #     duplicate_items = self.extract_dupes(all_items)
+    #
+    #     self.print_list_details(all_items, f'All Songs On {list_name}', print_everything=False)
+    #     self.print_list_details(duplicate_items, f'Duplicates on {list_name}', print_everything=True)
+
+    @staticmethod
+    def print_list_details(song_list, list_desc, print_everything=False):
+        print('- ' + list_desc + ' -\nCount: ' + str(len(song_list)))
+        if print_everything:
+            pprint([item.raw_text for item in song_list])
+        print('')
+
+
+class ListIterator(object):
 
     def __init__(self, starting_list):
-        self.dupes = []
+        # self.dupes = []
+        self.unique = []
         self.sorted_list = sorted(starting_list)
         self.total_items = len(self.sorted_list)
         self.list_pointer = 0
-        self.current_song = ''
-        self._set_current_song()
+        self.current_item = ''
+        self._set_current_item()
+
+    def start_iteration(self):
+        self.list_pointer = 0
+        self._set_current_item()
+        return self.current_item
+
+    def get_next(self, unique=False):
+        if unique:
+            self.unique.append(self.current_item)
+        self.advance_position()
+        return self.current_item
 
     def advance_position(self):
         self.list_pointer += 1
-        self._set_current_song()
+        self._set_current_item()
 
-    def _set_current_song(self):
+    def _set_current_item(self):
         if self.list_pointer < self.total_items:
-            file_name = remove_file_extension(self.sorted_list[self.list_pointer])
-            if self.current_song:
-                if file_name in self.current_song or self.current_song in file_name:
-                    self.dupes.append(file_name)
-            self.current_song = file_name
+            self.current_item = self.sorted_list[self.list_pointer]
         else:
-            self.current_song = END_OF_LIST
+            self.current_item = None
 
 
-class DiffMultiLevelLists(object):
-    ffn = FixFileNames()
+class MultiLevelList(object):
+    printer = PrintList()
 
-    def __init__(self, song_file_dict, song_rating_dict):
-        self.all_songs = {}
-        self.missing = {}
-        self.extra = {}
-        self.mapping_1 = {}
-        self.mapping_2 = {}
-        self.dupes_dict_1 = {}
-        self.dupes_dict_2 = {}
-        self.song_file_dict = song_file_dict
-        self.song_rating_dict = song_rating_dict
+    def __init__(self, song_dict, name):
+        self.name = name
+        self.all_songs = self._initialize_multi_level_list_from_dict(song_dict)
 
-    def simplify_file_name_fuzzier(self, name):
-        return self.ffn.get_new_name(remove_file_extension(name)).lower()
+    def get_sub_level(self, rating):
+        return self.all_songs.get(rating, [])
 
-    def simplify_list(self, song_list, number):
-        simplified = []
-        for song_title in song_list:
-            song_title_simplified = self.simplify_file_name_fuzzier(song_title)
-            simplified.append(song_title_simplified)
-            if number == 1:
-                self.mapping_1[song_title_simplified] = song_title
-            elif number == 2:
-                self.mapping_2[song_title_simplified] = song_title
-        return simplified
-
-    def get_sub_dicts_as_lists(self, rating):
-        # return (self.simplify_list(song_list.get(rating, [])) for song_list in [self.song_file_dict, self.song_rating_dict])
-        list_1 = self.song_file_dict.get(rating, [])
-        list_2 = self.song_rating_dict.get(rating, [])
-        return self.simplify_list(list_1, 1), self.simplify_list(list_2, 2)
-
-    def compute_diff_for_category(self, rating):
-
-        simple_computer_list, simple_master_list = self.get_sub_dicts_as_lists(rating)
-        self.all_songs[rating] = simple_master_list
-
-        compare_lists = CompareLists(simple_computer_list, simple_master_list)
-
-        self.missing[rating] = compare_lists.only_list_1
-        self.extra[rating] = compare_lists.only_list_2
-
-        # self.dupes_dict_1[rating] = [(item, rating) for item in compare_lists.list_1.dupes]
-        # self.dupes_dict_2[rating] = [(item, rating) for item in compare_lists.list_2.dupes]
-        self.dupes_dict_1[rating] = compare_lists.list_1.dupes
-        self.dupes_dict_2[rating] = compare_lists.list_2.dupes
-
-    def compute_diff(self):
+    @staticmethod
+    def _initialize_multi_level_list_from_dict(song_dict):
+        all_songs = {rating: [] for rating in POSSIBLE_RATINGS}
         for rating in POSSIBLE_RATINGS:
-            self.compute_diff_for_category(rating)
+            songs = []
+            for song_title in song_dict.get(rating, []):
+                songs.append(SongData(song_title, rating))
+            all_songs[rating] = ListIterator(songs)
+        return all_songs
 
-        return self.process_diff()
-
-    def apply_diff(self, files_to_move, base_directory):
-        for song_name, ratings in files_to_move.items():
-            new_location = '\\'.join([char for char in ratings[0]])
-            old_location = '\\'.join([char for char in ratings[1]])
-
-            file_name = self.mapping.get(song_name)
-            if '.' not in file_name[-5:]:
-                file_name = self.mapping_2.get(song_name)
-            print(f'Name: "{file_name}"')
-            new_full_path = os.path.join(base_directory, new_location, file_name)
-            old_full_path = os.path.join(base_directory, old_location, file_name)
-            # rename_file_safe(old_full_path, new_full_path, commit=False)
-            # print(f'Moving "{old_full_path}" to "{new_full_path}"')
-
-    def process_diff(self):
-        missing_missing = []
-        located = {}
-
-        # Invert the extra songs dictionary as `{song_name: location}` for faster lookup
-        extra_songs = self.invert_dict(self.extra, [])
-
-        # Look for each missing_song in the extra_songs list
-        for rating in self.missing:
-            for missing_song_name in self.missing.get(rating, []):
-                real_name = self.mapping_1.get(missing_song_name)
-                print(f'Looking for: {real_name}')
-
-                if missing_song_name not in extra_songs:
-                    missing_missing.append((missing_song_name, rating))
-                    continue
-
-                old_rating = extra_songs.get(missing_song_name)
-
-                print(f'Found "{real_name}" in "{old_rating}"')
-                print(f'Should be at "{rating}"')
-
-                located[missing_song_name] = (old_rating, rating)
-
-        extra_extra = [
-            (song, rating) for rating in POSSIBLE_RATINGS for song in self.extra.get(rating) if song not in located
-        ]
-        # TODO Better return value?
-        return located, missing_missing, extra_extra
-
-    @staticmethod
-    def invert_dict(song_dict, ignore_keys):
-        return {name: key for key, value in song_dict.items() if key not in ignore_keys for name in value}
-
-    @staticmethod
-    def sort_tuples(song_dict, ignore_keys):
-        return sorted(
-            [(song_name, rating) for song_name, rating in song_dict if rating not in ignore_keys],
-            key=lambda x: x[0]
-        )
+    def print_results(self):
+        all_items = self.flatten_dict_to_sorted_tuples(self.all_songs, [])  # , ['++', '--'])
+        duplicate_items = self.extract_dupes(all_items)
+        self.printer.print_list_details(all_items, f'All Songs On {self.name}', print_everything=False)
+        self.printer.print_list_details(duplicate_items, f'Duplicates on {self.name}', print_everything=True)
 
     @staticmethod
     def flatten_dict_to_sorted_tuples(song_dict, ignore_keys):
         return sorted(
-            [(name, rating) for rating, song_list in song_dict.items() if rating not in ignore_keys for name in song_list],
-            key=lambda x: x[0]
+            [item for rating, song_list in song_dict.items() if rating not in ignore_keys for item in song_list.sorted_list],
         )
 
-    def get_mapping_with_extension(self, song_name):
-        name = self.mapping_1.get(song_name, '')
-        if not name or not has_file_extension(name):
-            return self.mapping_2.get(song_name, name)
+    @staticmethod
+    def extract_dupes(item_list):
+        dupes = []
+        last_item = None
+        for item in item_list:
+            if last_item:
+                if item == last_item:
+                    dupes.append(item)
+                    dupes.append(last_item)
+            last_item = item
+        return dupes
 
-    def get_mapping_no_extension(self, song_name):
-        name = self.mapping_1.get(song_name, '')
-        if not name or has_file_extension(name):
-            name = self.mapping_2.get(song_name, name)
-            if has_file_extension(name):
-                name = remove_file_extension(name)
-        return name
 
-    def unmap_tuples(self, song_tuples, include_prefixes=True, include_extension=False):
-        def print_prefix(prefix):
-            if include_prefixes:
-                return prefix
-            return ''
-        if include_extension:
-            get_mapping = self.get_mapping_with_extension
-        else:
-            get_mapping = self.get_mapping_no_extension
+class CompareMultiLevelLists(object):
+    printer = PrintList()
 
-        return [print_prefix(prefix) + get_mapping(song) for song, prefix in song_tuples]
+    def __init__(self, list_1, list_2):
+        self.list_1 = list_1
+        self.list_2 = list_2
 
-    def print_new_master_list(self, missing_dict, extra_dict):
-        from pprint import pprint
-        PRINT_INITIAL_VALUES = False
+        self.unique_to_list_1 = []
+        self.unique_to_list_2 = []
 
-        if PRINT_INITIAL_VALUES:
-            pprint('songs_on_list')
-            pprint(self.all_songs)
-            pprint('Could Not Find on Computer')
-            pprint(missing_dict)
-            pprint('On Computer but not on Master List')
-            pprint(extra_dict)
-            pprint('Duplicates on Computer')
-            pprint(self.dupes_dict_1)
-            pprint('Duplicates on Master List')
-            pprint(self.dupes_dict_2)
-            # import pdb;pdb.set_trace()
+        self.reconciled_1 = []
+        self.reconciled_2 = []
+        self.only_list_1 = []
+        self.only_list_2 = []
 
-        songs_on_list_flat = self.flatten_dict_to_sorted_tuples(self.all_songs, ['++', '--'])
-        extra_songs_flat = self.sort_tuples(extra_dict, [])
-        # inverted = self.sort_and_unmap_tuples(self.flatten_dict(songs_on_list, ['+', '-', '']))
-        missing_songs_flat = self.sort_tuples(missing_dict, [])
-        dupes_dict_1_flat = self.flatten_dict_to_sorted_tuples(self.dupes_dict_1, [])
-        dupes_dict_2_flat = self.flatten_dict_to_sorted_tuples(self.dupes_dict_2, [])
-        count_songs_on_computer = len(missing_songs_flat) + (len(songs_on_list_flat) - len(extra_songs_flat))
-        master_list = sorted(songs_on_list_flat + missing_songs_flat, key=lambda x: x[0])
+        self.compute_diffs_for_all_levels()
+        self.reconcile_unique_entries()
 
-        PRINT_COUNTS = True
-        if PRINT_COUNTS:
-            print('songs_on_list: ' + str(len(songs_on_list_flat)))
-            print('count_songs_on_computer: ' + str(count_songs_on_computer))
-            print('Could Not Find on Computer: ' + str(len(extra_songs_flat)))
-            print('On Computer but not on Master List: ' + str(len(missing_songs_flat)))
-            print('Duplicates on Computer: ' + str(len(dupes_dict_1_flat)))
-            print('Duplicates on Master List: ' + str(len(dupes_dict_2_flat)))
-            print('New Master List: ' + str(len(master_list)))
+    def compute_diffs_for_all_levels(self):
+        for rating in POSSIBLE_RATINGS:
+            song_list_1 = self.list_1.get_sub_level(rating)
+            song_list_2 = self.list_2.get_sub_level(rating)
+            self.compute_list_diff(song_list_1, song_list_2)
 
-        # print('Extra Songs on Computer')
-        # pprint(self.unmap_tuples(extra_songs_flat))
-        # print('Missing From Computer')
-        # pprint(self.unmap_tuples(missing_songs_flat))
-        pprint('Duplicates on Computer')
-        pprint(self.unmap_tuples(dupes_dict_1_flat, include_prefixes=False))
-        pprint('Duplicates on Master List')
-        pprint(self.unmap_tuples(dupes_dict_2_flat, include_prefixes=False))
+            self.unique_to_list_1.extend(song_list_1.unique)
+            self.unique_to_list_2.extend(song_list_2.unique)
 
-        # print('New Master List')
-        # pprint(self.unmap_tuples(master_list))
+    @staticmethod
+    def compute_list_diff(list_1, list_2):
+        item_1 = list_1.start_iteration()
+        item_2 = list_2.start_iteration()
 
+        while item_1 and item_2:
+            if item_1 < item_2:
+                item_1 = list_1.get_next(unique=True)
+            elif item_1 > item_2:
+                item_2 = list_2.get_next(unique=True)
+            else:
+                item_1 = list_1.get_next()
+                item_2 = list_2.get_next()
+
+        while item_2:
+            item_2 = list_2.get_next(unique=True)
+        while item_1:
+            item_1 = list_1.get_next(unique=True)
+
+    def print_results(self):
+        self.list_1.print_results()
+        self.printer.print_list_details(self.only_list_1, f'Only on {self.list_1.name}', print_everything=False)
+        self.list_2.print_results()
+        self.printer.print_list_details(self.only_list_2, f'Only on {self.list_2.name}', print_everything=False)
+        self.printer.print_list_details(self.reconciled_1, f'Needs to move', print_everything=True)
+
+    def print_new_master_list(self):
+        # TODO
+        songs_on_list = self.printer.flatten_dict_to_sorted_tuples(self.list_2.all_songs, ['++', '--'])
+        master_list = self.sort_tuples(songs_on_list + self.results.only_list_1, [])
+        # TODO Use compute_diff to calculate master list
+        # master_list = self.compute_diff(ListIterator(songs_on_list), ListIterator(self.unique_1)))
+        self.printer.print_list_details(master_list, 'New Master List', print_everything=False)
+
+    # @staticmethod
+    # def sort_tuples(song_dict, ignore_keys):
+    #     return sorted(
+    #         [(song_name, rating) for song_name, rating in song_dict if rating not in ignore_keys],
+    #     )
+
+    def reconcile_unique_entries(self):
+        # Invert one of the songs dictionary as `{song_name: data}` for easier lookup
+        list_2_inverted = {list_item.id: list_item for list_item in self.unique_to_list_2}
+
+        # Attempt to find unresolved names from list_1 in unresolved names from list_2
+        for item in self.unique_to_list_1:
+            print(f'Looking for: {item.raw_text}')
+
+            if item.id not in list_2_inverted:
+                self.only_list_1.append(item)
+                continue
+
+            lookup = list_2_inverted.get(item.id)
+            self.reconciled_1.append(item)
+            self.reconciled_2.append(lookup)
+            print(f'Found "{item.raw_text}" in "{item.rating}"\nShould be at "{lookup.rating}"')
+
+        fuck = [item.id for item in self.reconciled_2]
+        self.only_list_2 = [item for item in self.unique_to_list_2 if item.id not in fuck]
+
+
+class ExecuteMove(object):
+
+    def __init__(self, base_directory):
+        self.base_directory = base_directory
+
+    def move_dupes(self, dupes_list):
+        for dupe_song in dupes_list:
+            file_name = dupe_song.raw_text
+            location = '\\'.join([char for char in dupe_song.rating])
+
+            old_full_path = os.path.join(self.base_directory, location, file_name)
+            new_full_path = os.path.join(self.base_directory, location, 'dupes', file_name)
+            # print(f'Moving "{old_full_path}" to "{new_full_path}"')
+            move_file(old_full_path, new_full_path, commit=False)
+
+    def apply_diff(self, move_from, move_to):
         # import pdb;pdb.set_trace()
+        move_to_inverted = {list_item.id: list_item for list_item in move_to}
+        for data_from in move_from:
+            data_to = move_to_inverted.get(data_from.id)
+            file_name = data_from.raw_text
+            location_from = '\\'.join([char for char in data_from.rating])
+            location_to = '\\'.join([char for char in data_to.rating])
+
+            old_full_path = os.path.join(self.base_directory, location_from, file_name)
+            new_full_path = os.path.join(self.base_directory, location_to, file_name)
+            # print(f'Moving "{old_full_path}" to "{new_full_path}"')
+            move_file(old_full_path, new_full_path, commit=False)
+
+
+class Something(object):
+    # TODO ???
+    def check_something(self, not_on_computer, not_on_list):
+        import pdb;pdb.set_trace()
         # Print songs that are missing from the computer, and extra on the list
-        # compare_lists = CompareLists(
-        #     [item[0] for item in missing_songs_flat],
-        #     [item[0] for item in extra_songs_flat]
-        # )
-        # pprint(compare_lists.all_items)
+        compare_lists = self.compute_list_merge(not_on_computer, not_on_list)
+        pprint(compare_lists.all_items)
+
+    @staticmethod
+    def compute_list_merge(list_1, list_2):
+        # Fresh Start
+        list_1.re_init()
+        list_2.re_init()
+
+        merged_list = []
+        while list_1.still_going() or list_2.still_going():
+
+            # Merge lists sorted
+            if list_1.current_item <= list_2.current_item:
+                merged_list.append('1: ' + item_1)
+                list_1.get_next()
+            if list_1.current_item >= list_2.current_item:
+                merged_list.append('2: ' + item_2)
+                list_2.get_next()
+
+        return merged_list
+
+
 #########################################################################################################
 
 

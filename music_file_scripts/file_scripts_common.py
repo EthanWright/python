@@ -18,7 +18,8 @@ def move_file(source_file_path, target_file_path, verbose=True, commit=False):
         raise Exception(f'File already exists: {target_file_path}')
 
     if verbose:
-        print(f'{source_file_path} Shall move')  # to {target_file_path}')
+        print(f'{source_file_path} Shall move')
+        print(f'{target_file_path} is the destination')
     if not commit:
         return
     os.rename(source_file_path, target_file_path)

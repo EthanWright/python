@@ -15,6 +15,9 @@ replace_strings = [
     (' x ', ' and '),
     (',', ' and'),  # TODO
     (' - - ', ' - '),
+    ('(Mixtape Vol 1)', '- Mixtape 1 -'),
+    ('(Mixtape Vol 2)', '- Mixtape 2 -'),
+    ('(Mixtape Vol 3)', '- Mixtape 3 -'),
     # ('(A)', 'A'),
 ]
 
@@ -35,6 +38,10 @@ remove_phrases = [
     'HQ',
     # '(Dubstep ',
     # '(DnB ',
+]
+
+# Songs Only
+remove_phrases_songs_only = [
     'Post rock and Post metal Compilation',
     'Post Rock Mix',
     'Psybient Greatest Anthems All Time Mix',
@@ -46,7 +53,16 @@ remove_phrases = [
     'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3)',
     'Post-Whatever Switzerland',
     'Post-Whatever India',
+    'Post-Whatever Russia',
+    'Post-Whatever Belgium',
+    'Post Rock Hungary',
+    'Post Rock Australia',
+    'Post Rock_Metal_Experimental Austria',
+    'Post Rock_Metal_Experimental Italy',
+    'WPRDs Top 30 Post-Rock_Metal_Experimental Songs of 2017 (Part 2)',
 ]
+# SONGS ONLY
+remove_phrases += remove_phrases_songs_only
 
 remove_strings = remove_chars + remove_phrases
 
@@ -72,8 +88,12 @@ replace_chars_mapping = {
     241: 'n',
     240: 'o', 242: 'o', 243: 'o', 244: 'o', 245: 'o', 246: 'o', 248: 'o',
     251: 'u', 252: 'u',
+    259: 'a',
     337: 'o',
+    363: 'u',
+    536: 'S',
     770: '^',
+    7768: 'R',
     8210: '-', 8211: '-', 8212: '-',
     8226: 'and',
     8710: 'A',
@@ -129,6 +149,8 @@ acceptable_phrases = [
     '(Part',
     '(with ',
     '(Inspired by',  # lol
+    '(Collaboration',
+    '(Remastered)',
 
     #  Specific songs
     '(III)',
@@ -138,7 +160,6 @@ acceptable_phrases = [
     'Everything is Everything)',
     'Everything Oscillates)',
     'they are everyone)',
-
     # '3',
     '17',
     '(1 and 2)',
@@ -159,7 +180,6 @@ acceptable_phrases = [
     '(lat)',
     '(Sleep Paralysis)',
     '(The Ash of Ruin)',
-
     '(The Last Dawn)',
     '(Hymn to the Immortal Wind)',
     '(Walking Cloud and Deep Red Sky Flag Fluttered and the Sun Shined)',
@@ -173,5 +193,14 @@ acceptable_phrases = [
     '(beautiful days)',
     '(Together We Go)',
     '(Live At Old South Church)',
+    # '(44 0612-N 121 4609-W)',
+    '4609-W)',
+    '4609W)',
+    '(r)',
+    '(hello)',
+    '(259 Days Far)',
+    '(OMSQ)',
+    '(We Must Move Forwards)',
+    '(No Turning Back)',
 
 ]
