@@ -28,7 +28,7 @@ class FixFileNames(object):
         self.editor.stats.print_final_report()
 
     def fix_file_name(self, directory, file_name):
-        self.editor.log_message(f'Checking: "{file_name}"')
+        self.editor.log_message(f'Checking: "{file_name}"', level=2)
         song_title, extension = file_name.rsplit('.', 1)
         if extension not in invalid_music_extensions:
             new_song_title = self.get_new_name(song_title)
@@ -46,8 +46,11 @@ class FixFileNames(object):
         # Replace specified substrings
         new_name = self.replace_specified_substrings(new_name)
 
+        # Find parts of the title in ()
+        new_name = self.handle_parentheses_values(new_name)
+
         # Find parts of the title that potentially should be removed
-        new_name = self.handle_bad_strings(new_name)
+        # new_name = self.handle_bad_strings(new_name)
 
         # Check for weird characters and attempt to replace or remove them
         new_name = self.replace_invalid_chars(new_name)
@@ -66,8 +69,11 @@ class FixFileNames(object):
     def replace_specified_substrings(self, name):
         return reduce(lambda x, y: self.editor.replace_string(x, *y), replace_strings, name)
 
-    def handle_bad_strings(self, name):
-        return reduce(self.editor.remove_string, self.editor.find_bad_string_patterns(name), name)
+    def handle_parentheses_values(self, name):
+        return reduce(self.editor.remove_string, self.editor.find_parentheses_values(name), name)
+
+    # def handle_bad_strings(self, name):
+    #     return reduce(self.editor.remove_string, self.editor.find_bad_string_patterns(name), name)
 
     def replace_invalid_chars(self, name):
         return reduce(self.editor.replace_invalid_char, self.editor.find_invalid_chars(name), name)
@@ -81,7 +87,7 @@ class FixFileNames(object):
 
 class StringEditor(object):
 
-    def __init__(self, verbose=False, commit=False):
+    def __init__(self, verbose=0, commit=False):
         self.stats = Stats()
         self.verbose = verbose
         self.commit = commit
@@ -93,22 +99,26 @@ class StringEditor(object):
         if not replace_val:
             return self.remove_string(name, find_val)
 
-        self.log_message(f'\'{find_val}\' is going to replaced with \'{replace_val}\' in\n{name}')
-        self.stats.replaced.append(find_val)
-        return self._execute_replace(name, find_val, replace_val)
+        for x in range(name.count(find_val)):
+            self.log_message(f'\'{find_val}\' is going to replaced with \'{replace_val}\' in\n{name}')
+            self.stats.replaced.append((find_val, replace_val))
+            name = self._execute_replace(name, find_val, replace_val, 1)
+        return name
+
+    def remove_string(self, name, bad_string):
+        if bad_string not in name:
+            return name
+        for x in range(name.count(bad_string)):
+            self.log_message(f'\'{bad_string}\' Is going to be Removed in\n{name}')
+            self.stats.removed.append(bad_string)
+            name = self._execute_replace(name, bad_string, '', 1)
+        return name
 
     def crop_string(self, name, start, end):
         removed_string, remaining_string = self._execute_crop(name, start, end)
         self.log_message(f'\'{name}\' is going to be cropped of \'{removed_string}\'')
         self.stats.removed.append(removed_string)
         return remaining_string
-
-    def remove_string(self, name, bad_string):
-        if bad_string not in name:
-            return name
-        self.log_message(f'\'{bad_string}\' Is going to be Removed in\n{name}')
-        self.stats.removed.append(bad_string)
-        return self._execute_replace(name, bad_string, '')
 
     def add_remix_artist(self, name):
         remix_artist = self.extract_remix_artist(name)
@@ -138,26 +148,56 @@ class StringEditor(object):
         else:
             return self.replace_string(name, invalid_char, replacement_char)
 
-    def find_bad_string_patterns(self, name):
+    def find_parentheses_values(self, name):
         bad_strings = []
-        for regex in potential_problem_regexes:
-            potentially_bad = re.findall(regex, name)
-            for match in potentially_bad:
-                if self.is_it_actually_bad(match):
-                    bad_strings.append(match)
+        parentheses_values = re.findall(parentheses_regex, name)
+        for match in parentheses_values:
+            if self.should_value_be_removed(match):
+                bad_strings.append(match)
 
         return bad_strings
+
+    @staticmethod
+    def should_value_be_removed(string_to_check):
+        for phrase in acceptable_phrases:
+            if phrase.lower() in string_to_check.lower():
+                return False
+        return True
+
+    # @staticmethod
+    # def find_bad_string_patterns(name):
+    #     bad_strings = []
+    #     for regex in potential_problem_regexes:
+    #         potentially_bad = re.findall(regex, name)
+    #         for match in potentially_bad:
+    #             # if self.is_it_actually_bad(match):
+    #             bad_strings.append(match)
+    #
+    #     return bad_strings
 
     def clean_whitespace_and_cruft(self, name):
 
         while '  ' in name:
             name = self.replace_string(name, '  ', ' ')
 
-        # Remove cruft from the start and end
-        for regex in ['^[-_ ]+', '[-_ ]+$']:
-            cruft = re.search(regex, name)
-            if cruft:
-                name = self.crop_string(name, cruft.start(), cruft.end())
+        cruft = [' ', '_', '-']
+        start_position = 0
+        while name[start_position] in cruft:
+            start_position += 1
+        if start_position:
+            name = self.crop_string(name, 0, start_position)
+
+        length_string = len(name)
+        end_position = length_string
+        while name[end_position - 1] in cruft:
+            end_position -= 1
+        if end_position < length_string:
+            # if length_string - end_position < 5:
+            #     name = self.crop_string(name, end_position, length_string)
+            # else:
+            #     self.stats.improper_formatting.append(name)
+            if name[end_position - 1] != '+':
+                self.stats.improper_formatting.append(name)
 
         return name
 
@@ -179,7 +219,7 @@ class StringEditor(object):
             print("!!! Commiting Changes !!!")
 
     def log_message(self, message, level=1):
-        if level >= self.verbose:
+        if level <= self.verbose:
             print(message)
 
     ######################################################
@@ -188,11 +228,11 @@ class StringEditor(object):
 
     @staticmethod
     def find_strings_to_replace(name):
-        return [replace_data for replace_data in replace_strings if replace_data[0] in name]
+        return [replace_data * name.count(replace_data) for replace_data in replace_strings if replace_data[0] in name]
 
     @staticmethod
     def find_strings_to_remove(name):
-        return [string_ for string_ in remove_strings if string_ in name]
+        return [string_ * name.count(string_) for string_ in remove_strings if string_ in name]
 
     @staticmethod
     def get_invalid_char_replacement(invalid_char):
@@ -202,15 +242,15 @@ class StringEditor(object):
 
         return replace_chars_mapping.get(ascii_code, invalid_char)
 
-    @staticmethod
-    def is_it_actually_bad(string_to_check):
-        for good_regex in acceptable_regexes:
-            if re.findall(good_regex, string_to_check):
-                return False
-        for phrase in acceptable_phrases:
-            if phrase.lower() in string_to_check.lower():
-                return False
-        return True
+    # @staticmethod
+    # def is_it_actually_bad(string_to_check):
+    #     for good_regex in acceptable_regexes:
+    #         if re.findall(good_regex, string_to_check):
+    #             return False
+    #     for phrase in acceptable_phrases:
+    #         if phrase.lower() in string_to_check.lower():
+    #             return False
+    #     return True
 
     @staticmethod
     def find_invalid_chars(name):
@@ -219,8 +259,8 @@ class StringEditor(object):
     @staticmethod
     def extract_remix_artist(name):
         if 'remix' in name or 'Remix' in name:
-            regex = '[\[\(]([^\]^\)]*)[ _-][rR]emix[\)\]]'
-            # regex2 = '[\[\(]([^\]^\)]*)[ _-]([rR]e?)?[mM]ix[\)\]]'  # TODO Test
+            regex = r'[\[\(]([^\]^\)]*)[ _-][rR]emix[\)\]]'
+            # regex2 = r'[\[\(]([^\]^\)]*)[ _-]([rR]e?)?[mM]ix[\)\]]'  # TODO Test
             remix_artist = re.findall(regex, name)
             if remix_artist:
                 return remix_artist[0]
@@ -236,8 +276,9 @@ class StringEditor(object):
     @staticmethod
     def _check_formatting(name):
         # Ensure formatting is correct
-        if ' - ' not in name:
-            return False
+        for required_string in required_strings:
+            if required_string not in name:
+                return False
 
         for regex in improper_format_regexes:
             if re.findall(regex, name):
@@ -254,12 +295,12 @@ class StringEditor(object):
         return True
 
     @staticmethod
-    def _execute_replace(name, find_val, replace_val):
-        return name.replace(find_val, replace_val)
+    def _execute_replace(name, find_val, replace_val, limit):
+        return name.replace(find_val, replace_val, limit)
 
     @staticmethod
     def _execute_crop(name, start, end):
-        return name[start:end], name[0:start] + name[end:-1]
+        return name[start:end], name[0:start] + name[end:]
 
 ######################################################
 ### Stats ###
@@ -293,8 +334,6 @@ class Stats(object):
         ]
 
         for item in output_categories:
-            # title = item.get('title')
-            # print(f'\n~~~~~~~ {title} ~~~~~~~')
             print('\n' + '~' * 7 + ' ' + item.get('title') + ' ' + '~' * 7)
 
             for data in item.get('data'):
@@ -308,10 +347,13 @@ class Stats(object):
 
                 else:
                     stats_dict = {}
-                    for item in stats_list:
-                        stats_dict[item] = stats_dict.get(item, 0) + 1
-                    for item in reversed(sorted(stats_dict.items(), key=lambda x: x[1])):
-                        print(f' \'{item[0]}\' : {item[1]}')
+                    for stats_item in stats_list:
+                        stats_dict[stats_item] = stats_dict.get(stats_item, 0) + 1
+                    for stats_item in reversed(sorted(stats_dict.items(), key=lambda x: x[1])):
+                        res = stats_item[0]
+                        # if isinstance(res, tuple):
+                        res = '\' <-> \''.join(res)
+                        print(f' \'{res}\' : {stats_item[1]}')
 
 
 ########################################################################################################
@@ -322,6 +364,8 @@ if __name__ == '__main__':
     parser.add_argument('directory', help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    # TODO
+    parser.add_argument('--albums', '-a', action='store_true', default=False, help='Albums')
     args = parser.parse_args()
 
     music_directory = args.directory
@@ -337,4 +381,6 @@ r"""
 python fix_names.py post_rock\full_albums\to_listen_to -v
 python fix_names.py post_rock\full_albums\to_listen_to --commit
 python fix_names.py post_rock\full_albums\to_listen_to\individual_songs
+
+python fix_names.py post_rock\to_sort
 """

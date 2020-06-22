@@ -146,8 +146,8 @@ if __name__ == '__main__':
 
     files = os.listdir(directory)
     for file_name in files:
-        # print(file_name)
-        # continue
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
+            # print(file_name)
+            # continue
             run(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir)

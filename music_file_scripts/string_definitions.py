@@ -39,32 +39,30 @@ remove_phrases = [
     # '(Dubstep ',
     # '(DnB ',
 ]
+remove_strings = remove_chars + remove_phrases
 
 # Songs Only
 remove_phrases_songs_only = [
-    'Post rock and Post metal Compilation',
-    'Post Rock Mix',
-    'Psybient Greatest Anthems All Time Mix',
-    'A Thousand Arms -',
+    'A Thousand Arms',
+    'Below The Frost Line',
     'Best Of Post Rock',
     'Black Hill and heklAa',
+    'Psybient Greatest Anthems All Time Mix',
     'Alienation (Synthwave',
-    'Below The Frost Line',
+    'WPRDs Top 30 Post-Rock_Metal_Experimental Songs of 2017 (Part 2)',
+    'Post Music Spain Mixtape',
+    'Post Rock Mix',
+    'Post Rock Hungary',
+    'Post Rock Australia',
+    'Post Rock_Metal_Experimental Austria',
+    'Post Rock_Metal_Experimental Italy',
+    'Post Rock and Post metal Compilation',
     'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3)',
     'Post-Whatever Switzerland',
     'Post-Whatever India',
     'Post-Whatever Russia',
     'Post-Whatever Belgium',
-    'Post Rock Hungary',
-    'Post Rock Australia',
-    'Post Rock_Metal_Experimental Austria',
-    'Post Rock_Metal_Experimental Italy',
-    'WPRDs Top 30 Post-Rock_Metal_Experimental Songs of 2017 (Part 2)',
 ]
-# SONGS ONLY
-remove_phrases += remove_phrases_songs_only
-
-remove_strings = remove_chars + remove_phrases
 
 #####################################################################################################
 
@@ -101,71 +99,83 @@ replace_chars_mapping = {
 }
 
 remove_char_codes = [
-    176, 768, 769, 776, 778, 1770, 1771, 1776, 3663, 8203, 8217, 8220, 8221, 12511, 24417, 65366,
+    176, 768, 769, 776, 778, 1770, 1771, 1776, 3663, 8203, 8217, 8220, 8221, 8230, 12511, 24417, 65366,
 ]
 
 #####################################################################################################
 
 improper_format_regexes = [
-    '[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
+    r'[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
+    r'- ([01]?[0-9]) ',  # (1 ) / (01 ) / (15 ) / etc
+    r'\)( 20[12][0-9])',
+]
+improper_format_regexes_songs_only = [
+    r'^Post',
+]
+required_strings = []
+required_strings_songs_only = [
+    r' - ',
 ]
 
 #####################################################################################################
 
-# Find parts of the title that potentially should be removed
-potential_problem_regexes = [
-    '(\[[^\]]*\])',  # [string]
-    '(\([^\)]*\))',  # (string)
-    '- ([01]?[0-9]) ',  # (1 ) / (01 ) / (15 ) / etc
-    '\)( 20[12][0-9])',
-]
-acceptable_regexes = [
-    '([rR][eE]?)?[mM][iI]?[xX][\)\]]',  # Remix) or Mix)  # TODO Test that this works
-    # '[rR]e?mi?x[\)\]]',  # Remix)
-    # '[mM]ix[\)\]]',  # Mix)
-    '[\(\[][fF](ea)?[tT]',  # (Feat or (Ft
-    '[vV]ersion[\)\]]',  # Version)
-    ' [vV][sS] '  # TLC vs The XX
-]
-acceptable_phrases = [
-    'Acoustic)',
-    'Instrumental)',
-    'Cover)',
-    'Mashup)',
-    'Theme)',
-    'Edit)',
-    'Dirty)',
-    'Flip)',
-    'Fix)',
-    'Theme)',
-    'Live)',
-    'Explicit)',
-    'Japanese)',
-    'Refix)',
-    'EP)',
-    '(Full Album',
-    '(The best of',
-    '(Side ',
-    '(Part',
-    '(with ',
-    '(Inspired by',  # lol
-    '(Collaboration',
-    '(Remastered)',
+parentheses_regex = r'([\(\[][^\)\]]*[\(\[])'  # (string) or  [string]
+# parentheses_regexes = [
+#     r'(\[[^\]]*\])',  # [string]
+#     r'(\([^\)]*\))',  # (string)
+# ]
 
-    #  Specific songs
-    '(III)',
-    'to gold)',
-    'Breathe in)',
-    'Hit Rewind)',
-    'Everything is Everything)',
-    'Everything Oscillates)',
-    'they are everyone)',
-    # '3',
+# Find parts of the title that potentially should be removed
+# potential_problem_regexes = [
+#     r'- ([01]?[0-9]) ',  # (1 ) / (01 ) / (15 ) / etc
+#     r'\)( 20[12][0-9])',
+# ]
+# acceptable_regexes = [
+#     r'([rR][eE]?)?[mM][iI]?[xX][\)\]]',  # Remix) or Mix)
+#     # r'[rR]e?mi?x[\)\]]',  # Remix)
+#     # r'[mM]ix[\)\]]',  # Mix)
+#     r'[\(\[][fF](ea)?[tT]',  # (Feat or (Ft
+#     r'[vV]ersion[\)\]]',  # Version)
+#     r' [vV][sS] '  # TLC vs The XX
+# ]
+acceptable_phrases = [
+    'Acoustic',
+    'Instrumental',
+    'Cover',
+    'Mashup',
+    'Theme',
+    'Edit',
+    'Dirty',
+    'Flip',
+    'Feat',
+    'Fix',
+    'Remix',
+    'Theme',
+    'Version',
+    'Live',
+    'Explicit',
+    'Japanese',
+    'Refix',
+    'EP',
+    'Full Album',
+    'Best of',
+    'The best of',
+    'Side ',
+    'Part',
+    'with ',
+    'Inspired by',
+    'Collaboration',
+    'Remastered',
+    'Live',
+]
+#  Specific songs
+acceptable_phrases_song_specific = [
+    # '(3)',
+    # '(4)',
+    # '(5)',
     '17',
+    '(III)',
     '(1 and 2)',
-    '(3)',
-    '(4)',
-    '(5)',
     '(Mars)',
     '(Black Sky)',
     '(Theories)',
@@ -193,7 +203,6 @@ acceptable_phrases = [
     '(beautiful days)',
     '(Together We Go)',
     '(Live At Old South Church)',
-    # '(44 0612-N 121 4609-W)',
     '4609-W)',
     '4609W)',
     '(r)',
@@ -202,5 +211,19 @@ acceptable_phrases = [
     '(OMSQ)',
     '(We Must Move Forwards)',
     '(No Turning Back)',
+    '(Free flight)',
+    '(The sea of rains)',
+    '(Red Moscow)',
 
 ]
+
+# TODO Handle this better
+RENAMING_SONGS = True
+# RENAMING_SONGS = False
+
+# Add SONGS ONLY lists
+if RENAMING_SONGS:
+    remove_strings += remove_phrases_songs_only
+    required_strings += required_strings_songs_only
+    acceptable_phrases += acceptable_phrases_song_specific
+    improper_format_regexes += improper_format_regexes_songs_only

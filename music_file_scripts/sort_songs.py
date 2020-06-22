@@ -63,11 +63,10 @@ from pprint import pprint
 from common import (
     list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files, has_file_extension
 )
-from fix_names import FixFileNames
+from fix_names import FixFileNames, acceptable_phrases
 from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR
 
 POSSIBLE_RATINGS = ['', '-', '+', '++', '--']
-# END_OF_LIST = chr(128) * 8
 ffn = FixFileNames()
 
 
@@ -84,13 +83,13 @@ def run():
 
     diff = CompareMultiLevelLists(song_file_list, song_rating_list)
     diff.print_results()
-    # TODO print list
-    # diff.print_new_master_list()
+
+    # new_master_list_file_name = r'output\new_master_list.txt'
+    # diff.print_new_master_list(write_list_to_file=new_master_list_file_name)
 
     file_mover = ExecuteMove(file_sorting_path)
-    file_mover.apply_diff(diff.reconciled_1, diff.reconciled_2)
-    # TODO Get Dupes
-    # file_mover.move_dupes()
+    file_mover.move_dupes(song_file_list.duplicate_items, commit=False)
+    # file_mover.apply_diff(diff.reconciled_1, diff.reconciled_2, commit=False)
 
 
 def gather_file_names_from_path(files_to_sort_path):
@@ -104,14 +103,14 @@ def gather_file_names_from_path(files_to_sort_path):
 def read_song_file(song_file_path):
     song_rating_dict = {rating: [] for rating in POSSIBLE_RATINGS}
 
-    # Read in every song from the main list
+    # Read in every song from the Master List
     for song_title in open(song_file_path, 'r').readlines():
         regex = r'(^\+\+?|^--?)[^(-+)]'
         match = re.search(regex, song_title)
         rating = ''
         if match:
             rating = match.group(1)
-        # Clean title, remove rating string, and add to rating dictionary
+        # Remove rating string and whitespace, and add to rating dictionary
         song_title = song_title[len(rating):].strip()
         song_rating_dict[rating].append(song_title)
 
@@ -119,27 +118,67 @@ def read_song_file(song_file_path):
 
 
 class SongData(object):
+
     def __init__(self, name, rating):
         self.rating = rating
         self.raw_text = name
         self.id = self.simplify_file_name_fuzzier(name)
 
-    def simplify_file_name_fuzzier(self, name):
+    @staticmethod
+    def simplify_file_name_fuzzier(name):
         return ffn.get_new_name(remove_file_extension(name)).lower()
 
+    @staticmethod
+    def are_they_really_the_same(name_1, name_2):
+        extra_data_1 = ''
+        extra_data_2 = ''
+        if ' (' in name_1:
+            name_1, extra_data_1 = name_1.split(' (', 1)
+        if ' (' in name_2:
+            name_2, extra_data_2 = name_2.split(' (', 1)
+
+        # if extra_data_1 and extra_data_2:
+        #     if extra_data_1.startswith(extra_data_2) or extra_data_2.startswith(extra_data_1):
+        #         return True  # Same
+
+        if name_1 != name_2:
+            return False  # Different
+
+        if not extra_data_1 and not extra_data_2:
+            return name_1 == name_2
+
+        for phrase in acceptable_phrases + ['3', '4', '5']:
+            if (phrase.lower() in extra_data_1) ^ (phrase.lower() in extra_data_2):
+                return False  # Different
+
+        # for phrase in ['6581', 'falls', 'ii', 'iii']:
+        #     if name_1.endswith(phrase) ^ name_2.endswith(phrase):
+        #         return False  # Different
+
+        # return name_1 == name_2
+        return True
+
+        # for extra_data in [extra_data_1, extra_data_2]:
+        #     if extra_data:
+        #         for phrase in acceptable_phrases:
+        #             if phrase.lower() in extra_data:
+        #                 return False  # Different
+
+        # if name_1 == name_2:
+        #     return True  # Same
+
+        # for phrase in ['6581', 'falls'] + ['ii', 'iii']:
+        #     if name_1.endswith(phrase) ^ name_2.endswith(phrase):
+        #         return False
+
     def __eq__(self, song_data):
-
-        if 7 < abs(len(remove_file_extension(self.raw_text)) - len(remove_file_extension(song_data.raw_text))):
-            return False
-
-        if self.id == song_data.id:
-            return True
-
-        if self.id in song_data.id or song_data.id in self.id:
-            if self.id[-1] != song_data.id[-1]:
-                return True
-
-        return False
+        return self.are_they_really_the_same(self.id, song_data.id)
+        # name_1 = self.id
+        # name_2 = song_data.id
+        # if name_1.startswith(name_2) or name_2.startswith(name_1):
+        #     if self.are_they_really_the_same(self.id, song_data.id):
+        #         return True
+        # return False
 
     def __gt__(self, song_data):
         return self.id > song_data.id
@@ -148,27 +187,9 @@ class SongData(object):
         return self.rating + self.raw_text
 
 
-class PrintList(object):
-
-    # def print_multi_list(self, multi_list, list_name):
-    #     all_items = self.flatten_dict_to_sorted_tuples(multi_list, [])  # , ['++', '--'])
-    #     duplicate_items = self.extract_dupes(all_items)
-    #
-    #     self.print_list_details(all_items, f'All Songs On {list_name}', print_everything=False)
-    #     self.print_list_details(duplicate_items, f'Duplicates on {list_name}', print_everything=True)
-
-    @staticmethod
-    def print_list_details(song_list, list_desc, print_everything=False):
-        print('- ' + list_desc + ' -\nCount: ' + str(len(song_list)))
-        if print_everything:
-            pprint([item.raw_text for item in song_list])
-        print('')
-
-
 class ListIterator(object):
 
     def __init__(self, starting_list):
-        # self.dupes = []
         self.unique = []
         self.sorted_list = sorted(starting_list)
         self.total_items = len(self.sorted_list)
@@ -197,16 +218,44 @@ class ListIterator(object):
         else:
             self.current_item = None
 
+    def __iter__(self):
+        for item in self.sorted_list:
+            yield item
+
+
+class PrintList(object):
+
+    @staticmethod
+    def print_list(song_list, list_desc, print_full_list=False, write_list_to_file=None):
+        list_length = str(len(song_list))
+        print('--- ' + list_desc + ':\nCount: ' + list_length)
+        if print_full_list:
+            new_list_string = ''
+            for item in song_list:
+                new_list_string += item.rating + remove_file_extension(item.raw_text) + '\n'
+                # new_list_string += item.id + '\n'  # Verbose
+
+            if write_list_to_file:
+                print('Outputting sorted list for "' + list_desc + '" to file: "' + write_list_to_file + '"')
+                with open(write_list_to_file, 'w') as write_file:
+                    write_file.write(new_list_string)
+            else:
+                print('--- Printing sorted list for "' + list_desc + '":')
+                print(new_list_string)
+            print('Total Output: ' + list_length + '\n--- END of "' + list_desc + '"')
+        print('')
+
 
 class MultiLevelList(object):
     printer = PrintList()
 
     def __init__(self, song_dict, name):
         self.name = name
-        self.all_songs = self._initialize_multi_level_list_from_dict(song_dict)
+        self.all_items = self._initialize_multi_level_list_from_dict(song_dict)
+        self.duplicate_items = self.get_dupes()
 
     def get_sub_level(self, rating):
-        return self.all_songs.get(rating, [])
+        return self.all_items.get(rating, [])
 
     @staticmethod
     def _initialize_multi_level_list_from_dict(song_dict):
@@ -218,17 +267,24 @@ class MultiLevelList(object):
             all_songs[rating] = ListIterator(songs)
         return all_songs
 
+    def get_dupes(self):
+        all_items = self.flatten_dict_to_sorted_tuples(self.all_items)  # , ['++', '--'])
+        return self.extract_dupes(all_items)
+
     def print_results(self):
-        all_items = self.flatten_dict_to_sorted_tuples(self.all_songs, [])  # , ['++', '--'])
-        duplicate_items = self.extract_dupes(all_items)
-        self.printer.print_list_details(all_items, f'All Songs On {self.name}', print_everything=False)
-        self.printer.print_list_details(duplicate_items, f'Duplicates on {self.name}', print_everything=True)
+        all_items = self.flatten_dict_to_sorted_tuples(self.all_items)  # , ['++', '--'])
+        self.printer.print_list(all_items, f'All Songs On {self.name}', print_full_list=False)
+        self.printer.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
 
     @staticmethod
-    def flatten_dict_to_sorted_tuples(song_dict, ignore_keys):
-        return sorted(
-            [item for rating, song_list in song_dict.items() if rating not in ignore_keys for item in song_list.sorted_list],
-        )
+    def flatten_dict_to_sorted_tuples(song_dict):
+        return sorted([item for rating, song_list in song_dict.items() for item in song_list])
+
+    # @staticmethod
+    # def flatten_dict_to_sorted_tuples(song_dict, ignore_keys):
+    #     return sorted(
+    #         [item for rating, song_list in song_dict.items() if rating not in ignore_keys for item in song_list],
+    #     )
 
     @staticmethod
     def extract_dupes(item_list):
@@ -291,24 +347,16 @@ class CompareMultiLevelLists(object):
 
     def print_results(self):
         self.list_1.print_results()
-        self.printer.print_list_details(self.only_list_1, f'Only on {self.list_1.name}', print_everything=False)
+        self.printer.print_list(self.only_list_1, f'Only on {self.list_1.name}', print_full_list=False)
         self.list_2.print_results()
-        self.printer.print_list_details(self.only_list_2, f'Only on {self.list_2.name}', print_everything=False)
-        self.printer.print_list_details(self.reconciled_1, f'Needs to move', print_everything=True)
+        self.printer.print_list(self.only_list_2, f'Only on {self.list_2.name}', print_full_list=False)
+        self.printer.print_list(self.reconciled_1, f'Needs to move', print_full_list=True)
+        # self.printer.print_list(self.reconciled_2, f'Needs to be moved to', print_full_list=True)
 
-    def print_new_master_list(self):
-        # TODO
-        songs_on_list = self.printer.flatten_dict_to_sorted_tuples(self.list_2.all_songs, ['++', '--'])
-        master_list = self.sort_tuples(songs_on_list + self.results.only_list_1, [])
-        # TODO Use compute_diff to calculate master list
-        # master_list = self.compute_diff(ListIterator(songs_on_list), ListIterator(self.unique_1)))
-        self.printer.print_list_details(master_list, 'New Master List', print_everything=False)
-
-    # @staticmethod
-    # def sort_tuples(song_dict, ignore_keys):
-    #     return sorted(
-    #         [(song_name, rating) for song_name, rating in song_dict if rating not in ignore_keys],
-    #     )
+    def print_new_master_list(self, write_list_to_file=None):
+        songs_on_list = self.list_2.flatten_dict_to_sorted_tuples(self.list_2.all_items)#, ['++', '--'])
+        master_list = sorted(songs_on_list + self.only_list_1)
+        self.printer.print_list(master_list, 'New Master List', print_full_list=True, write_list_to_file=write_list_to_file)
 
     def reconcile_unique_entries(self):
         # Invert one of the songs dictionary as `{song_name: data}` for easier lookup
@@ -336,7 +384,7 @@ class ExecuteMove(object):
     def __init__(self, base_directory):
         self.base_directory = base_directory
 
-    def move_dupes(self, dupes_list):
+    def move_dupes(self, dupes_list, commit=False):
         for dupe_song in dupes_list:
             file_name = dupe_song.raw_text
             location = '\\'.join([char for char in dupe_song.rating])
@@ -344,9 +392,9 @@ class ExecuteMove(object):
             old_full_path = os.path.join(self.base_directory, location, file_name)
             new_full_path = os.path.join(self.base_directory, location, 'dupes', file_name)
             # print(f'Moving "{old_full_path}" to "{new_full_path}"')
-            move_file(old_full_path, new_full_path, commit=False)
+            move_file(old_full_path, new_full_path, commit=commit)
 
-    def apply_diff(self, move_from, move_to):
+    def apply_diff(self, move_from, move_to, commit=False):
         # import pdb;pdb.set_trace()
         move_to_inverted = {list_item.id: list_item for list_item in move_to}
         for data_from in move_from:
@@ -358,7 +406,7 @@ class ExecuteMove(object):
             old_full_path = os.path.join(self.base_directory, location_from, file_name)
             new_full_path = os.path.join(self.base_directory, location_to, file_name)
             # print(f'Moving "{old_full_path}" to "{new_full_path}"')
-            move_file(old_full_path, new_full_path, commit=False)
+            move_file(old_full_path, new_full_path, commit=commit)
 
 
 class Something(object):
