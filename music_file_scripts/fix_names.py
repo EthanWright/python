@@ -179,7 +179,6 @@ class StringEditor(object):
 
         while '  ' in name:
             name = self.replace_string(name, '  ', ' ')
-
         cruft = [' ', '_', '-']
         start_position = 0
         while name[start_position] in cruft:

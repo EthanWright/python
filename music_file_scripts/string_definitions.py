@@ -14,6 +14,7 @@ replace_strings = [
     # ('$', 'S'),  # TODO
     (' x ', ' and '),
     (',', ' and'),  # TODO
+    # (',', ''),  # TODO
     (' - - ', ' - '),
     ('(Mixtape Vol 1)', '- Mixtape 1 -'),
     ('(Mixtape Vol 2)', '- Mixtape 2 -'),
@@ -203,8 +204,6 @@ acceptable_phrases_song_specific = [
     '(beautiful days)',
     '(Together We Go)',
     '(Live At Old South Church)',
-    '4609-W)',
-    '4609W)',
     '(r)',
     '(hello)',
     '(259 Days Far)',
@@ -217,7 +216,7 @@ acceptable_phrases_song_specific = [
 
 ]
 
-# TODO Handle this better
+# TODO Handle this via cli args
 RENAMING_SONGS = True
 # RENAMING_SONGS = False
 

@@ -16,7 +16,7 @@ Timestamps are in milliseconds (?)
 
 Ethan Wright 6/15/20
 """
-
+import argparse
 import os
 import re
 
@@ -24,14 +24,14 @@ from call_ffmpeg import call_ffmpeg, get_metadata
 from paths import MUSIC_DIR
 
 
-def run(source_file_path, song_dir=None, error_dir=None, done_dir=None):
+def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, commit=False):
     metadata, stdout = get_metadata(source_file_path)
     split_data = parse_metadata_for_chapters(metadata)
     if len(split_data) == 0:
-        return mark_as_error(source_file_path, error_dir)
+        return move_to_subdir(source_file_path, error_dir, commit=commit, error=True)
     purl = extract_field_from_stdout(stdout, 'purl')
-    split_file(source_file_path, split_data, purl, output_subdir=song_dir)
-    mark_as_done(source_file_path, output_subdir=done_dir)
+    split_file(source_file_path, split_data, purl, output_subdir=song_dir, commit=commit)
+    move_to_subdir(source_file_path, done_dir, commit=commit)
 
 
 def extract_field_from_stdout(stdout, stdout_field):
@@ -74,23 +74,16 @@ def clean_title(title):
     return title[:154]
 
 
-def mark_as_done(source_file_path, output_subdir=None):
-    move_to_subdir(source_file_path, output_subdir)
-
-
-def mark_as_error(source_file_path, output_subdir=None):
-    print(f'Can not split file. Marking as error: {source_file_path}')
-    move_to_subdir(source_file_path, output_subdir)
-
-
-def move_to_subdir(source_file_path, output_subdir):
-    if output_subdir:
-        source_dir, name = source_file_path.rsplit('\\', 1)
-        target_file_path = os.path.join(source_dir, output_subdir, name)
+def move_to_subdir(source_file_path, output_subdir, commit=False, error=False):
+    if error:
+        print(f'Can not split file. Marking as error: {source_file_path}')
+    source_dir, name = source_file_path.rsplit('\\', 1)
+    target_file_path = os.path.join(source_dir, output_subdir, name)
+    if commit:
         os.rename(source_file_path, target_file_path)
 
 
-def split_file(source_file_path, split_data, purl, output_subdir=None):
+def split_file(source_file_path, split_data, purl, output_subdir=None, commit=False):
     source_directory, source_file_name = source_file_path.rsplit('\\', 1)
 
     if output_subdir:
@@ -129,25 +122,35 @@ def split_file(source_file_path, split_data, purl, output_subdir=None):
         command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
         print(f'Creating File: {new_file_name}')
         # print(command)
-        call_ffmpeg(command)
+        if commit:
+            call_ffmpeg(command)
     print('--- Done!\n')
 
 
-if __name__ == '__main__':
-
+def run(directory):
     song_output_dir = 'individual_songs'
     error_output_dir = 'no_metadata'
     done_output_dir = 'split_albums'
-
-    input_subdirectory = r'post_rock\full_albums\to_listen_to'
-    # input_subdirectory = r'post_rock\full_albums\liked_plus'
-    # input_subdirectory = r'post_rock\full_albums\liked'
-    directory = os.path.join(MUSIC_DIR, input_subdirectory)
 
     files = os.listdir(directory)
     for file_name in files:
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
-            # print(file_name)
-            # continue
-            run(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir)
+            run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, commit=args.commit)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
+    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('--commit', action='store_true', help='Rename Files')
+    # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+
+    args = parser.parse_args()
+    run(os.path.join(MUSIC_DIR, args.directory))
+
+
+r"""
+python song_splitter.py post_rock\full_albums\to_listen_to
+python song_splitter.py post_rock\full_albums\liked_plus
+python song_splitter.py post_rock\full_albums\liked
+"""
