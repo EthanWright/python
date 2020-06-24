@@ -13,12 +13,12 @@ replace_strings = [
     ('  ', ' '),
     # ('$', 'S'),  # TODO
     (' x ', ' and '),
-    (',', ' and'),  # TODO
-    # (',', ''),  # TODO
+    # (',', ' and'),  # TODO
+    (',', ''),  # TODO
     (' - - ', ' - '),
-    ('(Mixtape Vol 1)', '- Mixtape 1 -'),
-    ('(Mixtape Vol 2)', '- Mixtape 2 -'),
-    ('(Mixtape Vol 3)', '- Mixtape 3 -'),
+    # ('(Mixtape Vol 1)', '- Mixtape 1 -'),
+    # ('(Mixtape Vol 2)', '- Mixtape 2 -'),
+    # ('(Mixtape Vol 3)', '- Mixtape 3 -'),
     # ('(A)', 'A'),
 ]
 

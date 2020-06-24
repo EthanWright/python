@@ -29,7 +29,8 @@ from paths import MUSIC_DIR
 
 def add_metadata_from_file(directory, file_name):
     song_file_path = os.path.join(directory, file_name)
-    metadata_path_base = os.path.join(directory, 'metadata')
+    # metadata_path_base = os.path.join(directory, 'metadata')
+    metadata_path_base = directory
     metadata_input_path = os.path.join(metadata_path_base, file_name + '.txt')
     metadata_output_path = os.path.join(metadata_path_base, 'metadata_' + file_name + '.txt')
 
@@ -39,43 +40,49 @@ def add_metadata_from_file(directory, file_name):
 
 
 def parse_file_data_into_metadata_file(input_data, output_file):
+    if input_data[0].startswith(';FFMETADATA1'):
+        return input_data
     track_data_list = []
     for track_data in input_data:
-        start_time, title = parse_string(track_data)
-        track_data_list.append((start_time, title))
-    track_data_list.append(('eof', None))
-    for item in track_data_list:
-        print(item)
-    # import pdb;pdb.set_trace()
+        start_time, end_time, title = parse_string(track_data)
+        track_data_list.append((start_time, end_time, title))
+    track_data_list.append((None, None, None))
+
+    # for item in track_data_list:
+    #     print(item)
     with io.open(output_file, 'wt', encoding='utf-8') as f:
         def ffmpeg_escape(text):
             return re.sub(r'(=|;|#|\\|\n)', r'\\\1', text)
 
         metadata_file_content = ';FFMETADATA1\n'
         for x in range(len(track_data_list) - 1):
-            start, title = track_data_list[x]
+            start, end, title = track_data_list[x]
+            if not end:
+                end = track_data_list[x + 1][0]
             metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
             metadata_file_content += 'START=%s\n' % str(start)
-            metadata_file_content += 'END=%s\n' % str(track_data_list[x + 1][0])
-            metadata_file_content += 'title=%s\n' % ffmpeg_escape(track_data_list[x][1])
+            metadata_file_content += 'END=%s\n' % str(end)
+            metadata_file_content += 'title=%s\n' % ffmpeg_escape(title)
         f.write(metadata_file_content)
 
 
 def parse_string(data_string):
-    timestamp = extract_timestamp(data_string)
-    if not timestamp:
-        import pdb;pdb.set_trace()
-    title = data_string.replace(timestamp, '')
+    timestamps = extract_timestamps(data_string)
+    milliseconds = convert_timestamp_to_milliseconds(timestamps[0])
+    title = data_string.replace(timestamps[0], '')
+
+    milliseconds2 = None
+    if len(timestamps) == 2:
+        milliseconds2 = convert_timestamp_to_milliseconds(timestamps[1])
+        title = title.replace(timestamps[1], '')
     title = clean_title(title)
-    milliseconds = convert_timestamp_to_milliseconds(timestamp)
-    return milliseconds, title
+
+    return milliseconds, milliseconds2, title
 
 
-def extract_timestamp(data_string):
+def extract_timestamps(data_string):
     regex = '([0-9][0-9]?:[0-9][0-9])'
-    result = re.search(regex, data_string)
-    if result:
-        return result.group(1)
+    return re.findall(regex, data_string)
 
 
 def convert_timestamp_to_milliseconds(timestamp):
@@ -94,7 +101,7 @@ def clean_title(title):
     for char in bad_chars:
         title = title.replace(char, '')
     title = title.replace('/', ' ')
-    title = title.strip(': \n')
+    title = title.strip('-: \n')
     return title
 
 
@@ -103,8 +110,11 @@ def add_metadata(source_file_path, metadata_file_path):
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
     command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 "{output_path}"'
+    # command = f'ffmpeg -i "{source_file_path}" -c copy -map_metadata -1 -fflags +bitexact -flags:a +bitexact "{output_path}"'
     print(command)
-    call_ffmpeg(command)
+    result, stdout = call_ffmpeg(command)
+    # print(result)
+    # print(stdout)
     print('--- Done!\n')
 
 
@@ -118,7 +128,7 @@ def run(directory):
 
 
 if __name__ == '__main__':
-    input_subdirectory = r'post_rock\full_albums\to_listen_to\no_metadata'
+    input_subdirectory = r'post_rock\full_albums\to_listen_to\add_metadata'
     # input_subdirectory = r'post_rock\full_albums\liked\no_metadata'
     # input_subdirectory = r'post_rock\full_albums\liked_plus\no_metadata'
     run(input_subdirectory)

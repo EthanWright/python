@@ -98,7 +98,7 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, commit=Fa
     artist = source_file_name.split(' - ', 1)[0]
 
     # Remove `Best of`
-    result = re.match(f'[bB]est of (.*)\.{extension}', artist)
+    result = re.match(r'[bB]est of (.*)\.', artist)
     if result:
         artist = result.group(1).strip()
 
@@ -119,7 +119,7 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, commit=Fa
             new_file_name = f'{new_title}_{suffix}.{extension}'
             output_path = os.path.join(output_directory, new_file_name)
 
-        command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+        command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
         print(f'Creating File: {new_file_name}')
         # print(command)
         if commit:

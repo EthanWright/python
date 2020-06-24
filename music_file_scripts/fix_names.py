@@ -350,8 +350,8 @@ class Stats(object):
                         stats_dict[stats_item] = stats_dict.get(stats_item, 0) + 1
                     for stats_item in reversed(sorted(stats_dict.items(), key=lambda x: x[1])):
                         res = stats_item[0]
-                        # if isinstance(res, tuple):
-                        res = '\' <-> \''.join(res)
+                        if isinstance(res, tuple):
+                            res = '\' <-> \''.join(res)
                         print(f' \'{res}\' : {stats_item[1]}')
 
 
