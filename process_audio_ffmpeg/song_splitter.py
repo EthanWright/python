@@ -21,16 +21,17 @@ import os
 import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
+from common import list_music_files, clean_file_name
 from paths import MUSIC_DIR
 
 
-def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, commit=False):
+def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, verbose=0, commit=False):
     metadata, stdout = get_metadata(source_file_path)
     split_data = parse_metadata_for_chapters(metadata)
     if len(split_data) == 0:
         return move_to_subdir(source_file_path, error_dir, commit=commit, error=True)
     purl = extract_field_from_stdout(stdout, 'purl')
-    split_file(source_file_path, split_data, purl, output_subdir=song_dir, commit=commit)
+    split_file(source_file_path, split_data, purl, output_subdir=song_dir, verbose=verbose, commit=commit)
     move_to_subdir(source_file_path, done_dir, commit=commit)
 
 
@@ -59,19 +60,23 @@ def parse_metadata_for_chapters(metadata):
     return return_data
 
 
-def clean_title(title):
-    # Remove Track Title Prefixes ('1.' or '01.')
-    if re.match(r'[0-9][0-9]?\..*', title):
-        title = title.split('.', 1)[1].strip()
+def extract_artist(file_name):
+    artist = file_name.split(' - ', 1)[0]
+    # Remove `Best of`
+    result = re.match(r'[bB]est of (.*)\.', artist)
+    if result:
+        artist = result.group(1).strip()
+    return artist
 
-    # Remove characters that mess with ffmpeg cli commands
-    bad_chars = '?"`#*<>:|.,\'\\'
-    for char in bad_chars:
-        title = title.replace(char, '')
-    title = title.replace('/', ' ')
 
-    # Limit of 159 chars for a file name. '.opus' is 5, so trim title to 154
-    return title[:154]
+def determine_output_path(source_directory, output_subdir=None):
+    if output_subdir:
+        output_directory = os.path.join(source_directory, output_subdir)
+    else:
+        output_directory = source_directory
+    if not os.path.exists(output_directory):
+        raise Exception(f'Output directory does not exist: {output_directory}')
+    return output_directory
 
 
 def move_to_subdir(source_file_path, output_subdir, commit=False, error=False):
@@ -83,29 +88,20 @@ def move_to_subdir(source_file_path, output_subdir, commit=False, error=False):
         os.rename(source_file_path, target_file_path)
 
 
-def split_file(source_file_path, split_data, purl, output_subdir=None, commit=False):
-    source_directory, source_file_name = source_file_path.rsplit('\\', 1)
+def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0, commit=False):
 
-    if output_subdir:
-        output_directory = os.path.join(source_directory, output_subdir)
-    else:
-        output_directory = source_directory
-    if not os.path.exists(output_directory):
-        raise Exception(f'Output directory does not exist: {output_directory}')
+    source_directory, source_file_name = source_file_path.rsplit('\\', 1)
+    output_directory = determine_output_path(source_directory, output_subdir=output_subdir)
+
+    extension = source_file_name.rsplit('.', 1)[1]
+    artist = extract_artist(source_file_name)
 
     print(f'Splitting File: {source_file_name}')
-    extension = source_file_name.rsplit('.', 1)[1]
-    artist = source_file_name.split(' - ', 1)[0]
-
-    # Remove `Best of`
-    result = re.match(r'[bB]est of (.*)\.', artist)
-    if result:
-        artist = result.group(1).strip()
 
     for data in split_data:
         start_timestamp = data.get('start_timestamp')
         end_timestamp = data.get('end_timestamp')
-        title = clean_title(data.get('title'))
+        title = clean_file_name(data.get('title'))
 
         new_title = f'{artist} - {title}'
         new_file_name = f'{new_title}.{extension}'
@@ -121,32 +117,35 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, commit=Fa
 
         command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
         print(f'Creating File: {new_file_name}')
-        # print(command)
+        if verbose:
+            print(command)
         if commit:
             call_ffmpeg(command)
+
+    if not commit:
+        print(f'~~~ NOT Committing Changes ~~~')
     print('--- Done!\n')
 
 
-def run(directory):
+def run(directory, verbose):
     song_output_dir = 'individual_songs'
     error_output_dir = 'no_metadata'
     done_output_dir = 'split_albums'
 
-    files = os.listdir(directory)
-    for file_name in files:
+    for file_name in list_music_files(directory):
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
-            run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, commit=args.commit)
+            run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=args.commit)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
     parser.add_argument('directory', help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
-    # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     args = parser.parse_args()
-    run(os.path.join(MUSIC_DIR, args.directory))
+    run(os.path.join(MUSIC_DIR, args.directory), args.verbose)
 
 
 r"""

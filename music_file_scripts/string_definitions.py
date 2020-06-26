@@ -139,24 +139,26 @@ parentheses_regex = r'([\(\[][^\)\]]*[\(\[])'  # (string) or  [string]
 #     r'[vV]ersion[\)\]]',  # Version)
 #     r' [vV][sS] '  # TLC vs The XX
 # ]
-acceptable_phrases = [
+song_version = [
     'Acoustic',
-    'Instrumental',
     'Cover',
-    'Mashup',
-    'Theme',
-    'Edit',
     'Dirty',
-    'Flip',
-    'Feat',
-    'Fix',
-    'Remix',
-    'Theme',
-    'Version',
-    'Live',
+    'Edit',
     'Explicit',
+    'Fix',
+    'Flip',
+    'Instrumental',
     'Japanese',
+    'Live',
+    'Mashup',
     'Refix',
+    'Remastered',
+    'Remix',
+    'Version',
+]
+song_details = [
+    'Feat',
+    'Theme',
     'EP',
     'Full Album',
     'Best of',
@@ -166,9 +168,9 @@ acceptable_phrases = [
     'with ',
     'Inspired by',
     'Collaboration',
-    'Remastered',
-    'Live',
 ]
+acceptable_phrases = song_version + song_details
+
 #  Specific songs
 acceptable_phrases_song_specific = [
     # '(3)',
