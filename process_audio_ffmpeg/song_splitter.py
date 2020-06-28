@@ -26,7 +26,7 @@ from paths import MUSIC_DIR
 
 
 def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, verbose=0, commit=False):
-    metadata, stdout = get_metadata(source_file_path)
+    metadata, stdout = get_metadata(source_file_path, verbose=-1)
     split_data = parse_metadata_for_chapters(metadata)
     if len(split_data) == 0:
         return move_to_subdir(source_file_path, error_dir, commit=commit, error=True)
@@ -42,30 +42,36 @@ def extract_field_from_stdout(stdout, stdout_field):
             return line_clean.rsplit(' ', 1)[1]
 
 
+def parse_chapter_data(data):
+    return {
+        'start_timestamp': (int(data[0].strip()) + 1) / 1000,
+        'end_timestamp': (int(data[1].strip()) - 1) / 1000,
+        'title': data[2].strip(),
+    }
+
+
 def parse_metadata_for_chapters(metadata):
     return_data = []
     for chapter in metadata.split('[CHAPTER]'):
         regex = 'START=([0-9]+)\nEND=([0-9]+)\ntitle=(.+)\n'
         result = re.search(regex, chapter)
-        if result:
-            data = result.groups()
-
-            if len(data) == 3:
-                return_data.append({
-                    'start_timestamp': (int(data[0].strip()) + 1) / 1000,
-                    'end_timestamp': (int(data[1].strip()) - 1) / 1000,
-                    'title': data[2].strip(),
-                })
+        if result and len(result.groups()) == 3:
+            chapter_data = parse_chapter_data(result.groups())
+            return_data.append(chapter_data)
 
     return return_data
 
 
 def extract_artist(file_name):
-    artist = file_name.split(' - ', 1)[0]
+    hyphen_split = ' - '
+    artist = file_name.rsplit(hyphen_split, 1)[0]
     # Remove `Best of`
-    result = re.match(r'[bB]est of (.*)\.', artist)
-    if result:
-        artist = result.group(1).strip()
+    best_of_result = re.match(r'[bB]est [oO]f (.*)$', artist)
+    if best_of_result:
+        artist = best_of_result.group(1).strip()
+    if hyphen_split in artist:
+        artist = artist.rsplit(hyphen_split, 1)[0]
+
     return artist
 
 
@@ -117,25 +123,24 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
 
         command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
         print(f'Creating File: {new_file_name}')
-        if verbose:
-            print(command)
-        if commit:
-            call_ffmpeg(command)
+        call_ffmpeg(command, verbose=-1, commit=commit)
 
     if not commit:
-        print(f'~~~ NOT Committing Changes ~~~')
-    print('--- Done!\n')
+        print(f'~~~ NOT Committing Changes ~~~\n')
+    else:
+        print('--- Done!\n')
 
 
-def run(directory, verbose):
+def run(directory, verbose, commit):
     song_output_dir = 'individual_songs'
-    error_output_dir = 'no_metadata'
+    error_output_dir = 'add_metadata'
     done_output_dir = 'split_albums'
 
     for file_name in list_music_files(directory):
+        print(file_name)
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
-            run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=args.commit)
+            run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=commit)
 
 
 if __name__ == '__main__':
@@ -145,7 +150,7 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     args = parser.parse_args()
-    run(os.path.join(MUSIC_DIR, args.directory), args.verbose)
+    run(os.path.join(MUSIC_DIR, args.directory), args.verbose, args.commit)
 
 
 r"""

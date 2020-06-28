@@ -4,6 +4,7 @@ Use ffmpeg CLI commands to print song data
 Ethan Wright - 6/11/20
 """
 
+import argparse
 import io
 import os
 import re
@@ -119,20 +120,24 @@ def print_data_from_stdout(stdout):
                 raise Exception(f'Problem with input: {line_clean}')
 
 
-def print_data_for_song_files_in_dir(directory, export_metadata):
+def run(input_directory, export_metadata=False):
+    directory = os.path.join(MUSIC_DIR, input_directory)
     for file_name in list_music_files(directory):
         print_song_data(directory, file_name, export_metadata=export_metadata)
 
 
-def run():
-    input_subdirectory = r'post_rock\to_sort\issues\dupes'
-    # input_subdirectory = r'post_rock\full_albums\liked'
-    # input_subdirectory = r'post_rock\full_albums\to_listen_to'
-    # input_subdirectory = r'post_rock\full_albums\to_listen_to\add_metadata'
-
-    directory = os.path.join(MUSIC_DIR, input_subdirectory)
-    print_data_for_song_files_in_dir(directory, export_metadata=False)
-
-
 if __name__ == '__main__':
-    run()
+
+    parser = argparse.ArgumentParser(description='Print Audio/Video file details')
+    parser.add_argument('directory', help='Target Directory')
+    # parser.add_argument('--commit', action='store_true', help='Rename Files')
+    # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    parser.add_argument('--export-metadata', action='store_true', help='Export ALL metadata to a file')
+
+    args = parser.parse_args()
+    run(args.directory, export_metadata=args.export_metadata)
+
+r"""
+python print_song_data.py post_rock\to_sort\issues\dupes
+python print_song_data.py post_rock\full_albums\to_listen_to
+"""

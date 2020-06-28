@@ -6,16 +6,20 @@ Ethan Wright - 6/11/20
 import subprocess
 
 
+def print_message(severity, verbose_level, message):
+    if verbose_level >= severity:
+        print(message)
+
+
 def call_ffmpeg(command, verbose=0, commit=False):
-    print('Running ffmpeg CLI command:\n' + command)
+    print_message(1, verbose, 'Running ffmpeg CLI command:\n' + command)
     if not commit:
-        print(f'~~~ NOT Committing Changes ~~~')
+        print_message(0, verbose, f'~~~ NOT Committing Changes ~~~')
         return None, None
     result, stdout = execute_ffmpeg_cli_command(command)
-    if verbose:
-        print(result)
-        print(stdout)
-    print('--- Done!\n')
+    print_message(2, verbose, result)
+    print_message(2, verbose, stdout)
+    print_message(1, verbose, '--- Done!\n')
     return result, stdout
 
 
@@ -31,6 +35,6 @@ def execute_ffmpeg_cli_command(command):
     return result.decode('utf-8', 'replace'), stdout
 
 
-def get_metadata(file_name, verbose=0, commit=False):
+def get_metadata(file_name, verbose=0):
     command = f'ffmpeg -i "{file_name}" -f ffmetadata -'
-    return call_ffmpeg(command, verbose=verbose, commit=commit)
+    return call_ffmpeg(command, verbose=verbose, commit=True)

@@ -19,6 +19,7 @@ Timestamps are in milliseconds (?)
 Ethan Wright - 6/11/20
 """
 
+import argparse
 import io
 import os
 import re
@@ -27,8 +28,8 @@ from call_ffmpeg import call_ffmpeg
 from common import list_music_files, clean_file_name
 from paths import MUSIC_DIR
 
-# Parsing Functions
 
+# Parsing Functions
 def parse_file_data_into_metadata_file(input_data, output_file):
     if input_data[0].startswith(';FFMETADATA1'):
         return input_data
@@ -78,45 +79,70 @@ def convert_timestamp_to_milliseconds(timestamp):
     return (int(minutes) * 60 + int(seconds)) * 1000
 
 
-def add_metadata_from_file(directory, file_name, verbose=0, commit=False):
+def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, commit=False):
+
     song_file_path = os.path.join(directory, file_name)
-    # metadata_path_base = os.path.join(directory, 'metadata')
-    # metadata_path_base = directory
-    # metadata_input_path = os.path.join(directory, file_name + '.txt')
-    # metadata_input_path = song_file_path + '.txt'
-    # metadata_output_path = os.path.join(directory, 'metadata_' + file_name + '.txt')
     metadata_input_path = song_file_path + '.txt'
     metadata_output_path = song_file_path + '_metadata.txt'
     file_data = open(metadata_input_path, 'r').readlines()
     parse_file_data_into_metadata_file(file_data, metadata_output_path)
-    add_metadata(song_file_path, metadata_output_path, verbose=verbose, commit=commit)
+
+    purl = None
+    if remove_first:
+        song_file_path, purl = remove_metadata(directory, file_name, verbose=verbose, commit=commit)
+
+    add_metadata(song_file_path, metadata_output_path, purl=purl, verbose=verbose, commit=commit)
 
 
-def add_metadata(source_file_path, metadata_file_path, verbose=0, commit=False):
+def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, commit=False):
     source_directory, source_file_name = source_file_path.rsplit('\\', 1)
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
-    command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 "{output_path}"
+    cli_options = [
+        ('-i', f'"{source_file_path}"'),
+        ('-i', '"' + source_file_path + '"'),
+
+        ('-f', 'ffmetadata'),
+        ('-i', f'"{metadata_file_path}"'),
+        ('-c', 'copy'),
+        ('-map_metadata', '1'),
+    ]
+    if purl:
+        cli_options.append(('-metadata', f'purl={purl}'))
+
+    cli_options_string = ' '.join([flag + ' ' + value for flag, value in cli_options])
+    command = f'ffmpeg {cli_options_string} "{output_path}"'
+    # command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 -metadata purl={purl} "{output_path}"'
     call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
 def remove_metadata(source_directory, source_file_name, verbose=0, commit=False):
     print(f'Removing metadata from File: {source_file_name}')
     source_file_path = os.path.join(source_directory, source_file_name)
-    output_path = os.path.join(source_directory, 'removed_metadata_' + source_file_name)
+    output_file_name = 'removed_metadata_' + source_file_name
+    output_path = os.path.join(source_directory, output_file_name)
     # Remove ALL metadata
     command = f'ffmpeg -i "{source_file_path}" -c copy -map_metadata -1 -fflags +bitexact -flags:a +bitexact "{output_path}"'
-    call_ffmpeg(command, verbose=verbose, commit=commit)
+    result, stdout = call_ffmpeg(command, verbose=verbose, commit=commit)
+    purl = 'No PURL!'
+    if stdout:
+        purl = extract_field_from_stdout(stdout, 'purl')
+
+    return output_path, purl
 
 
-def run(sub_directory, verbose=0, commit=False, remove=False):
+def extract_field_from_stdout(stdout, stdout_field):
+    for line in stdout.split('\n'):
+        line_clean = line.strip()
+        if stdout_field in line_clean:
+            return line_clean.rsplit(' ', 1)[1]
+
+
+def run(sub_directory, verbose=0, commit=False, remove_first=False):
     directory = os.path.join(MUSIC_DIR, sub_directory)
     for file_name in list_music_files(directory):
-        if not file_name.startswith('added_metadata'):
-            if remove:
-                remove_metadata(directory, file_name, verbose=verbose, commit=commit)
-            else:
-                add_metadata_from_file(directory, file_name, verbose=verbose, commit=commit)
+        if not (file_name.startswith('added_metadata') or file_name.startswith('removed_metadata')):
+            add_metadata_from_file(directory, file_name, remove_first=remove_first, verbose=verbose, commit=commit)
 
 
 if __name__ == '__main__':
@@ -125,10 +151,10 @@ if __name__ == '__main__':
     parser.add_argument('directory', help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
-    parser.add_argument('--remove', action='store_true', help='Remove ALL metadata')
+    parser.add_argument('--remove-first', action='store_true', help='Remove ALL metadata')
 
     args = parser.parse_args()
-    run(args.directory, args.verbose, args.commit, remove=args.remove)
+    run(args.directory, args.verbose, args.commit, remove_first=args.remove_first)
 
 r"""
 python add_metadata.py post_rock\full_albums\to_listen_to

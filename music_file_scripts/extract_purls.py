@@ -7,7 +7,7 @@ import os
 import re
 
 from common import TraverseDirectory, list_music_files
-from paths import MUSIC_DIR
+from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR
 
 READ_SIZE_BYTES = 100
 MAX_BYTES_TO_READ = 30000
@@ -69,14 +69,12 @@ def extract_video_ids_to_file(output_file_path):
     subdirs = [
         # r'liked_redownloaded',
         # r'most_music_redownloaded',
-        # r'other_new',
-        r'post_rock\full_albums\liked\split_albums',
-        r'post_rock\full_albums\liked_plus\split_albums',
+        # r'post_rock\full_albums\liked\split_albums',
+        # r'post_rock\full_albums\liked_plus\split_albums',
         r'post_rock\full_albums\to_listen_to\split_albums',
         # r'post_rock\full_albums\to_listen_to\no_metadata',
         # r'post_rock\full_albums\liked_plus\no_metadata',
-        # r'to_sort\to_sort_new',
-        # r'to_sort\to_sort_redownloaded',
+        # r'post_rock\to_sort',
     ]
 
     with open(output_file_path, 'w') as write_file:
@@ -87,8 +85,9 @@ def extract_video_ids_to_file(output_file_path):
 
 
 if __name__ == '__main__':
-    exit('Already did this, right?')
-    output_file = r'output\downloaded_video_ids_all.txt'
+    # exit('Already did this, right?')
+    # output_file = r'output\downloaded_video_ids_all.txt'
+    output_file = r'output\album_purls.txt'
     output_file_path = os.path.join(MUSIC_SCRIPT_DIR, output_file)
 
     extract_video_ids_to_file(output_file_path)

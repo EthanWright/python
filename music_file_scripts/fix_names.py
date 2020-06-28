@@ -50,7 +50,7 @@ class FixFileNames(object):
         new_name = self.handle_parentheses_values(new_name)
 
         # Find parts of the title that potentially should be removed
-        # new_name = self.handle_bad_strings(new_name)
+        new_name = self.handle_bad_strings(new_name)
 
         # Check for weird characters and attempt to replace or remove them
         new_name = self.replace_invalid_chars(new_name)
@@ -72,8 +72,8 @@ class FixFileNames(object):
     def handle_parentheses_values(self, name):
         return reduce(self.editor.remove_string, self.editor.find_parentheses_values(name), name)
 
-    # def handle_bad_strings(self, name):
-    #     return reduce(self.editor.remove_string, self.editor.find_bad_string_patterns(name), name)
+    def handle_bad_strings(self, name):
+        return reduce(self.editor.remove_string, self.editor.find_bad_string_patterns(name), name)
 
     def replace_invalid_chars(self, name):
         return reduce(self.editor.replace_invalid_char, self.editor.find_invalid_chars(name), name)
@@ -164,16 +164,16 @@ class StringEditor(object):
                 return False
         return True
 
-    # @staticmethod
-    # def find_bad_string_patterns(name):
-    #     bad_strings = []
-    #     for regex in potential_problem_regexes:
-    #         potentially_bad = re.findall(regex, name)
-    #         for match in potentially_bad:
-    #             # if self.is_it_actually_bad(match):
-    #             bad_strings.append(match)
-    #
-    #     return bad_strings
+    @staticmethod
+    def find_bad_string_patterns(name):
+        bad_strings = []
+        for regex in potential_problem_regexes:
+            potentially_bad = re.findall(regex, name)
+            for match in potentially_bad:
+                # if self.is_it_actually_bad(match):
+                bad_strings.append(match)
+
+        return bad_strings
 
     def clean_whitespace_and_cruft(self, name):
 
@@ -190,13 +190,13 @@ class StringEditor(object):
         end_position = length_string
         while name[end_position - 1] in cruft:
             end_position -= 1
+
         if end_position < length_string:
-            # if length_string - end_position < 5:
-            #     name = self.crop_string(name, end_position, length_string)
-            # else:
-            #     self.stats.improper_formatting.append(name)
-            if name[end_position - 1] != '+':
-                self.stats.improper_formatting.append(name)
+            if length_string - end_position < 5:
+                name = self.crop_string(name, end_position, length_string)
+            else:
+                if name[end_position - 1] != '+':
+                    self.stats.improper_formatting.append(name)
 
         return name
 
@@ -363,8 +363,8 @@ if __name__ == '__main__':
     parser.add_argument('directory', help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
-    # TODO
-    parser.add_argument('--albums', '-a', action='store_true', default=False, help='Albums')
+    # TODO ?
+    # parser.add_argument('--albums', '-a', action='store_true', default=False, help='Albums')
     args = parser.parse_args()
 
     music_directory = args.directory

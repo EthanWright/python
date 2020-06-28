@@ -53,7 +53,7 @@ Other left over songs are errors
 
 Print sorted list back out, along with other statistics regarding the names
 """
-
+import argparse
 import copy
 import os
 import re
@@ -68,16 +68,24 @@ from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR
 fix_file_names = FixFileNames()
 
 
-def run():
-    file_sorting_path = os.path.join(MUSIC_DIR, r'post_rock\to_sort')
+# def run(export_list=False, move_dupes=False, verbose=0, commit=False):
+def run(actions):
+    export_list = actions.export_list
+    move_dupes = actions.move_dupes
+    # verbose = actions.verbose
+    commit = actions.commit
+    directory = actions.directory
+
+    file_sorting_path = os.path.join(MUSIC_DIR, directory)
     song_file_path = os.path.join(file_sorting_path, r'list\master_list.txt')
 
-    commit = False
     song_differ = DiffSongLists(file_sorting_path, song_file_path, commit=commit)
     song_differ.print_results()
-    # song_differ.print_new_master_list()
+    if export_list:
+        song_differ.print_new_master_list()
+    if move_dupes:
+        song_differ.move_dupes()
     # song_differ.print_songs_to_move()
-    # song_differ.move_dupes()
     # song_differ.move_completed()
 
 
@@ -119,32 +127,32 @@ class DiffSongLists(object):
     def print_new_master_list(self):
         file_path = None
         if self.commit:
-            file_path = os.path.join(MUSIC_DIR, r'post_rock\to_sort\list\new_master_list.txt')
+            file_path = os.path.join(self.song_file_path, r'list\new_master_list.txt')
         list_parser = ParseResultsForPrinting(self.text_song_data, self.printer)  # TODO Duplicated
         list_parser.add_list_to_remaining(self.diff.unique_1)
         list_parser.print_new_master_list(write_list_to_file=file_path)
 
-    def print_songs_to_move(self):
-        # Print -- or ++ songs
-        list_parser = ParseResultsForPrinting(self.text_song_data, self.printer)  # TODO Duplicated
-        list_parser.print_good_songs()
-        list_parser.print_bad_songs()
+    # def print_songs_to_move(self):
+    #     # Print -- or ++ songs
+    #     list_parser = ParseResultsForPrinting(self.text_song_data, self.printer)  # TODO Duplicated
+    #     list_parser.print_good_songs()
+    #     list_parser.print_bad_songs()
 
 
 class ParseResultsForPrinting(object):
 
     def __init__(self, song_list, printer):
         self.printer = printer
-        self.good = []
-        self.bad = []
+        # self.good = []
+        # self.bad = []
         self.remaining_songs = []
         self._parse(song_list)
 
-    def print_bad_songs(self, print_full_list=False):
-        self.printer.print_list(self.bad, 'Bad', print_full_list=print_full_list)
+    # def print_bad_songs(self, print_full_list=False):
+    #     self.printer.print_list(self.bad, 'Bad', print_full_list=print_full_list)
 
-    def print_good_songs(self, print_full_list=False):
-        self.printer.print_list(self.good, 'Good', print_full_list=print_full_list)
+    # def print_good_songs(self, print_full_list=False):
+    #     self.printer.print_list(self.good, 'Good', print_full_list=print_full_list)
 
     def add_list_to_remaining(self, new_list):
         self.remaining_songs = self.remaining_songs + new_list
@@ -155,14 +163,16 @@ class ParseResultsForPrinting(object):
 
     def _parse(self, song_list):
         for song in song_list:
-            if song.rating == '--':
-                self.good.append(song)
-            elif song.rating == '++':
-                self.bad.append(song)
-            # else:
-            #     self.remaining_songs.append(song)
-            # TODO
-            self.remaining_songs.append(song)
+            # if song.rating == '--':
+            #     self.good.append(song)
+            # elif song.rating == '++':
+            #     self.bad.append(song)
+            # # else:
+            # #     self.remaining_songs.append(song)
+            # # TODO
+            # self.remaining_songs.append(song)
+            if song.rating not in ['--', '++']:
+                self.remaining_songs.append(song)
 
 
 def gather_file_names_from_path(files_to_sort_path):
@@ -214,12 +224,11 @@ class SongData(object):
 
         min_len = min(len(name_1), len(name_2))
         same_song_root = name_1[:min_len] == name_2[:min_len]
-
         if not same_song_root:
             return False  # Different
 
         if not extra_data_1 and not extra_data_2:
-            if len(name_1) - len(name_2) < 10:
+            if len(name_1) - len(name_2) < 10:  # Adjustable tolerance
                 return same_song_root
 
         for phrase in song_version + ['3', '4', '5']:
@@ -230,6 +239,16 @@ class SongData(object):
                 check_phrase_2 = phrase.lower() in extra_data_2
             if check_phrase_1 ^ check_phrase_2:
                 return False  # Different
+
+        if extra_data_1 and extra_data_2:
+            if ')' in extra_data_1 and ')' in extra_data_2:
+                phrase_1, more_1 = extra_data_1.split(')', 1)
+                phrase_2, more_2 = extra_data_2.split(')', 1)
+                if phrase_1 != phrase_2 and (more_1 != more_2 or not more_1 and not more_2):
+                    return False
+                if more_1.startswith(' - ') and more_2.startswith(' - '):
+                    return more_1 == more_2
+                return True
 
         return name_1 == name_2
 
@@ -340,7 +359,7 @@ class CompareSongDataLists(object):
 
     def print_results(self, printer):
         self.list_1.print_results(printer)
-        printer.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)
+        printer.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)  # Computer Dupes
         self.list_2.print_results(printer)
         printer.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=False)
 
@@ -384,6 +403,14 @@ class FileMover(object):
             # print(f'Moving "{old_full_path}" to "{new_full_path}"')
             move_file(old_full_path, new_full_path, commit=commit)
 
+    # TODO
+    def print_completed(self, items, commit=False):
+        pass
+
+    # TODO
+    def print_bad(self, items, commit=False):
+        pass
+
     def move_completed(self, items, commit=False):
 
         destination_bad = os.path.join(self.base_directory, 'deleted')
@@ -405,6 +432,19 @@ class FileMover(object):
 
 #########################################################################################################
 
-
 if __name__ == '__main__':
-    run()
+    parser = argparse.ArgumentParser(description='Compare Songs to Master List and sort according to the rules')
+    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('--commit', action='store_true', help='Commit File Changes')
+    parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    parser.add_argument('--export-list', action='store_true', help='Print New Master List')
+    parser.add_argument('--move-dupes', action='store_true', help='Move duplicate files on the computer to a common file')
+
+    args = parser.parse_args()
+    run(args)
+
+r"""
+
+python sort_songs.py post_rock\to_sort
+
+"""
