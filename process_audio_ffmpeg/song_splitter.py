@@ -64,11 +64,14 @@ def parse_metadata_for_chapters(metadata):
 
 def extract_artist(file_name):
     hyphen_split = ' - '
+    dot = '.'
     artist = file_name.rsplit(hyphen_split, 1)[0]
     # Remove `Best of`
     best_of_result = re.match(r'[bB]est [oO]f (.*)$', artist)
     if best_of_result:
         artist = best_of_result.group(1).strip()
+    if dot in artist:
+        artist = artist.rsplit(dot, 1)[0]
     if hyphen_split in artist:
         artist = artist.rsplit(hyphen_split, 1)[0]
 
@@ -108,9 +111,9 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
         start_timestamp = data.get('start_timestamp')
         end_timestamp = data.get('end_timestamp')
         title = clean_file_name(data.get('title'))
-
-        new_title = f'{artist} - {title}'
-        new_file_name = f'{new_title}.{extension}'
+        if not artist.startswith('Post') and not artist.startswith('2019')and not artist.endswith(' Mix'):
+            title = f'{artist} - {title}'
+        new_file_name = f'{title}.{extension}'
 
         output_path = os.path.join(output_directory, new_file_name)
 
@@ -118,7 +121,7 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
         while os.path.isfile(output_path):
             suffix += 1
             print('File already exists, appending _' + str(suffix))
-            new_file_name = f'{new_title}_{suffix}.{extension}'
+            new_file_name = f'{title}_{suffix}.{extension}'
             output_path = os.path.join(output_directory, new_file_name)
 
         command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'

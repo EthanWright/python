@@ -64,19 +64,20 @@ def parse_string(data_string):
     if len(timestamps) == 2:
         milliseconds2 = convert_timestamp_to_milliseconds(timestamps[1])
         title = title.replace(timestamps[1], '')
+
     title = clean_file_name(title)  # TODO Too strict?
 
     return milliseconds, milliseconds2, title
 
 
 def extract_timestamps(data_string):
-    regex = '([0-9]{1,3}:[0-9][0-9])'
+    regex = r'([0-9]{1,3}:[0-9][0-9]\.?[0-9]*)'
     return re.findall(regex, data_string)
 
 
 def convert_timestamp_to_milliseconds(timestamp):
     minutes, seconds = timestamp.split(':')
-    return (int(minutes) * 60 + int(seconds)) * 1000
+    return (float(minutes) * 60.0 + float(seconds)) * 1000.0
 
 
 def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, commit=False):
@@ -84,12 +85,13 @@ def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, 
     song_file_path = os.path.join(directory, file_name)
     metadata_input_path = song_file_path + '.txt'
     metadata_output_path = song_file_path + '_metadata.txt'
-    file_data = open(metadata_input_path, 'r').readlines()
-    parse_file_data_into_metadata_file(file_data, metadata_output_path)
 
     purl = None
     if remove_first:
         song_file_path, purl = remove_metadata(directory, file_name, verbose=verbose, commit=commit)
+
+    file_data = open(metadata_input_path, 'r').readlines()
+    parse_file_data_into_metadata_file(file_data, metadata_output_path)
 
     add_metadata(song_file_path, metadata_output_path, purl=purl, verbose=verbose, commit=commit)
 
@@ -99,11 +101,9 @@ def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, com
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
     cli_options = [
-        ('-i', f'"{source_file_path}"'),
         ('-i', '"' + source_file_path + '"'),
-
         ('-f', 'ffmetadata'),
-        ('-i', f'"{metadata_file_path}"'),
+        ('-i', '"' + metadata_file_path + '"'),
         ('-c', 'copy'),
         ('-map_metadata', '1'),
     ]

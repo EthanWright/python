@@ -8,8 +8,10 @@ replace_strings = [
     ('&', 'and'),
     (' _ ', ' '),
     ('.0', '_0'),
-    ('[', '('),  # TODO
-    (']', ')'),  # TODO
+    ('[', '('),
+    (']', ')'),
+    ('}', ')'),
+    ('{', '('),
     ('  ', ' '),
     # ('$', 'S'),  # TODO
     (' x ', ' and '),
@@ -111,7 +113,8 @@ replace_chars_mapping = {
     374: 'Y', 375: 'y', 376: 'Y',
     377: 'Z', 378: 'z', 379: 'Z', 380: 'z', 381: 'Z', 382: 'z',
 
-    536: 'S',
+    536: 'S', 537: 's',
+    538: 'T', 539: 't',
     770: '^',
     7768: 'R',
     8210: '-', 8211: '-', 8212: '-',
@@ -131,7 +134,6 @@ remove_char_codes = [
 
 improper_format_regexes = [
     r'[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
-    r'- ([01]?[0-9]) ',  # (1 ) / (01 ) / (15 ) / etc
     r'\)( 20[12][0-9])',
 ]
 improper_format_regexes_songs_only = [
@@ -152,7 +154,8 @@ parentheses_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or  [string]
 
 # Find parts of the title that potentially should be removed
 potential_problem_regexes = [
-    r'- ([01]?[0-9]) [^0-9]',  # 01 / 15 / etc
+    # r'- ([01]?[0-9]) [^0-9]',  # 01 / 12 / etc
+    r'- (0[0-9]|1[0-4]) [^0-9]',  # 01 / 12 / etc
     # r'\)( 20[12][0-9])',
 ]
 # acceptable_regexes = [
@@ -178,6 +181,7 @@ song_version = [
     'Refix',
     'Remastered',
     'Remix',
+    'Mix',
     'Version',
 ]
 song_details = [
@@ -195,10 +199,12 @@ song_details = [
     'Collaboration',
     'Intermission',
     # 'Release',
+    'Mixtape',
     'Dialogue',
     'Intro',
     'Outro',
     'Special Guest',
+    'improvisation',
 ]
 acceptable_phrases = song_version + song_details
 
@@ -218,6 +224,9 @@ acceptable_phrases_song_specific = [
     '(Land)',
     '(Think)',
     '(Moving)',
+    '(fade)',
+    '(purpose)',
+    '(being born)',
     '(Black Sky)',
     '(Temple Keepers)',
     '(Second Chance)',
@@ -254,6 +263,22 @@ acceptable_phrases_song_specific = [
     '(The Decline Of Reason)',
     '(The System Of Meaning)',
     '(til it turns to gold)',
+
+    '(Heroes and Ghosts)',
+    '(These Small Spaces)',
+    # '(Key)',
+    '(S T)',
+    # '(Versus)',
+    '(Newly Risen How Brightly You Shine)',
+    # '(In Never Out)',
+    '(The Immortal The Invisible)',
+    # '(Yes I Am)',
+    '(pg lost and Wang Wen Split)',
+    '(The Battle Of Frieders)',
+    '(440612-N 1214609-W)',
+    '(refractions)',
+    '(1and2)',
+
     '(1 and 2)',
     '(3)',
     '(4)',
