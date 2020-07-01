@@ -31,7 +31,7 @@ class MusicFileList(object):
         return sorted(list_music_files(self.directory), key=self.simplify_file_name_fuzzier)
 
     def move_current_song_match_found(self, result_string=None):
-        result_string = '   MATCHED'
+        # result_string = '   MATCHED'
         self._move_current_song(self.target_good, result_string=result_string, commit=False)
 
     def move_current_song_no_match(self, result_string=None):
@@ -98,7 +98,8 @@ def sort_directory_contents(directory_1, directory_2):
 
 
 if __name__ == '__main__':
-    # existing_music = os.path.join(MUSIC_DIR, r'liked')
-    existing_music = os.path.join(MUSIC_DIR, r'to_sort\to_sort_original')
-    new_music = os.path.join(MUSIC_DIR, r'to_sort\to_sort_redo')
+    # existing_music = os.path.join(MUSIC_DIR, r'post_rock\full_albums\to_listen_to\split_albums')
+    existing_music = os.path.join(MUSIC_DIR, r'post_rock\to_sort')
+    # new_music = os.path.join(MUSIC_DIR, r'to_sort\to_sort_redo')
+    new_music = r'F:\backup\Music\post_rock\to_sort'
     sort_directory_contents(existing_music, new_music)

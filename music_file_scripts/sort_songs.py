@@ -398,48 +398,49 @@ class FileMover(object):
         self.verbose = verbose
 
     def move_dupes(self, dupes_list, commit=False):
-        dupes_path = os.path.join(self.base_directory, r'issues\dupes')
-        for dupe_song in dupes_list:
-            file_name = dupe_song.raw_text
+        return self.move_songs(dupes_list, r'issues\dupes', commit=commit)
+
+    def move_songs(self, song_data_list, destination_dir, commit=False):
+        destination_path = os.path.join(self.base_directory, destination_dir)
+        for song_data in song_data_list:
+            file_name = song_data.raw_text
 
             old_full_path = os.path.join(self.base_directory, file_name)
-            new_full_path = os.path.join(dupes_path, file_name)
+            new_full_path = os.path.join(destination_path, file_name)
             # print(f'Moving "{old_full_path}" to "{new_full_path}"')
             move_file(old_full_path, new_full_path, commit=commit)
 
-    # TODO
-    def print_good(self, items, commit=False):
-        pass
+    # TODO prints
+    # def print_good(self, items):
+    # def print_bad(self, items):
 
-    # TODO
-    def print_bad(self, items, commit=False):
-        pass
-
-    # TODO
+    # TODO Duplicate Code
     def move_bad(self, items, commit=False):
-        pass
+        list_bad, list_good = self.sort_lists(items)
+        # TODO Store in txt file so I can repeat the changes on the external HD
+        self.move_songs(list_bad, r'deleted', commit=commit)
 
-    # TODO
+    # TODO Duplicate Code
     def move_good(self, items, commit=False):
-        pass
+        list_bad, list_good = self.sort_lists(items)
+        self.move_songs(list_good, r'liked', commit=commit)
 
-    def move_completed(self, items, commit=False):
-        exit('TODO')
-        destination_bad = os.path.join(self.base_directory, 'deleted')
-        destination_good = os.path.join(self.base_directory, 'liked')
+    # TODO Create function to convert a song_data_list into a dict of { rating : songs }
+    # def create_ratings_dict(self, items):
+    #     return {x: y for data in items}
+
+    def sort_lists(self, items):
         # import pdb;pdb.set_trace()
-
+        list_bad = []
+        list_good = []
         for data in items:
-            file_name = data.raw_text
             if data.rating == '--':
-                new_full_path = os.path.join(destination_bad, file_name)
+                list_bad.append(data)
             elif data.rating == '++':
-                new_full_path = os.path.join(destination_good, file_name)
-            else:
-                continue
-            old_full_path = os.path.join(self.base_directory, file_name)
-            # print(f'Moving "{old_full_path}" to "{new_full_path}"')
-            move_file(old_full_path, new_full_path, commit=commit)
+                list_good.append(data)
+
+        return list_bad, list_good
+
 
 # TODO Make this it's own script
 def find_dupe_file_names_in_dir(directory):

@@ -111,8 +111,10 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
         start_timestamp = data.get('start_timestamp')
         end_timestamp = data.get('end_timestamp')
         title = clean_file_name(data.get('title'))
-        if not artist.startswith('Post') and not artist.startswith('2019')and not artist.endswith(' Mix'):
+        # TODO Clean up
+        if not artist.startswith('A Post') and not artist.startswith('Post') and not artist.startswith('2019')and not artist.endswith(' Mix'):
             title = f'{artist} - {title}'
+
         new_file_name = f'{title}.{extension}'
 
         output_path = os.path.join(output_directory, new_file_name)
