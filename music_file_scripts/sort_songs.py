@@ -218,7 +218,7 @@ class SongData(object):
         name_2, extra_data_2 = split_name_safe(name_2)
 
         # known_false_positives = ['falls', 'os 6581']
-        roman_numerals = ['ii', 'iii', 'iv']
+        roman_numerals = ['ii', 'iii', 'iv', 'v']
         for phrase in roman_numerals:  # + known_false_positives:
             if (name_1.endswith(phrase)) ^ (name_2.endswith(phrase)):
                 return False  # Different
@@ -275,7 +275,6 @@ class SongDataList(object):
         self.sorted_list = sorted(starting_list)
         self.total_items = len(self.sorted_list)
         self.duplicate_items = self._extract_dupes()
-        # self.unique = []
         self.list_pointer = 0
         self.current_item = ''
         self._set_current_item()
@@ -286,8 +285,6 @@ class SongDataList(object):
         return self.current_item
 
     def get_next(self):
-        # if unique:
-        #     self.unique.append(self.current_item)
         self.advance_position()
         return self.current_item
 
@@ -400,8 +397,9 @@ class FileMover(object):
     def move_dupes(self, dupes_list, commit=False):
         return self.move_songs(dupes_list, r'issues\dupes', commit=commit)
 
-    def move_songs(self, song_data_list, destination_dir, commit=False):
+    def move_songs(self, song_data_list, destination_dir, commit=False, export_logs=False):
         destination_path = os.path.join(self.base_directory, destination_dir)
+
         for song_data in song_data_list:
             file_name = song_data.raw_text
 
@@ -409,40 +407,42 @@ class FileMover(object):
             new_full_path = os.path.join(destination_path, file_name)
             # print(f'Moving "{old_full_path}" to "{new_full_path}"')
             move_file(old_full_path, new_full_path, commit=commit)
+        if commit and export_logs:
+            logs_dir = os.path.join(destination_path, 'logs')
+            all_songs_string = '\n'.join([song_data.name for song_data in song_data_list])
 
-    # TODO prints
-    # def print_good(self, items):
-    # def print_bad(self, items):
+            # Write songs to cumulative list in a txt file
+            file_name = 'all_files.txt'
+            file_path = os.path.join(logs_dir, file_name)
+            with open(file_path, 'a') as write_file:
+                write_file.write(all_songs_string)
 
-    # TODO Duplicate Code
+            # Also write changes for only this run to it's own file
+            this_run_file_name = time.strftime('%d_%m_%Y_%H_%M_%S') + '.txt'
+            file_path = os.path.join(logs_dir, this_run_file_name)
+            with open(file_path, 'w') as write_file:
+                write_file.write(all_songs_string)
+
     def move_bad(self, items, commit=False):
-        list_bad, list_good = self.sort_lists(items)
-        # TODO Store in txt file so I can repeat the changes on the external HD
-        self.move_songs(list_bad, r'deleted', commit=commit)
+        ratings_dict = self._create_ratings_dict(items)
+        self.move_songs(ratings_dict['--'], r'deleted', commit=commit, export_logs=True)
 
-    # TODO Duplicate Code
     def move_good(self, items, commit=False):
-        list_bad, list_good = self.sort_lists(items)
-        self.move_songs(list_good, r'liked', commit=commit)
+        ratings_dict = self._create_ratings_dict(items)
+        self.move_songs(ratings_dict['++'], r'liked', commit=commit)
 
-    # TODO Create function to convert a song_data_list into a dict of { rating : songs }
-    # def create_ratings_dict(self, items):
-    #     return {x: y for data in items}
+    @staticmethod
+    def _create_ratings_dict(items):
+        dicto = {}
+        for item in items:
+            if item.rating not in dicto:
+                dicto[item.rating] = []
+            dicto[item.rating].append(item)
 
-    def sort_lists(self, items):
-        # import pdb;pdb.set_trace()
-        list_bad = []
-        list_good = []
-        for data in items:
-            if data.rating == '--':
-                list_bad.append(data)
-            elif data.rating == '++':
-                list_good.append(data)
-
-        return list_bad, list_good
+        return dicto
 
 
-# TODO Make this it's own script
+# TODO Make this into it's own script
 def find_dupe_file_names_in_dir(directory):
     # file_sorting_path = os.path.join(MUSIC_DIR, directory)
     computer_file_list = gather_file_names_from_path(directory)

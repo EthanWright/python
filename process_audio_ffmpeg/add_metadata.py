@@ -26,7 +26,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg
 from common import list_music_files, clean_file_name
-from paths import MUSIC_DIR
+from paths import MUSIC_DIR, POST_ROCK_FULL_ALBUMS_DIR
 
 
 # Parsing Functions
@@ -100,6 +100,7 @@ def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, com
     source_directory, source_file_name = source_file_path.rsplit('\\', 1)
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
+
     cli_options = [
         ('-i', '"' + source_file_path + '"'),
         ('-f', 'ffmetadata'),
@@ -146,9 +147,10 @@ def run(sub_directory, verbose=0, commit=False, remove_first=False):
 
 
 if __name__ == '__main__':
+    default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, 'add_metadata')
 
     parser = argparse.ArgumentParser(description='Add Metadata to Song Files')
-    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('directory', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     parser.add_argument('--remove-first', action='store_true', help='Remove ALL metadata')
@@ -157,8 +159,5 @@ if __name__ == '__main__':
     run(args.directory, args.verbose, args.commit, remove_first=args.remove_first)
 
 r"""
-python add_metadata.py post_rock\full_albums\to_listen_to
-python add_metadata.py post_rock\full_albums\to_listen_to\add_metadata
-python add_metadata.py post_rock\full_albums\liked\add_metadata'
-python add_metadata.py post_rock\full_albums\liked'
+python add_metadata.py
 """

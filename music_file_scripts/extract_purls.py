@@ -64,20 +64,18 @@ class TraverseDirectoryWriteToFile(TraverseDirectory):
             print(f'{file_name} has no purl or associated video_id')
 
 
-def extract_video_ids_to_file(output_file_path):
+def extract_video_ids_to_file(output_path):
 
     subdirs = [
         # r'liked_redownloaded',
         # r'most_music_redownloaded',
-        # r'post_rock\full_albums\liked\split_albums',
-        # r'post_rock\full_albums\liked_plus\split_albums',
-        r'post_rock\full_albums\to_listen_to\split_albums',
-        # r'post_rock\full_albums\to_listen_to\no_metadata',
-        # r'post_rock\full_albums\liked_plus\no_metadata',
-        # r'post_rock\to_sort',
+        # POST_ROCK_FULL_ALBUMS_DIR,
+        # os.path.join(POST_ROCK_FULL_ALBUMS_DIR, r''),
+        POST_ROCK_TO_SORT_DIR,
+        # os.path.join(POST_ROCK_TO_SORT_DIR, r''),
     ]
 
-    with open(output_file_path, 'w') as write_file:
+    with open(output_path, 'w') as write_file:
         traveler = TraverseDirectoryWriteToFile(write_file)
         for subdir in subdirs:
             directory = os.path.join(MUSIC_DIR, subdir)
@@ -85,9 +83,9 @@ def extract_video_ids_to_file(output_file_path):
 
 
 if __name__ == '__main__':
-    # exit('Already did this, right?')
     # output_file = r'output\downloaded_video_ids_all.txt'
-    output_file = r'output\album_purls.txt'
+    # output_file = r'output\all_album_purls.txt'
+    output_file = r'output\all_song_purls.txt'
     output_file_path = os.path.join(MUSIC_SCRIPT_DIR, output_file)
 
     extract_video_ids_to_file(output_file_path)

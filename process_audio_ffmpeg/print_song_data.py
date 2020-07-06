@@ -11,7 +11,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from common import list_music_files
-from paths import MUSIC_DIR
+from paths import MUSIC_DIR, POST_ROCK_TO_SORT_DIR
 
 MEGA = 1024 * 1024
 
@@ -127,17 +127,16 @@ def run(input_directory, export_metadata=False):
 
 
 if __name__ == '__main__':
-
+    default_path = os.path.join(POST_ROCK_TO_SORT_DIR, r'issues\dupes')
     parser = argparse.ArgumentParser(description='Print Audio/Video file details')
-    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('directory', default=default_path, help='Target Directory')
     # parser.add_argument('--commit', action='store_true', help='Rename Files')
     # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
-    parser.add_argument('--export-metadata', action='store_true', help='Export ALL metadata to a file')
+    parser.add_argument('--export-metadata', action='store_true', help='Export Track metadata to a file')
 
     args = parser.parse_args()
     run(args.directory, export_metadata=args.export_metadata)
 
-r"""
-python print_song_data.py post_rock\to_sort\issues\dupes
-python print_song_data.py post_rock\full_albums\to_listen_to
+"""
+python print_song_data.py
 """

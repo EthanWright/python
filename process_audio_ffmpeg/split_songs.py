@@ -22,7 +22,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from common import list_music_files, clean_file_name
-from paths import MUSIC_DIR
+from paths import MUSIC_DIR, POST_ROCK_FULL_ALBUMS_DIR
 
 
 def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, verbose=0, commit=False):
@@ -62,20 +62,41 @@ def parse_metadata_for_chapters(metadata):
     return return_data
 
 
-def extract_artist(file_name):
-    hyphen_split = ' - '
+def extract_artist(file_path):
     dot = '.'
-    artist = file_name.rsplit(hyphen_split, 1)[0]
+    hyphen_split = ' - '
+
+    file_name = file_path.rsplit(dot, 1)[0]
+
+    artist = file_name
+    while hyphen_split in artist:
+        artist = artist.rsplit(hyphen_split, 1)[0]
+
     # Remove `Best of`
     best_of_result = re.match(r'[bB]est [oO]f (.*)$', artist)
     if best_of_result:
         artist = best_of_result.group(1).strip()
-    if dot in artist:
-        artist = artist.rsplit(dot, 1)[0]
-    if hyphen_split in artist:
-        artist = artist.rsplit(hyphen_split, 1)[0]
+
+    if artist_is_part_of_a_mix(artist):
+        artist = file_name.rsplit(hyphen_split, 1)[1]
+        artist = artist.split(' (', 1)[0]
 
     return artist
+
+
+def artist_is_part_of_a_mix(artist):
+    artist = artist.lower()
+    mix_prefixes = ['A Post', 'Post', '2019']
+    for prefix in mix_prefixes:
+        if artist.startswith(prefix.lower()):
+            return True
+
+    mix_suffixes = [' Mix', 'post-rock']
+    for suffix in mix_suffixes:
+        if artist.endswith(suffix.lower()):
+            return True
+
+    return False
 
 
 def determine_output_path(source_directory, output_subdir=None):
@@ -111,8 +132,11 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
         start_timestamp = data.get('start_timestamp')
         end_timestamp = data.get('end_timestamp')
         title = clean_file_name(data.get('title'))
-        # TODO Clean up
-        if not artist.startswith('A Post') and not artist.startswith('Post') and not artist.startswith('2019')and not artist.endswith(' Mix'):
+
+        if 'livestream' in source_file_name.lower():
+            title += ' (Live)'
+
+        if artist:
             title = f'{artist} - {title}'
 
         new_file_name = f'{title}.{extension}'
@@ -142,15 +166,17 @@ def run(directory, verbose, commit):
     done_output_dir = 'split_albums'
 
     for file_name in list_music_files(directory):
-        print(file_name)
+        # print(file_name)
         file_path = os.path.join(directory, file_name)
         if os.path.isfile(file_path):
             run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=commit)
 
 
 if __name__ == '__main__':
+    default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, r'issues\dupes')
+
     parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
-    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('directory', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
@@ -158,8 +184,6 @@ if __name__ == '__main__':
     run(os.path.join(MUSIC_DIR, args.directory), args.verbose, args.commit)
 
 
-r"""
-python song_splitter.py post_rock\full_albums\to_listen_to
-python song_splitter.py post_rock\full_albums\liked_plus
-python song_splitter.py post_rock\full_albums\liked
+"""
+python split_songs.py
 """

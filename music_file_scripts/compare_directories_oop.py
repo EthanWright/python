@@ -59,7 +59,7 @@ class MusicFileList(object):
         self._set_current_song()
 
     def simplify_file_name_fuzzier(self, name):
-        return self.ffn.get_new_name(remove_file_extension(name)).lower()[:22]
+        return self.ffn.get_new_name(remove_file_extension(name)).lower()
 
 
 def sort_directory_contents(directory_1, directory_2):
@@ -98,8 +98,9 @@ def sort_directory_contents(directory_1, directory_2):
 
 
 if __name__ == '__main__':
-    # existing_music = os.path.join(MUSIC_DIR, r'post_rock\full_albums\to_listen_to\split_albums')
-    existing_music = os.path.join(MUSIC_DIR, r'post_rock\to_sort')
-    # new_music = os.path.join(MUSIC_DIR, r'to_sort\to_sort_redo')
+    default_path = os.path.join(POST_ROCK_TO_SORT_DIR, r'issues\dupes')
+    # existing_music = POST_ROCK_TO_SORT_DIR
+    existing_music = POST_ROCK_TO_SORT_DIR
+    # new_music = r'E:\- Backup -\Music\post_rock\to_sort'
     new_music = r'F:\backup\Music\post_rock\to_sort'
     sort_directory_contents(existing_music, new_music)
