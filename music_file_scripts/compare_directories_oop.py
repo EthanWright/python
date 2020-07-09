@@ -9,7 +9,7 @@ import os
 
 from common import list_music_files, move_file, remove_file_extension
 from fix_names import FixFileNames
-from paths import MUSIC_DIR
+from paths import MUSIC_DIR, POST_ROCK_TO_SORT_DIR
 
 
 class MusicFileList(object):
@@ -40,9 +40,13 @@ class MusicFileList(object):
 
     def _move_current_song(self, target_directory, result_string=None, commit=False):
         file_name = self.current_song
+        verbose = False
         if result_string:
             print(f'{result_string}: {file_name}')
-        # move_file(file_name, self.directory, target_directory, verbose=result_string is not None, commit=commit)
+            verbose = True
+        source_path = os.path.join(self.directory, file_name)
+        target_path = os.path.join(target_directory, file_name)
+        # move_file(source_path, target_path, verbose=verbose, commit=commit)
         self._increment_position()
 
     def _set_current_song(self):
@@ -98,9 +102,8 @@ def sort_directory_contents(directory_1, directory_2):
 
 
 if __name__ == '__main__':
-    default_path = os.path.join(POST_ROCK_TO_SORT_DIR, r'issues\dupes')
-    # existing_music = POST_ROCK_TO_SORT_DIR
     existing_music = POST_ROCK_TO_SORT_DIR
-    # new_music = r'E:\- Backup -\Music\post_rock\to_sort'
-    new_music = r'F:\backup\Music\post_rock\to_sort'
+    new_music = r'E:\- Backup -\Music\post_rock\sorting'
+    # new_music = r'E:\- Backup -\Music\post_rock\original_albums'
+
     sort_directory_contents(existing_music, new_music)
