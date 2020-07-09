@@ -147,10 +147,10 @@ def run(sub_directory, verbose=0, commit=False, remove_first=False):
 
 
 if __name__ == '__main__':
-    default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, 'add_metadata')
+    default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, 'needs_metadata')
 
     parser = argparse.ArgumentParser(description='Add Metadata to Song Files')
-    parser.add_argument('directory', default=default_path, help='Target Directory')
+    parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     parser.add_argument('--remove-first', action='store_true', help='Remove ALL metadata')

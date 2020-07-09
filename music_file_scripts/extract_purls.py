@@ -7,7 +7,7 @@ import os
 import re
 
 from common import TraverseDirectory, list_music_files
-from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR
+from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR, POST_ROCK_TO_SORT_DIR
 
 READ_SIZE_BYTES = 100
 MAX_BYTES_TO_READ = 30000
@@ -57,11 +57,16 @@ class TraverseDirectoryWriteToFile(TraverseDirectory):
         return True
 
     def handle_file(self, file_name, directory, full_path):
+        song_name, extension = file_name.rsplit('.')
+        if extension in ['m4a', 'mp3', 'txt']:
+            print(f'SKIPPING! {file_name} does not support PURL metadata')
+            return
+
         video_id = extract_video_id(full_path)
         if video_id:
             self.write_file.write(video_id + '\n')
         else:
-            print(f'{file_name} has no purl or associated video_id')
+            print(f'{file_name} has no PURL metadata entry')
 
 
 def extract_video_ids_to_file(output_path):

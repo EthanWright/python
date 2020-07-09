@@ -80,6 +80,8 @@ def extract_artist(file_path):
     if artist_is_part_of_a_mix(artist):
         artist = file_name.rsplit(hyphen_split, 1)[1]
         artist = artist.split(' (', 1)[0]
+        if artist_is_part_of_a_mix(artist):
+            return None
 
     return artist
 
@@ -89,6 +91,11 @@ def artist_is_part_of_a_mix(artist):
     mix_prefixes = ['A Post', 'Post', '2019']
     for prefix in mix_prefixes:
         if artist.startswith(prefix.lower()):
+            return True
+
+    mix_names = ['OFFWORLD', 'saffari']
+    for name in mix_names:
+        if artist == name.lower():
             return True
 
     mix_suffixes = [' Mix', 'post-rock']
@@ -150,7 +157,8 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
             new_file_name = f'{title}_{suffix}.{extension}'
             output_path = os.path.join(output_directory, new_file_name)
 
-        command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
+        # command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
+        command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
         print(f'Creating File: {new_file_name}')
         call_ffmpeg(command, verbose=-1, commit=commit)
 
@@ -173,10 +181,10 @@ def run(directory, verbose, commit):
 
 
 if __name__ == '__main__':
-    default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, r'issues\dupes')
+    default_path = POST_ROCK_FULL_ALBUMS_DIR
 
     parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
-    parser.add_argument('directory', default=default_path, help='Target Directory')
+    parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 

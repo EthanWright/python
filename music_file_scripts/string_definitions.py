@@ -228,6 +228,7 @@ acceptable_phrases_song_specific = [
     '(purpose)',
     '(Theories)',
     '(Question)',
+    '(You Will)',
     '(New Born)',
     '(Black Sky)',
     '(Waking Up)',

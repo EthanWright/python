@@ -69,7 +69,4 @@ r"""
 python trim_file.py "FILE" xx:xx xx:xx
 python trim_file.py ""
 
-python trim_file.py "Boira - Allau.ogg" .5 4:04
-python trim_file.py "Boira - Allau.ogg" 4:27 5:55
-python trim_file.py "Boira - Allau.ogg" 5:58 9:40
 """

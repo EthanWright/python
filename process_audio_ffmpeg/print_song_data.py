@@ -127,9 +127,9 @@ def run(input_directory, export_metadata=False):
 
 
 if __name__ == '__main__':
-    default_path = os.path.join(POST_ROCK_TO_SORT_DIR, r'issues\dupes')
+    default_path = os.path.join(POST_ROCK_TO_SORT_DIR, r'dupes')
     parser = argparse.ArgumentParser(description='Print Audio/Video file details')
-    parser.add_argument('directory', default=default_path, help='Target Directory')
+    parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
     # parser.add_argument('--commit', action='store_true', help='Rename Files')
     # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     parser.add_argument('--export-metadata', action='store_true', help='Export Track metadata to a file')

@@ -4,8 +4,7 @@ Iterate through songs in saved folder
 Search Youtube for the song
 Can also search a specific Channel
 
-Why use an API call to do this?
-This API is rate limited, use standard HTTP GET instead lol
+This API is rate limited, for large volumes use standard HTTP GET
 
 https://developers.google.com/youtube/v3/docs/
 """
@@ -13,15 +12,17 @@ https://developers.google.com/youtube/v3/docs/
 import json
 import os
 
-from call_youtube_api import call_youtube_api
-from paths import MUSIC_DIR
+from call_youtube_api import call_youtube_api, get_api_key
+from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR
 
-url_prefix = 'https://www.googleapis.com/youtube/v3'
+url_base = 'https://www.googleapis.com/youtube/v3'
 
 
 def search_for_song(file_name, channel_id=None):
     title = os.path.splitext(file_name)[0]
+    api_endpoint = 'search'
     params = {
+        'key': get_api_key(),
         'q': title,
         'part': 'snippet',
     }
@@ -49,14 +50,21 @@ def format_search_result(search_result):
 
 
 def write_results_to_file(search_results):
-
-    with open('search_results.txt', 'ab+') as out_file:
+    # import pdb;pdb.set_trace()
+    with open(r'output\search_results.txt', 'ab+') as out_file:
         for search_result in search_results:
             output_string_formatted = format_search_result(search_result)
             if output_string_formatted:
                 out_file.write(output_string_formatted)
 
         out_file.write('\r\n'.encode('utf-8'))
+
+
+def iterate_through_songs_in_file(input_file):
+    with open(input_file, 'r') as read_file:
+        data = read_file.readlines()
+    for song_name in data:
+        search_for_song(song_name)
 
 
 def iterate_through_song_files_on_computer(music_dir):
@@ -70,9 +78,10 @@ def list_music_files(directory):
 
 
 if __name__ == '__main__':
-    sub_dir = r'to_sort\to_sort_old'
-    # sub_dir = r'liked\missing'
-    music_dir = os.path.join(MUSIC_DIR, sub_dir)
+    music_file = os.path.join(MUSIC_SCRIPT_DIR, r'input\songs_list.txt')
+    iterate_through_songs_in_file(music_file)
+    exit()
 
+    music_dir = os.path.join(MUSIC_DIR, r'to_sort\to_sort_old')
     iterate_through_song_files_on_computer(music_dir)
-    # sheepy_channel_id = 'UC5nc_ZtjKW1htCVZVRxlQAQ'
+

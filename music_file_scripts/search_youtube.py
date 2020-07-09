@@ -26,7 +26,7 @@ def search_for_song(search_string):
     return result
 
 
-def format_html_and_write_to_file(search_result_html):
+def format_html_and_write_to_file(search_result_html, write_file):
 
     #
     # TODO Parse video HTML
@@ -43,7 +43,7 @@ def format_html_and_write_to_file(search_result_html):
         write_file.write(output_string_formatted.encode('utf-8'))
 
 
-def format_search_string(search_string, write_file):
+def format_search_string(search_string):
     formatted_string = search_string
 
     replace_list = [
@@ -66,7 +66,8 @@ def search_for_multiple_songs(song_list, output_file):
 
 def iterate_through_songs_in_file(input_file, output_file):
     with open(input_file, 'r') as read_file:
-        search_for_multiple_songs(read_file, output_file)
+        data = read_file.readlines()
+    search_for_multiple_songs(data, output_file)
 
 
 def iterate_through_songs_in_directory(music_dir, output_file):
@@ -88,15 +89,15 @@ def run_for_directory():
 
 
 def run_for_file():
-    output_file = 'songs_list_parsed.txt'
+    output_file = 'output\songs_list_parsed.txt'
 
     input_file = r'input\songs_list.txt'
     iterate_through_songs_in_file(
-        os.path.join(MUSIC_DIR, input_file),
+        os.path.join(MUSIC_SCRIPT_DIR, input_file),
         os.path.join(MUSIC_SCRIPT_DIR, output_file),
     )
 
 
 if __name__ == '__main__':
-    run_for_directory()
+    # run_for_directory()
     run_for_file()

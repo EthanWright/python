@@ -12,7 +12,7 @@ from string_definitions import *
 from functools import reduce
 
 from common import list_music_files, rename_file_safe, invalid_music_extensions
-from paths import MUSIC_DIR
+from paths import MUSIC_DIR, POST_ROCK_DIR
 
 
 class FixFileNames(object):
@@ -179,6 +179,7 @@ class StringEditor(object):
 
         while '  ' in name:
             name = self.replace_string(name, '  ', ' ')
+
         cruft = [' ', '_', '-']
         start_position = 0
         while name[start_position] in cruft:
@@ -193,10 +194,10 @@ class StringEditor(object):
 
         if end_position < length_string:
             if length_string - end_position < 5:
-                name = self.crop_string(name, end_position, length_string)
-            else:
-                if name[end_position - 1] != '+':
+                if name[end_position - 1] == '+':
                     self.stats.improper_formatting.append(name)
+                else:
+                    name = self.crop_string(name, end_position, length_string)
 
         return name
 
@@ -358,9 +359,11 @@ class Stats(object):
 ########################################################################################################
 
 if __name__ == '__main__':
+    # default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, 'to_listen_to')
+    default_path = os.path.join(POST_ROCK_DIR, 'new_albums')
 
     parser = argparse.ArgumentParser(description='Fix Song Names')
-    parser.add_argument('directory', help='Target Directory')
+    parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     # TODO ?
@@ -377,9 +380,11 @@ if __name__ == '__main__':
 ########################################################################################################
 
 r"""
-python fix_names.py post_rock\full_albums\to_listen_to -v
+python fix_names.py
+
+python fix_names.py post_rock\new_albums -v
+python fix_names.py post_rock\new_songs -v
+
 python fix_names.py post_rock\full_albums\to_listen_to --commit
 python fix_names.py post_rock\full_albums\to_listen_to\individual_songs
-
-python fix_names.py post_rock\to_sort
 """
