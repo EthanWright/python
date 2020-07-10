@@ -63,7 +63,7 @@ from common import (
     list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files, has_file_extension
 )
 from fix_names import FixFileNames, song_version
-from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR, POST_ROCK_TO_SORT_DIR
+from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR, POST_ROCK_TO_SORT_DIR, POST_ROCK_DIR
 
 fix_file_names = FixFileNames()
 
@@ -193,7 +193,6 @@ class SongData(object):
         name_1, extra_data_1 = split_name_safe(name_1)
         name_2, extra_data_2 = split_name_safe(name_2)
 
-        # known_false_positives = ['falls', 'os 6581']
         roman_numerals = ['ii', 'iii', 'iv', 'v']
         for phrase in roman_numerals:  # + known_false_positives:
             if (name_1.endswith(phrase)) ^ (name_2.endswith(phrase)):
@@ -208,6 +207,14 @@ class SongData(object):
             return False  # Different
 
         if not extra_data_1 and not extra_data_2:
+            digits = [str(x) for x in range(10)]
+            if name_1[-1] in digits and name_2[-1] in digits:
+                if name_1[-1] != name_2[-1]:
+                    return False
+            known_false_positives = ['interlude']
+            for false_positive in known_false_positives:
+                if false_positive in name_1 and false_positive in name_2:
+                    return False
             return same_song_root
 
         for phrase in song_version:  # + ['3', '4', '5']:
@@ -358,7 +365,8 @@ class FileActions(object):
         self.move_songs(good_songs, r'liked', commit=commit)
 
     def move_songs(self, song_data_list, destination_dir, commit=False, export_logs=False):
-        destination_path = os.path.join(self.base_directory, destination_dir)
+        # destination_path = os.path.join(self.base_directory, destination_dir)
+        destination_path = os.path.join(POST_ROCK_DIR, destination_dir)
 
         for song_data in song_data_list:
             file_name = song_data.raw_text

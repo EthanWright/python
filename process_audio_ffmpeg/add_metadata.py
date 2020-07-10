@@ -26,11 +26,11 @@ import re
 
 from call_ffmpeg import call_ffmpeg
 from common import list_music_files, clean_file_name
-from paths import MUSIC_DIR, POST_ROCK_FULL_ALBUMS_DIR
+from paths import MUSIC_DIR, POST_ROCK_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR, POST_ROCK_NEEDS_METADATA_DIR
 
 
 # Parsing Functions
-def parse_file_data_into_metadata_file(input_data, output_file):
+def parse_file_data_into_metadata_file(input_data, output_file, commit=False):
     if input_data[0].startswith(';FFMETADATA1'):
         return input_data
     track_data_list = []
@@ -39,20 +39,19 @@ def parse_file_data_into_metadata_file(input_data, output_file):
         track_data_list.append((start_time, end_time, title))
     track_data_list.append((None, None, None))
 
-    # for item in track_data_list:
-    #     print(item)
-    with io.open(output_file, 'wt', encoding='utf-8') as f:
+    metadata_file_content = ';FFMETADATA1\n'
+    for x in range(len(track_data_list) - 1):
+        start, end, title = track_data_list[x]
+        if not end:
+            end = track_data_list[x + 1][0]
+        metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
+        metadata_file_content += 'START=%s\n' % str(start)
+        metadata_file_content += 'END=%s\n' % str(end)
+        metadata_file_content += 'title=%s\n' % title
 
-        metadata_file_content = ';FFMETADATA1\n'
-        for x in range(len(track_data_list) - 1):
-            start, end, title = track_data_list[x]
-            if not end:
-                end = track_data_list[x + 1][0]
-            metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
-            metadata_file_content += 'START=%s\n' % str(start)
-            metadata_file_content += 'END=%s\n' % str(end)
-            metadata_file_content += 'title=%s\n' % title  # ffmpeg_escape(title)
-        f.write(metadata_file_content)
+    if commit:
+        with io.open(output_file, 'wt', encoding='utf-8') as f:
+            f.write(metadata_file_content)
 
 
 def parse_string(data_string):
@@ -71,13 +70,23 @@ def parse_string(data_string):
 
 
 def extract_timestamps(data_string):
-    regex = r'([0-9]{1,3}:[0-9][0-9]\.?[0-9]*)'
+    # regex = r'([0-9]{1,3}:[0-9][0-9]\.?[0-9]*)'
+    regex = r'[^0-9:]?([0-9:]*:[0-9][0-9]\.?[0-9]*)[^(0-9:)]?'  # ??
+    # import pdb;pdb.set_trace()
     return re.findall(regex, data_string)
 
 
 def convert_timestamp_to_milliseconds(timestamp):
-    minutes, seconds = timestamp.split(':')
-    return (float(minutes) * 60.0 + float(seconds)) * 1000.0
+    total_seconds = 0.0
+    minutes, seconds = timestamp.rsplit(':', 1)
+    if minutes:
+        if ':' in minutes:
+            hours, minutes = minutes.rsplit(':', 1)
+            total_seconds += float(hours) * 60.0 * 60.0
+        total_seconds += float(minutes) * 60.0
+    total_seconds += float(seconds)
+
+    return total_seconds * 1000.0
 
 
 def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, commit=False):
@@ -91,7 +100,7 @@ def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, 
         song_file_path, purl = remove_metadata(directory, file_name, verbose=verbose, commit=commit)
 
     file_data = open(metadata_input_path, 'r').readlines()
-    parse_file_data_into_metadata_file(file_data, metadata_output_path)
+    parse_file_data_into_metadata_file(file_data, metadata_output_path, commit=commit)
 
     add_metadata(song_file_path, metadata_output_path, purl=purl, verbose=verbose, commit=commit)
 
@@ -147,7 +156,7 @@ def run(sub_directory, verbose=0, commit=False, remove_first=False):
 
 
 if __name__ == '__main__':
-    default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, 'needs_metadata')
+    default_path = POST_ROCK_NEEDS_METADATA_DIR
 
     parser = argparse.ArgumentParser(description='Add Metadata to Song Files')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')

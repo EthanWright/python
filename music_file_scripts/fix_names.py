@@ -385,6 +385,4 @@ python fix_names.py
 python fix_names.py post_rock\new_albums -v
 python fix_names.py post_rock\new_songs -v
 
-python fix_names.py post_rock\full_albums\to_listen_to --commit
-python fix_names.py post_rock\full_albums\to_listen_to\individual_songs
 """

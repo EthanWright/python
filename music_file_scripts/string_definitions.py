@@ -119,6 +119,7 @@ replace_chars_mapping = {
     7768: 'R',
     8210: '-', 8211: '-', 8212: '-',
     8226: 'and',
+    8322: '2',
     8710: 'A',
     10096: '(', 10097: ')', 12304: '(', 12305: ')',
 
@@ -156,7 +157,10 @@ parentheses_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or  [string]
 potential_problem_regexes = [
     # r'- ([01]?[0-9]) [^0-9]',  # 01 / 12 / etc
     r'- (0[0-9]|1[0-4]) [^0-9]',  # 01 / 12 / etc
-    # r'\)( 20[12][0-9])',
+    # TODO Simplify these
+    r'\)( 20[012][0-9])',  # ') 2020'
+    r'( 20[012][0-9])\)',  # ' 2020)'
+    r'\((20[012][0-9] )',  # '(2020 '
 ]
 # acceptable_regexes = [
 #     r'([rR][eE]?)?[mM][iI]?[xX][\)\]]',  # Remix) or Mix)
@@ -169,8 +173,11 @@ potential_problem_regexes = [
 song_version = [
     'Version',
     'Cover',
-    'Remix',
     'Mix',
+    'Remix',
+    'Refix',
+    'Redux',
+    'Remastered',
     'Live',
     'Acoustic',
     'Instrumental',
@@ -181,9 +188,9 @@ song_version = [
     'Fix',
     'Flip',
     'Japanese',
-    'Refix',
-    'Remastered',
     'Session',
+    'Part',
+    'Pt',
 ]
 song_details = [
     'Feat',
@@ -194,8 +201,6 @@ song_details = [
     'Best of',
     'The best of',
     'Side ',
-    'Part',
-    'Pt I',
     'with ',
     'Inspired by',
     'Collaboration',
@@ -212,6 +217,7 @@ acceptable_phrases = song_version + song_details
 #  Specific songs
 acceptable_phrases_song_specific = [
     '(r)',
+    '(s)',
     '(re)',
     '(lat)',
     '(ion)',
@@ -238,12 +244,9 @@ acceptable_phrases_song_specific = [
     '(being born)',
     '(Free flight)',
     '(259 Days Far)',
-    '(You Are There)',
     '(Second Chance)',
-    '(The Last Dawn)',
     '(While Im Away)',
     '(the eye of god)',
-    '(For My Parents)',
     '(Temple Keepers)',
     '(beautiful days)',
     '(Together We Go)',
@@ -252,7 +255,6 @@ acceptable_phrases_song_specific = [
     '(No Turning Back)',
     '(Rays of Darkness)',
     '(The sea of rains)',
-    '(Requiem for Hell)',
     '(Cracked Delusion)',
     '(Black Heart Queen)',
     '(The End Of Violence)',
@@ -262,13 +264,10 @@ acceptable_phrases_song_specific = [
     '(We Must Move Forwards)',
     '(The System Of Meaning)',
     '(The Language Of Ghosts)',
-    '(Hymn to the Immortal Wind)',
     '(Trails of the Winter Storm)',
     '(Are Those Who Are Forgotten)',
-    '(One Step More and Youll Die)',
     '(question of time and distance)',
     '(entre la razon y el sentimiento)',
-    '(Walking Cloud and Deep Red Sky Flag Fluttered and the Sun Shined)',
 
     '(Vinyl Play)',
     # '(Studio 2 Session)',

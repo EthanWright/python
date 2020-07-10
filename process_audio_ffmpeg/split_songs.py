@@ -22,7 +22,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from common import list_music_files, clean_file_name
-from paths import MUSIC_DIR, POST_ROCK_FULL_ALBUMS_DIR
+from paths import MUSIC_DIR, POST_ROCK_NEW_ALBUMS_DIR, POST_ROCK_NEW_SONGS_DIR, POST_ROCK_NEEDS_METADATA_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR
 
 
 def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, verbose=0, commit=False):
@@ -31,7 +31,7 @@ def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=
     if len(split_data) == 0:
         return move_to_subdir(source_file_path, error_dir, commit=commit, error=True)
     purl = extract_field_from_stdout(stdout, 'purl')
-    split_file(source_file_path, split_data, purl, output_subdir=song_dir, verbose=verbose, commit=commit)
+    split_file(source_file_path, split_data, purl, output_directory=song_dir, verbose=verbose, commit=commit)
     move_to_subdir(source_file_path, done_dir, commit=commit)
 
 
@@ -78,7 +78,7 @@ def extract_artist(file_path):
         artist = best_of_result.group(1).strip()
 
     if artist_is_part_of_a_mix(artist):
-        artist = file_name.rsplit(hyphen_split, 1)[1]
+        artist = file_name.rsplit(hyphen_split, 1)[-1]
         artist = artist.split(' (', 1)[0]
         if artist_is_part_of_a_mix(artist):
             return None
@@ -88,15 +88,15 @@ def extract_artist(file_path):
 
 def artist_is_part_of_a_mix(artist):
     artist = artist.lower()
-    mix_prefixes = ['A Post', 'Post', '2019']
+    mix_prefixes = ['A Post', 'Post', '2019', '5 hours']
     for prefix in mix_prefixes:
         if artist.startswith(prefix.lower()):
             return True
 
-    mix_names = ['OFFWORLD', 'saffari']
-    for name in mix_names:
-        if artist == name.lower():
-            return True
+    # mix_names = ['Post-Whatever']
+    # for name in mix_names:
+    #     if artist == name.lower():
+    #         return True
 
     mix_suffixes = [' Mix', 'post-rock']
     for suffix in mix_suffixes:
@@ -106,29 +106,23 @@ def artist_is_part_of_a_mix(artist):
     return False
 
 
-def determine_output_path(source_directory, output_subdir=None):
-    if output_subdir:
-        output_directory = os.path.join(source_directory, output_subdir)
-    else:
-        output_directory = source_directory
-    if not os.path.exists(output_directory):
-        raise Exception(f'Output directory does not exist: {output_directory}')
-    return output_directory
-
-
-def move_to_subdir(source_file_path, output_subdir, commit=False, error=False):
+def move_to_subdir(source_file_path, output_directory, commit=False, error=False):
     if error:
         print(f'Can not split file. Marking as error: {source_file_path}')
     source_dir, name = source_file_path.rsplit('\\', 1)
-    target_file_path = os.path.join(source_dir, output_subdir, name)
+    target_file_path = os.path.join(output_directory, name)
     if commit:
         os.rename(source_file_path, target_file_path)
 
 
-def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0, commit=False):
+def split_file(source_file_path, split_data, purl, output_directory=None, verbose=0, commit=False):
 
     source_directory, source_file_name = source_file_path.rsplit('\\', 1)
-    output_directory = determine_output_path(source_directory, output_subdir=output_subdir)
+
+    if not output_directory:
+        output_directory = source_directory
+    if not os.path.exists(output_directory):
+        raise Exception(f'Output directory does not exist: {output_directory}')
 
     extension = source_file_name.rsplit('.', 1)[1]
     artist = extract_artist(source_file_name)
@@ -169,9 +163,9 @@ def split_file(source_file_path, split_data, purl, output_subdir=None, verbose=0
 
 
 def run(directory, verbose, commit):
-    song_output_dir = 'individual_songs'
-    error_output_dir = 'add_metadata'
-    done_output_dir = 'split_albums'
+    song_output_dir = POST_ROCK_NEW_SONGS_DIR  # 'individual_songs'
+    error_output_dir = POST_ROCK_NEEDS_METADATA_DIR  # 'needs_metadata'
+    done_output_dir = POST_ROCK_ORIGINAL_ALBUMS_DIR  # 'split_albums'
 
     for file_name in list_music_files(directory):
         # print(file_name)
@@ -181,7 +175,7 @@ def run(directory, verbose, commit):
 
 
 if __name__ == '__main__':
-    default_path = POST_ROCK_FULL_ALBUMS_DIR
+    default_path = POST_ROCK_NEW_ALBUMS_DIR
 
     parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
