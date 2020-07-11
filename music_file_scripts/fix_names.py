@@ -47,7 +47,7 @@ class FixFileNames(object):
         new_name = self.replace_specified_substrings(new_name)
 
         # Find parts of the title in ()
-        new_name = self.handle_parentheses_values(new_name)
+        new_name = self.handle_parenthetical_values(new_name)
 
         # Find parts of the title that potentially should be removed
         new_name = self.handle_bad_strings(new_name)
@@ -69,8 +69,8 @@ class FixFileNames(object):
     def replace_specified_substrings(self, name):
         return reduce(lambda x, y: self.editor.replace_string(x, *y), replace_strings, name)
 
-    def handle_parentheses_values(self, name):
-        return reduce(self.editor.remove_string, self.editor.find_parentheses_values(name), name)
+    def handle_parenthetical_values(self, name):
+        return reduce(self.editor.remove_string, self.editor.find_parenthetical_values(name), name)
 
     def handle_bad_strings(self, name):
         return reduce(self.editor.remove_string, self.editor.find_bad_string_patterns(name), name)
@@ -148,19 +148,29 @@ class StringEditor(object):
         else:
             return self.replace_string(name, invalid_char, replacement_char)
 
-    def find_parentheses_values(self, name):
+    def find_parenthetical_values(self, name):
         bad_strings = []
-        parentheses_values = re.findall(parentheses_regex, name)
-        for match in parentheses_values:
-            if self.should_value_be_removed(match):
+        parenthetical_values = re.findall(parenthetical_regex, name)
+        for match in parenthetical_values:
+            if self.should_parenthetical_value_be_removed(match):
                 bad_strings.append(match)
 
         return bad_strings
 
     @staticmethod
-    def should_value_be_removed(string_to_check):
-        for phrase in acceptable_phrases:
-            if phrase.lower() in string_to_check.lower():
+    def should_parenthetical_value_be_removed(string_to_check):
+        string_to_check = string_to_check.strip('()').lower()
+
+        for phrase in acceptable_song_specific_parenthetical_phrases + song_version_descriptors:
+            if phrase.lower() == string_to_check:
+                return False
+
+        for phrase in song_info + song_version_prefix:
+            if string_to_check.lower().startswith(phrase.lower()):
+                return False
+
+        for phrase in song_version_suffix:
+            if string_to_check.lower().endswith(phrase.lower()):
                 return False
         return True
 
@@ -192,12 +202,9 @@ class StringEditor(object):
         while name[end_position - 1] in cruft:
             end_position -= 1
 
-        if end_position < length_string:
-            if length_string - end_position < 5:
-                if name[end_position - 1] == '+':
-                    self.stats.improper_formatting.append(name)
-                else:
-                    name = self.crop_string(name, end_position, length_string)
+        if 0 < length_string - end_position < 5:
+            if name[end_position - 1] != '+':
+                name = self.crop_string(name, end_position, length_string)
 
         return name
 

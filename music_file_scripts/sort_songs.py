@@ -162,7 +162,7 @@ class DiffSongDataLists(object):
         self.list_1.print_results(self.list_actions)
         self.list_actions.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)  # Computer Only
         self.list_2.print_results(self.list_actions)
-        self.list_actions.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=True)  # Master List Only
+        self.list_actions.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=False)  # Master List Only
 
     # TODO Move to separate class?
     def extract_bad_songs(self):
@@ -207,17 +207,19 @@ class SongData(object):
             return False  # Different
 
         if not extra_data_1 and not extra_data_2:
+            # If they both end with a digit, but it's a different digit, return False
             digits = [str(x) for x in range(10)]
-            if name_1[-1] in digits and name_2[-1] in digits:
-                if name_1[-1] != name_2[-1]:
-                    return False
+            if name_1[-1] in digits and name_2[-1] in digits and name_1[-1] != name_2[-1]:
+                return False
+
             known_false_positives = ['interlude']
             for false_positive in known_false_positives:
                 if false_positive in name_1 and false_positive in name_2:
                     return False
+
             return same_song_root
 
-        for phrase in song_version:  # + ['3', '4', '5']:
+        for phrase in song_version:
             check_phrase_1 = check_phrase_2 = False
             if extra_data_1:
                 check_phrase_1 = phrase.lower() in extra_data_1

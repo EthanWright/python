@@ -137,9 +137,9 @@ improper_format_regexes = [
     r'[a-zA-Z0-9](- |\()',  # `name- ` or `name(`
     r'\)( 20[12][0-9])',
 ]
-improper_format_regexes_songs_only = [
-    r'^Post',
-]
+# improper_format_regexes_songs_only = [
+#     r'^Post',
+# ]
 required_strings = []
 required_strings_songs_only = [
     r' - ',
@@ -147,8 +147,9 @@ required_strings_songs_only = [
 
 #####################################################################################################
 
-parentheses_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or  [string]
-# parentheses_regexes = [
+# parenthetical_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or [string]
+parenthetical_regex = r'[\[\(]([^\)\]]*)[\)\]]'  # (string) or [string]
+# parenthetical_regex = [
 #     r'(\[[^\]]*\])',  # [string]
 #     r'(\([^\)]*\))',  # (string)
 # ]
@@ -168,40 +169,48 @@ potential_problem_regexes = [
 #     # r'[mM]ix[\)\]]',  # Mix)
 #     r'[\(\[][fF](ea)?[tT]',  # (Feat or (Ft
 #     r'[vV]ersion[\)\]]',  # Version)
-#     r' [vV][sS] '  # TLC vs The XX
 # ]
-song_version = [
+
+song_version_descriptors = [
+    'Acoustic',
+    'Instrumental',
+    'Remastered',
+    'Japanese',
+    'Dirty',
+    'Explicit',
+]
+song_version_suffix = [
     'Version',
     'Cover',
     'Mix',
     'Remix',
     'Refix',
     'Redux',
-    'Remastered',
-    'Live',
-    'Acoustic',
-    'Instrumental',
     'Edit',
-    'Mashup',
-    'Dirty',
-    'Explicit',
     'Fix',
     'Flip',
-    'Japanese',
+    'Mashup',
     'Session',
+]
+song_version_prefix = [
+    'Live',
     'Part',
     'Pt',
+    'Rehearsal',
 ]
-song_details = [
+song_version = song_version_descriptors + song_version_suffix + song_version_prefix
+
+song_info = [
     'Feat',
     'Ft',
-    'Theme',
     'EP',
+    'Side ',
+    'with ',
+    'Theme',
+    'Full EP',
     'Full Album',
     'Best of',
     'The best of',
-    'Side ',
-    'with ',
     'Inspired by',
     'Collaboration',
     'Intermission',
@@ -212,92 +221,91 @@ song_details = [
     'Intro',
     'Outro',
 ]
-acceptable_phrases = song_version + song_details
 
 #  Specific songs
-acceptable_phrases_song_specific = [
-    '(r)',
-    '(s)',
-    '(re)',
-    '(lat)',
-    '(ion)',
-    '(fade)',
-    '(OMSQ)',
-    '(Mars)',
-    '(Land)',
-    '(hello)',
-    '(Stage)',
-    '(Bones)',
-    '(Ocean)',
-    '(Think)',
-    '(Moving)',
-    '(purpose)',
-    '(Theories)',
-    '(Question)',
-    '(You Will)',
-    '(New Born)',
-    '(Black Sky)',
-    '(Waking Up)',
-    '(Belgrade90)',
-    '(Redemption)',
-    '(Red Moscow)',
-    '(being born)',
-    '(Free flight)',
-    '(259 Days Far)',
-    '(Second Chance)',
-    '(While Im Away)',
-    '(the eye of god)',
-    '(Temple Keepers)',
-    '(beautiful days)',
-    '(Together We Go)',
-    '(Sleep Paralysis)',
-    '(The Ash of Ruin)',
-    '(No Turning Back)',
-    '(Rays of Darkness)',
-    '(The sea of rains)',
-    '(Cracked Delusion)',
-    '(Black Heart Queen)',
-    '(The End Of Violence)',
-    '(Projected Perfection)',
-    '(til it turns to gold)',
-    '(The Decline Of Reason)',
-    '(We Must Move Forwards)',
-    '(The System Of Meaning)',
-    '(The Language Of Ghosts)',
-    '(Trails of the Winter Storm)',
-    '(Are Those Who Are Forgotten)',
-    '(question of time and distance)',
-    '(entre la razon y el sentimiento)',
+acceptable_song_specific_parenthetical_phrases = [
+    'r',
+    's',
+    're',
+    'lat',
+    'ion',
+    'fade',
+    'OMSQ',
+    'Mars',
+    'Land',
+    'hello',
+    'Stage',
+    'Bones',
+    'Ocean',
+    'Think',
+    'Moving',
+    'purpose',
+    'Theories',
+    'Question',
+    'You Will',
+    'New Born',
+    'Black Sky',
+    'Waking Up',
+    'Belgrade90',
+    'Redemption',
+    'Red Moscow',
+    'being born',
+    'Free flight',
+    '259 Days Far',
+    'Second Chance',
+    'While Im Away',
+    'the eye of god',
+    'Temple Keepers',
+    'beautiful days',
+    'Together We Go',
+    'Sleep Paralysis',
+    'The Ash of Ruin',
+    'No Turning Back',
+    'The sea of rains',
+    'Cracked Delusion',
+    'Black Heart Queen',
+    'The End Of Violence',
+    'Projected Perfection',
+    'til it turns to gold',
+    'The Decline Of Reason',
+    'We Must Move Forwards',
+    'The System Of Meaning',
+    'The Language Of Ghosts',
+    'Trails of the Winter Storm',
+    'Are Those Who Are Forgotten',
+    'question of time and distance',
+    'entre la razon y el sentimiento',
+    'Split with Tangled Thoughts of Leaving',
 
-    '(Vinyl Play)',
-    # '(Studio 2 Session)',
-    '(pg lost and Wang Wen Split)',
-    # '(rehearsal room session 2018)',
+    'Vinyl Play',
+    # 'Studio 2 Session',
+    'pg lost and Wang Wen Split',
+    # 'rehearsal room session 2018',
 
-    '(440612-N 1214609-W)',
-    '(44 0612-N 121 4609-W)',
-    '(01 06 1948-16 06 1987)',
+    '440612-N 1214609-W',
+    '44 0612-N 121 4609-W',
+    '01 06 1948-16 06 1987',
 
-    '(1and2)',
-    '(1 and 2)',
-    '(3)',
-    '(4)',
-    '(5)',
-    '(III)',
-    '(1453)',
+    '1and2',
+    '1 and 2',
+    '3',
+    '4',
+    '5',
+    'III',
+    '1453',
 
-    '(Nexus pt 1)',
-    '(Nexus pt 2)',
-    '(Existing I)',
-    '(Existing II)',
-    '(Existing III)',
-    '(Existing IV)',
-    '(Existence I)',
-    '(Existence II)',
-    '(Existence III)',
-    '(Existence IV)',
-    '(The Lighthouse Symphony Pt3)',
-    '(The Lighthouse Symphony Pt2)',
+    'Nexus pt 1',
+    'Nexus pt 2',
+    'Existing I',
+    'Existing II',
+    'Existing III',
+    'Existing IV',
+    'Existence I',
+    'Existence II',
+    'Existence III',
+    'Existence IV',
+    'The Lighthouse Symphony Pt3',
+    'The Lighthouse Symphony Pt2',
 
 
 ]
@@ -309,5 +317,3 @@ RENAMING_SONGS = True
 if RENAMING_SONGS:
     remove_strings += remove_phrases_songs_only
     required_strings += required_strings_songs_only
-    acceptable_phrases += acceptable_phrases_song_specific
-    improper_format_regexes += improper_format_regexes_songs_only
