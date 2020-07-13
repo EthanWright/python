@@ -106,8 +106,8 @@ def run(actions):
         dupes = song_differ.list_1.duplicate_items
         file_actions.move_dupes(dupes)
     if move_bad:
-        bad_songs = [item for item in self.list_2 if item.rating == '--']
-        bad_song_file_names = [item for item in self.list_1 if item.id in bad_songs]
+        bad_songs = [item.id for item in song_differ.list_2 if item.rating == '--']
+        bad_song_file_names = [item for item in song_differ.list_1 if item.id in bad_songs]
         file_actions.move_bad(bad_song_file_names)
 
 
@@ -370,6 +370,7 @@ class FileActions(object):
         self.move_songs(good_songs, r'liked')
 
     def move_songs(self, song_data_list, destination_dir, export_logs=True):
+        print('Moving ' + str(len(song_data_list)) + ' song files to: "' + destination_dir + '"')
         destination_path = os.path.join(self.base_directory, destination_dir)
 
         for song_data in song_data_list:
@@ -377,7 +378,7 @@ class FileActions(object):
             old_full_path = os.path.join(self.base_directory, file_name)
             new_full_path = os.path.join(destination_path, file_name)
             # print(f'Moving "{old_full_path}" to "{new_full_path}"')
-            move_file(old_full_path, new_full_path, commit=self.commit)
+            move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
 
         if self.commit and export_logs:
             logs_dir = os.path.join(destination_path, 'logs')
@@ -413,9 +414,11 @@ if __name__ == '__main__':
 
     run(parser.parse_args())
 
-    # Find dupe file names in directory
-    # print(SongDataList(gather_file_names_from_path(args.directory), "Dir").duplicate_items)
 
 r"""
 python sort_songs.py
+"""
+
+""" Find dupe file names in directory
+print(SongDataList(gather_file_names_from_path(args.directory), "Dir").duplicate_items)
 """

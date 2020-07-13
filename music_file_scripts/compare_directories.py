@@ -9,7 +9,7 @@ import os
 
 from common import list_music_files, move_file, remove_file_extension
 from fix_names import FixFileNames
-from paths import MUSIC_DIR, POST_ROCK_TO_SORT_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR
+from paths import MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR
 
 
 class MusicFileList(object):
@@ -55,6 +55,7 @@ class MusicFileList(object):
             result = self.sorted_music_list[self.music_list_pointer]
             self.current_song = result
             self.current_song_simplified = self.simplify_file_name_fuzzier(result)
+            # self.current_song_simplified = result
         else:
             self.current_song = None
             self.current_song_simplified = None
@@ -70,8 +71,8 @@ class MusicFileList(object):
 def sort_directory_contents(directory_1, directory_2):
     matches_count = 0
 
-    music_file_list_1 = MusicFileList(directory_1, 'replacement_found', 'missing')
-    music_file_list_2 = MusicFileList(directory_2, 'liked_replacements', 'a')
+    music_file_list_1 = MusicFileList(directory_1, 'replacement_found', 'extra')
+    music_file_list_2 = MusicFileList(directory_2, 'liked_replacements', 'extra')
 
     while music_file_list_1.current_song and music_file_list_2.current_song:
 
@@ -104,11 +105,11 @@ def sort_directory_contents(directory_1, directory_2):
 
 if __name__ == '__main__':
     # existing_music = POST_ROCK_ORIGINAL_ALBUMS_DIR
-    existing_music = POST_ROCK_TO_SORT_DIR
+    existing_music = POST_ROCK_SONGS_TO_SORT_DIR
 
     # new_music = r'E:\- Backup -\Music\post_rock\original_albums'
-    new_music = r'E:\- Backup -\Music\post_rock\sorting'
+    new_music = r'E:\- Backup -\Music\post_rock\songs_to_sort'
     # new_music = r'F:\backup\Music\post_rock\original_albums'
-    # new_music = r'F:\backup\Music\post_rock\sorting'
+    # new_music = r'F:\backup\Music\post_rock\songs_to_sort'
 
     sort_directory_contents(existing_music, new_music)
