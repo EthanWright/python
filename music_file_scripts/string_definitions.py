@@ -160,8 +160,8 @@ potential_problem_regexes = [
     r'- (0[0-9]|1[0-4]) [^0-9]',  # 01 / 12 / etc
     # TODO Simplify these
     r'\)( 20[012][0-9])',  # ') 2020'
-    r'( 20[012][0-9])\)',  # ' 2020)'
     r'\((20[012][0-9] )',  # '(2020 '
+    # r'( 20[012][0-9])\)',  # ' 2020)'
 ]
 # acceptable_regexes = [
 #     r'([rR][eE]?)?[mM][iI]?[xX][\)\]]',  # Remix) or Mix)

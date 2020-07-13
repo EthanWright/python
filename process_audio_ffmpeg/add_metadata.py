@@ -34,8 +34,14 @@ def parse_file_data_into_metadata_file(input_data, output_file, commit=False):
     if input_data[0].startswith(';FFMETADATA1'):
         return input_data
     track_data_list = []
+    # base_num = 0  # TODO Only for stupid formats
     for track_data in input_data:
         start_time, end_time, title = parse_string(track_data)
+
+        # end_time = start_time + base_num  # TODO Only for stupid formats
+        # start_time = base_num  # TODO Only for stupid formats
+        # base_num = end_time  # TODO Only for stupid formats
+
         track_data_list.append((start_time, end_time, title))
     track_data_list.append((None, None, None))
 
@@ -44,6 +50,7 @@ def parse_file_data_into_metadata_file(input_data, output_file, commit=False):
         start, end, title = track_data_list[x]
         if not end:
             end = track_data_list[x + 1][0]
+
         metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
         metadata_file_content += 'START=%s\n' % str(start)
         metadata_file_content += 'END=%s\n' % str(end)
@@ -71,8 +78,7 @@ def parse_string(data_string):
 
 def extract_timestamps(data_string):
     # regex = r'([0-9]{1,3}:[0-9][0-9]\.?[0-9]*)'
-    regex = r'[^0-9:]?([0-9:]*:[0-9][0-9]\.?[0-9]*)[^(0-9:)]?'  # ??
-    # import pdb;pdb.set_trace()
+    regex = r'[^0-9:]?([0-9:]*:[0-9][0-9]\.?[0-9]*)[^(0-9:)]?'
     return re.findall(regex, data_string)
 
 

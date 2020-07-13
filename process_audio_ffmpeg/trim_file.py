@@ -7,7 +7,7 @@ import argparse
 import os
 
 from call_ffmpeg import call_ffmpeg
-from paths import VIDEO_DIR, MUSIC_DIR, POST_ROCK_TO_SORT_DIR
+from paths import VIDEO_DIR, MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR
 
 
 def convert_timestamp_to_float(timestamp):
@@ -40,9 +40,9 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
 
 
 def run(args):
-    # target_path = os.path.join(VIDEO_DIR, args.file)
+    target_path = os.path.join(VIDEO_DIR, args.file)
     # target_path = os.path.join(MUSIC_DIR, args.file)
-    target_path = os.path.join(POST_ROCK_TO_SORT_DIR, args.file)
+    # target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, args.file)
 
     start = convert_timestamp_to_float(args.start)
     end = convert_timestamp_to_float(args.end)
@@ -68,5 +68,6 @@ if __name__ == '__main__':
 r"""
 python trim_file.py "FILE" xx:xx xx:xx
 python trim_file.py ""
+
 
 """
