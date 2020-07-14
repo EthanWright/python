@@ -57,6 +57,8 @@ import argparse
 import copy
 import os
 import re
+import time
+
 from pprint import pprint
 
 from common import (
@@ -167,11 +169,11 @@ class DiffSongLists(object):
             item_1 = self.advance_list_1()
 
     def print_results(self):
-        list_actions = ListActions()
+        list_outputter = ListOutputter()
         self.list_1.print_results()
-        list_actions.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)  # Computer Only
+        list_outputter.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)  # Computer Only
         self.list_2.print_results()
-        list_actions.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=False)  # Master List Only
+        list_outputter.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=False)  # Master List Only
 
 
 class SongData(object):
@@ -286,9 +288,9 @@ class SongDataList(object):
             self.current_item = None
 
     def print_results(self):
-        list_actions = ListActions()
-        list_actions.print_list(self, f'All Songs On {self.name}', print_full_list=False)
-        list_actions.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
+        list_outputter = ListOutputter()
+        list_outputter.print_list(self, f'All Songs On {self.name}', print_full_list=False)
+        list_outputter.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
 
     def _extract_dupes(self):
         dupes = []
@@ -309,20 +311,22 @@ class SongDataList(object):
         return self.total_items
 
 
-class ListActions(object):
+class ListOutputter(object):
 
     @staticmethod
     def print_list(song_list, list_desc, print_full_list=False):
         list_length = str(len(song_list))
         print('--- ' + list_desc + ':\nCount: ' + list_length)
+
         if print_full_list:
             new_list_string = '\n'.join(
                 [item.rating + remove_file_extension(item.raw_text) for item in song_list]  # + item.id
             )
 
-            print('--- Printing sorted list for "' + list_desc + '":')
-            print(new_list_string)
-            print('Total Output: ' + list_length + '\n--- END of "' + list_desc + '"')
+            print('  --- Printing sorted list for "' + list_desc + '":')
+            if new_list_string:
+                print(new_list_string)
+            print('  --- Printed: "' + list_length + '" items for "' + list_desc + '"')
         print('')
 
     @staticmethod
@@ -336,10 +340,9 @@ class ListActions(object):
         if os.path.isfile(file_path):
             raise Exception('File already exists: "' + file_name + '"')
 
-        new_list_string = '\n'.join([item.rating + remove_file_extension(item.raw_text) for item in song_list])
-        # new_list_string = ''
-        # for item in song_list:
-        #     new_list_string += item.rating + remove_file_extension(item.raw_text) + '\n'
+        new_list_string = '\n'.join(
+            [item.rating + remove_file_extension(item.raw_text) for item in song_list]
+        )
 
         if commit:
             with open(file_path, 'w') as write_file:
@@ -357,8 +360,8 @@ class FileActions(object):
 
     def export_new_master_list_to_file(self, master_list):
         file_path = os.path.join(self.base_directory, r'..\list\new_master_list.txt')
-        list_actions = ListActions()
-        list_actions.export_list_to_file(master_list, file_path, self.commit)
+        list_outputter = ListOutputter()
+        list_outputter.export_list_to_file(master_list, file_path, self.commit)
 
     def move_dupes(self, dupes_list):
         return self.move_songs(dupes_list, r'dupes', export_logs=False)

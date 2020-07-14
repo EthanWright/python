@@ -11,7 +11,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from common import list_music_files
-from paths import MUSIC_DIR, POST_ROCK_TO_SORT_DIR, POST_ROCK_DUPES_DIR
+from paths import MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_DUPES_DIR
 
 MEGA = 1024 * 1024
 

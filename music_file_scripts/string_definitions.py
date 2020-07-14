@@ -147,8 +147,10 @@ required_strings_songs_only = [
 
 #####################################################################################################
 
-# parenthetical_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or [string]
-parenthetical_regex = r'[\[\(]([^\)\]]*)[\)\]]'  # (string) or [string]
+# TODO Which one is right?
+parenthetical_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or [string]
+# parenthetical_regex = r'[\[\(]([^\)\]]*)[\)\]]'  # (string) or [string]
+
 # parenthetical_regex = [
 #     r'(\[[^\]]*\])',  # [string]
 #     r'(\([^\)]*\))',  # (string)
