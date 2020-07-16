@@ -55,7 +55,7 @@ class MusicFileList(object):
             result = self.sorted_music_list[self.music_list_pointer]
             self.current_song = result
             self.current_song_simplified = self.simplify_file_name_fuzzier(result)
-            # self.current_song_simplified = result
+            # self.current_song_simplified = result.lower()  # More Exact Match
         else:
             self.current_song = None
             self.current_song_simplified = None
@@ -108,8 +108,8 @@ if __name__ == '__main__':
     existing_music = POST_ROCK_SONGS_TO_SORT_DIR
 
     # new_music = r'E:\- Backup -\Music\post_rock\original_albums'
-    new_music = r'E:\- Backup -\Music\post_rock\songs_to_sort'
+    # new_music = r'E:\- Backup -\Music\post_rock\songs_to_sort'
     # new_music = r'F:\backup\Music\post_rock\original_albums'
-    # new_music = r'F:\backup\Music\post_rock\songs_to_sort'
+    new_music = r'F:\backup\Music\post_rock\songs_to_sort'
 
     sort_directory_contents(existing_music, new_music)

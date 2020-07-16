@@ -74,7 +74,7 @@ def run(actions):
     export_list = actions.export_list
     move_dupes = actions.move_dupes
     move_bad = actions.move_bad
-    # verbose = actions.verbose
+    verbose = actions.verbose
     commit = actions.commit
     sub_directory = actions.sub_directory
 
@@ -95,7 +95,7 @@ def run(actions):
     )
     song_differ.print_results()
 
-    file_actions = FileActions(file_sorting_path, commit=commit)
+    file_actions = FileActions(file_sorting_path, verbose=verbose, commit=commit)
 
     if export_list:
         master_list = sorted(text_file_list + song_differ.unique_1)
@@ -173,6 +173,9 @@ class DiffSongLists(object):
         self.list_1.print_results()
         list_outputter.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)  # Computer Only
         self.list_2.print_results()
+
+        # no_rating = [item for item in self.unique_2 if item.rating == '']
+        # list_outputter.print_list(no_rating, f'Only on {self.list_2.name}', print_full_list=True)  # Master List No Rating Only
         list_outputter.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=False)  # Master List Only
 
 
@@ -198,12 +201,17 @@ class SongData(object):
         name_1, extra_data_1 = split_name_safe(name_1)
         name_2, extra_data_2 = split_name_safe(name_2)
 
-        roman_numerals = ['ii', 'iii', 'iv', 'v']
-        for phrase in roman_numerals:  # + known_false_positives:
+        if abs(len(name_1) - len(name_2)) > 5:
+            return False  # Different
+
+        roman_numerals = [' i', ' ii', ' iii', ' iv', ' v', ' vi']
+        for phrase in roman_numerals:
             if (name_1.endswith(phrase)) ^ (name_2.endswith(phrase)):
                 return False  # Different
 
-        if abs(len(name_1) - len(name_2)) > 5:
+        # If they BOTH end with a digit, but it's a different digit, return False
+        digits = [str(x) for x in range(10)]
+        if name_1[-1] in digits and name_2[-1] in digits and name_1[-1] != name_2[-1]:
             return False  # Different
 
         min_len = min(len(name_1), len(name_2))
@@ -212,11 +220,6 @@ class SongData(object):
             return False  # Different
 
         if not extra_data_1 and not extra_data_2:
-            # If they both end with a digit, but it's a different digit, return False
-            digits = [str(x) for x in range(10)]
-            if name_1[-1] in digits and name_2[-1] in digits and name_1[-1] != name_2[-1]:
-                return False  # Different
-
             known_false_positives = ['interlude']
             for false_positive in known_false_positives:
                 if false_positive in name_1 and false_positive in name_2:
@@ -323,10 +326,10 @@ class ListOutputter(object):
                 [item.rating + remove_file_extension(item.raw_text) for item in song_list]  # + item.id
             )
 
-            print('  --- Printing sorted list for "' + list_desc + '":')
+            print('  Printing sorted list for "' + list_desc + '":')
             if new_list_string:
                 print(new_list_string)
-            print('  --- Printed: "' + list_length + '" items for "' + list_desc + '"')
+            print('  Printed: "' + list_length + '" items for "' + list_desc + '"')
         print('')
 
     @staticmethod
@@ -342,7 +345,7 @@ class ListOutputter(object):
 
         new_list_string = '\n'.join(
             [item.rating + remove_file_extension(item.raw_text) for item in song_list]
-        )
+        ) + '\n'
 
         if commit:
             with open(file_path, 'w') as write_file:
@@ -378,10 +381,12 @@ class FileActions(object):
 
         for song_data in song_data_list:
             file_name = song_data.raw_text
+            if self.verbose >= 1:
+                print(f'Moving "{file_name}"')
             old_full_path = os.path.join(self.base_directory, file_name)
             new_full_path = os.path.join(destination_path, file_name)
-            # print(f'Moving "{old_full_path}" to "{new_full_path}"')
-            move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
+            if self.commit:
+                move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
 
         if self.commit and export_logs:
             logs_dir = os.path.join(destination_path, 'logs')

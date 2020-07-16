@@ -40,17 +40,18 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
 
 
 def run(args):
-    target_path = os.path.join(VIDEO_DIR, args.file)
+    # target_path = os.path.join(VIDEO_DIR, args.file)
     # target_path = os.path.join(MUSIC_DIR, args.file)
     # target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, args.file)
+    target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, 'trim', args.file)
 
     start = convert_timestamp_to_float(args.start)
     end = convert_timestamp_to_float(args.end)
     trim_video_file(target_path, start, end, command_version=args.command, verbose=args.verbose, commit=args.commit)
 
     # Both commands at the same time
-    # for command in [1, 2]:
-    #     trim_video_file(file_path, start, end, command_version=command, suffix=str(command), verbose=verbose, commit=commit)
+    # for command_v in [1, 2]:
+    #     trim_video_file(target_path, start, end, command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit)
 
 
 if __name__ == '__main__':
@@ -71,3 +72,5 @@ python trim_file.py ""
 
 
 """
+
+

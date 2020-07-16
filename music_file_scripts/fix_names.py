@@ -15,7 +15,7 @@ from common import list_music_files, rename_file_safe, invalid_music_extensions
 from paths import MUSIC_DIR, POST_ROCK_DIR
 
 
-class FixFileNames(object):
+class RenameFilesInDir(object):
 
     def __init__(self, verbose=False, commit=False):
         self.editor = StringEditor(verbose=verbose, commit=commit)
@@ -36,6 +36,55 @@ class FixFileNames(object):
             if new_song_title != song_title:
                 new_file_name = new_song_title + '.' + extension
                 self.editor.rename_file(directory, file_name, new_file_name)
+
+    def get_new_name(self, file_name):
+        raise NotImplementedError()
+
+
+class CapitalizeArtist(RenameFilesInDir):
+
+    def get_new_name(self, file_name):
+        new_name = copy.deepcopy(file_name)
+        caps_name = self.capitalize_artist(new_name)
+        if caps_name != new_name:
+            new_name = caps_name
+        return new_name
+
+    def capitalize_artist(self, name):
+        new_words = []
+        should_be_lower = [
+            'the', 'of', 'if', 'is', 'in', 'an', 'a', 'to', 'too', 'or', 'and', 'by', 'at', 'for'
+        ]
+
+        artist, title = name.split(' - ', 1)
+        if len(artist) <= 6 and artist[0] == artist[0].upper():
+            return name
+
+        words = artist.split(' ')
+        if len(words) == 1:
+            if words[0] == words[0].upper():
+                return name
+
+        for word in words:
+            first_letter = word[0]
+            word_lower = word.lower()
+            some = word[1:]
+
+            if word_lower in should_be_lower and len(new_words) > 0:
+                word_formatted = word_lower
+            elif (len(word) == 1 and word != 'i' and len(new_words) > 0) or not first_letter.isalpha() or (some != some.lower() and some != some.upper()):
+                word_formatted = word
+            else:
+                word_formatted = first_letter.upper() + word_lower[1:]
+            new_words.append(word_formatted)
+
+        new_artist = ' '.join(new_words)
+        # TODO
+        # new_artist = self.editor.capitalize_artist(name)
+        return self.editor.replace_string(name, artist, new_artist)
+
+
+class FixFileNames(RenameFilesInDir):
 
     def get_new_name(self, file_name):
         new_name = copy.deepcopy(file_name)
@@ -93,7 +142,7 @@ class StringEditor(object):
         self.commit = commit
 
     def replace_string(self, name, find_val, replace_val):
-        if find_val not in name:
+        if find_val not in name or find_val == replace_val:
             return name
 
         if not replace_val:
@@ -249,16 +298,6 @@ class StringEditor(object):
 
         return replace_chars_mapping.get(ascii_code, invalid_char)
 
-    # @staticmethod
-    # def is_it_actually_bad(string_to_check):
-    #     for good_regex in acceptable_regexes:
-    #         if re.findall(good_regex, string_to_check):
-    #             return False
-    #     for phrase in acceptable_phrases:
-    #         if phrase.lower() in string_to_check.lower():
-    #             return False
-    #     return True
-
     @staticmethod
     def find_invalid_chars(name):
         return [char for char in name if (ord(char) >= 128 or ord(char) < 32) or not char.isascii()]
@@ -381,7 +420,9 @@ if __name__ == '__main__':
     if not music_directory.startswith('C:/'):
         music_directory = os.path.join(MUSIC_DIR, music_directory)
 
-    name_fixer = FixFileNames(verbose=args.verbose, commit=args.commit)
+    # rename_type = CapitalizeArtist
+    rename_type = FixFileNames
+    name_fixer = rename_type(verbose=args.verbose, commit=args.commit)
     name_fixer.fix_file_names(music_directory)
 
 ########################################################################################################

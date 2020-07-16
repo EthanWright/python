@@ -266,6 +266,7 @@ acceptable_song_specific_parenthetical_phrases = [
     'The sea of rains',
     'Cracked Delusion',
     'Black Heart Queen',
+    'a Multitude of Sins',
     'The End Of Violence',
     'Projected Perfection',
     'til it turns to gold',

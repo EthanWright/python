@@ -63,9 +63,12 @@ def parse_file_data_into_metadata_file(input_data, output_file, commit=False):
 
 def parse_string(data_string):
     timestamps = extract_timestamps(data_string)
+
+    if len(timestamps) == 0:
+        raise Exception('No timestamp in: ' + data_string)
+
     milliseconds = convert_timestamp_to_milliseconds(timestamps[0])
     title = data_string.replace(timestamps[0], '')
-
     milliseconds2 = None
     if len(timestamps) == 2:
         milliseconds2 = convert_timestamp_to_milliseconds(timestamps[1])
