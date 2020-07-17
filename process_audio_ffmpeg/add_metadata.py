@@ -75,13 +75,13 @@ def parse_string(data_string):
         title = title.replace(timestamps[1], '')
 
     title = clean_file_name(title)  # TODO Too strict?
-
+    # print(f'{milliseconds} - {milliseconds2} | {title}')
     return milliseconds, milliseconds2, title
 
 
 def extract_timestamps(data_string):
     # regex = r'([0-9]{1,3}:[0-9][0-9]\.?[0-9]*)'
-    regex = r'[^0-9:]?([0-9:]*:[0-9][0-9]\.?[0-9]*)[^(0-9:)]?'
+    regex = r'[^0-9:]?([0-9:]*:[0-9][0-9]?\.?[0-9]*)[^(0-9:)]?'
     return re.findall(regex, data_string)
 
 

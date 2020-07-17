@@ -32,10 +32,13 @@ class RenameFilesInDir(object):
         song_title, extension = file_name.rsplit('.', 1)
         if extension not in invalid_music_extensions:
             new_song_title = self.get_new_name(song_title)
-            self.editor.check_formatting(new_song_title)
+            self.extra_actions(new_song_title)
             if new_song_title != song_title:
                 new_file_name = new_song_title + '.' + extension
                 self.editor.rename_file(directory, file_name, new_file_name)
+
+    def extra_actions(self, file_name):
+        pass
 
     def get_new_name(self, file_name):
         raise NotImplementedError()
@@ -79,12 +82,15 @@ class CapitalizeArtist(RenameFilesInDir):
             new_words.append(word_formatted)
 
         new_artist = ' '.join(new_words)
-        # TODO
-        # new_artist = self.editor.capitalize_artist(name)
-        return self.editor.replace_string(name, artist, new_artist)
+        if artist != new_artist:
+            return r'renamed\\' + self.editor.replace_string(name, artist, new_artist)
+        return name
 
 
 class FixFileNames(RenameFilesInDir):
+
+    def extra_actions(self, file_name):
+        self.editor.check_formatting(file_name)
 
     def get_new_name(self, file_name):
         new_name = copy.deepcopy(file_name)
@@ -109,6 +115,9 @@ class FixFileNames(RenameFilesInDir):
 
         # If there is a remix artist, extract it, and prepend it to the file_name
         new_name = self.add_remix_artist(new_name)
+
+        # # Check formatting, don't try to rename
+        # self.editor.check_formatting(new_song_title)
 
         return new_name
 
@@ -412,6 +421,7 @@ if __name__ == '__main__':
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    parser.add_argument('--capitalize-artist', action='store_true', help='Capitalize Artist Names and that\'s it')
     # TODO ?
     # parser.add_argument('--albums', '-a', action='store_true', default=False, help='Albums')
     args = parser.parse_args()
@@ -420,8 +430,9 @@ if __name__ == '__main__':
     if not music_directory.startswith('C:/'):
         music_directory = os.path.join(MUSIC_DIR, music_directory)
 
-    # rename_type = CapitalizeArtist
     rename_type = FixFileNames
+    if args.capitalize_artist:
+        rename_type = CapitalizeArtist
     name_fixer = rename_type(verbose=args.verbose, commit=args.commit)
     name_fixer.fix_file_names(music_directory)
 

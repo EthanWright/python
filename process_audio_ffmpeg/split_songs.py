@@ -93,11 +93,6 @@ def artist_is_part_of_a_mix(artist):
         if artist.startswith(prefix.lower()):
             return True
 
-    # mix_names = ['Post-Whatever']
-    # for name in mix_names:
-    #     if artist == name.lower():
-    #         return True
-
     mix_suffixes = [' Mix', 'post-rock']
     for suffix in mix_suffixes:
         if artist.endswith(suffix.lower()):
