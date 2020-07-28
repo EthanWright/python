@@ -7,7 +7,7 @@ import argparse
 import os
 
 from call_ffmpeg import call_ffmpeg
-from paths import VIDEO_DIR, MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR
+from paths import VIDEO_DIR, MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_DIR
 
 
 def convert_timestamp_to_float(timestamp):
@@ -42,6 +42,7 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
 def run(args):
     # target_path = os.path.join(VIDEO_DIR, args.file)
     # target_path = os.path.join(MUSIC_DIR, args.file)
+    # target_path = os.path.join(POST_ROCK_DIR, args.file)
     # target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, args.file)
     target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, 'trim', args.file)
 
@@ -61,7 +62,7 @@ if __name__ == '__main__':
     parser.add_argument('start', help='Start Timestamp')
     parser.add_argument('end', help='End Timestamp')
     parser.add_argument('--commit', action='store_true', help='Commit')
-    parser.add_argument('--command', default=1, help='Command Type')
+    parser.add_argument('--command', default=2, help='Command Type')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     run(parser.parse_args())
@@ -69,8 +70,7 @@ if __name__ == '__main__':
 r"""
 python trim_file.py "FILE" xx:xx xx:xx
 python trim_file.py ""
-
-
+.
 """
 
 

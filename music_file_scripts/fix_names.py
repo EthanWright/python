@@ -12,7 +12,7 @@ from string_definitions import *
 from functools import reduce
 
 from common import list_music_files, rename_file_safe, invalid_music_extensions
-from paths import MUSIC_DIR, POST_ROCK_DIR
+from paths import MUSIC_DIR, POST_ROCK_DIR, POST_ROCK_NEW_ALBUMS_DIR
 
 
 class RenameFilesInDir(object):
@@ -20,12 +20,25 @@ class RenameFilesInDir(object):
     def __init__(self, verbose=False, commit=False):
         self.editor = StringEditor(verbose=verbose, commit=commit)
 
-    def fix_file_names(self, directory):
+    def fix_file_names(self, directory, recursive=False):
         self.editor.print_is_commit_true_or_false()
-        for file_name in list_music_files(directory):
-            self.fix_file_name(directory, file_name)
+        if recursive:
+            self._fix_file_names_recursive(directory)
+        else:
+            self._fix_file_names(directory)
 
         self.editor.stats.print_final_report()
+
+    def _fix_file_names_recursive(self, directory):
+        for path_name in os.listdir(directory):
+            full_path = os.path.join(directory, path_name)
+            if os.path.isdir(full_path):
+                self._fix_file_names_recursive(full_path)
+        self._fix_file_names(directory)
+
+    def _fix_file_names(self, directory):
+        for file_name in list_music_files(directory):
+            self.fix_file_name(directory, file_name)
 
     def fix_file_name(self, directory, file_name):
         self.editor.log_message(f'Checking: "{file_name}"', level=2)
@@ -50,6 +63,7 @@ class CapitalizeArtist(RenameFilesInDir):
         new_name = copy.deepcopy(file_name)
         caps_name = self.capitalize_artist(new_name)
         if caps_name != new_name:
+            # new_name = join('renamed', caps_name)
             new_name = caps_name
         return new_name
 
@@ -63,27 +77,30 @@ class CapitalizeArtist(RenameFilesInDir):
         if len(artist) <= 6 and artist[0] == artist[0].upper():
             return name
 
+        all_caps = artist == artist.upper()
+
         words = artist.split(' ')
-        if len(words) == 1:
-            if words[0] == words[0].upper():
-                return name
+        if len(words) <= 2 and len(artist) <= 8 and all_caps:
+            return name
 
         for word in words:
             first_letter = word[0]
             word_lower = word.lower()
             some = word[1:]
-
-            if word_lower in should_be_lower and len(new_words) > 0:
+            if word == word.upper() and not all_caps:
+                word_formatted = word
+            elif word_lower in should_be_lower and len(new_words) > 0:
                 word_formatted = word_lower
-            elif (len(word) == 1 and word != 'i' and len(new_words) > 0) or not first_letter.isalpha() or (some != some.lower() and some != some.upper()):
+            elif (len(word) == 1 and word != 'i' and len(new_words) > 0) or not first_letter.isalpha() or (some != some.lower() and some != some.upper()) or (first_letter.islower() and word != word.lower()):
                 word_formatted = word
             else:
                 word_formatted = first_letter.upper() + word_lower[1:]
+
             new_words.append(word_formatted)
 
         new_artist = ' '.join(new_words)
         if artist != new_artist:
-            return r'renamed\\' + self.editor.replace_string(name, artist, new_artist)
+            return self.editor.replace_string(name, artist, new_artist)
         return name
 
 
@@ -180,7 +197,7 @@ class StringEditor(object):
 
     def add_remix_artist(self, name):
         remix_artist = self.extract_remix_artist(name)
-        if not remix_artist or self.already_has_remix_artist(name, remix_artist):
+        if not remix_artist or self.already_has_remix_artist(name, remix_artist) or self.contains_genre(remix_artist.lower()):
             return name
 
         self.log_message(f'Pre-pending Remix Artist: \'{remix_artist}\'')
@@ -223,11 +240,11 @@ class StringEditor(object):
             if phrase.lower() == string_to_check:
                 return False
 
-        for phrase in song_info + song_version_prefix:
+        for phrase in song_info_prefix + song_version_prefix:
             if string_to_check.lower().startswith(phrase.lower()):
                 return False
 
-        for phrase in song_version_suffix:
+        for phrase in song_info_suffix + song_version_suffix:
             if string_to_check.lower().endswith(phrase.lower()):
                 return False
         return True
@@ -274,7 +291,10 @@ class StringEditor(object):
         if file_name == new_file_name:
             return
         self.log_message(f'Original |{file_name}\nUpdated  |{new_file_name}\n', level=3)  # Spammy
-        rename_file_safe(directory, file_name, new_file_name, verbose=self.verbose,  commit=self.commit)
+        temp_file_name = new_file_name + '.temp'
+        if self.commit:
+            rename_file_safe(directory, file_name, temp_file_name, verbose=self.verbose,  commit=self.commit)
+            rename_file_safe(directory, temp_file_name, new_file_name, verbose=self.verbose,  commit=self.commit)
 
     def print_is_commit_true_or_false(self):
         if not self.commit:
@@ -326,6 +346,14 @@ class StringEditor(object):
         first_chunk = name.split(' - ', 1)[0].lower()
         if name.startswith(remix_artist.lower()) or first_chunk in remix_artist.lower():
             return True
+        return False
+
+    @staticmethod
+    def contains_genre(remix_artist):
+        genre_list = ['techno', 'rock']
+        for genre in genre_list:
+            if genre in remix_artist:
+                return True
         return False
 
     @staticmethod
@@ -414,16 +442,16 @@ class Stats(object):
 ########################################################################################################
 
 if __name__ == '__main__':
-    # default_path = os.path.join(POST_ROCK_FULL_ALBUMS_DIR, 'to_listen_to')
-    default_path = os.path.join(POST_ROCK_DIR, 'new_albums')
+    # default_path = POST_ROCK_FULL_ALBUMS_DIR
+    default_path = POST_ROCK_NEW_ALBUMS_DIR
 
     parser = argparse.ArgumentParser(description='Fix Song Names')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     parser.add_argument('--capitalize-artist', action='store_true', help='Capitalize Artist Names and that\'s it')
-    # TODO ?
-    # parser.add_argument('--albums', '-a', action='store_true', default=False, help='Albums')
+    # TODO
+    # parser.add_argument('--albums', '-a', action='store_true', default=False, help='Renaming Albums')
     args = parser.parse_args()
 
     music_directory = args.directory
@@ -435,6 +463,7 @@ if __name__ == '__main__':
         rename_type = CapitalizeArtist
     name_fixer = rename_type(verbose=args.verbose, commit=args.commit)
     name_fixer.fix_file_names(music_directory)
+    # name_fixer.fix_file_names(music_directory, recursive=True)
 
 ########################################################################################################
 

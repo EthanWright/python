@@ -80,7 +80,7 @@ def run(actions):
 
     directory = os.path.join(MUSIC_DIR, sub_directory)
     file_sorting_path = os.path.join(directory, 'songs_to_sort')
-    song_file_path = os.path.join(directory, r'list\master_list.txt')
+    song_file_path = os.path.join(directory, 'list', 'master_list.txt')
 
     computer_file_list = gather_file_names_from_path(file_sorting_path)
     text_file_list = read_song_file(song_file_path)
@@ -176,7 +176,7 @@ class DiffSongLists(object):
 
         # no_rating = [item for item in self.unique_2 if item.rating == '']
         # list_outputter.print_list(no_rating, f'Only on {self.list_2.name}', print_full_list=True)  # Master List No Rating Only
-        list_outputter.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=False)  # Master List Only
+        list_outputter.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=True)  # Master List Only
 
 
 class SongData(object):
@@ -326,7 +326,7 @@ class ListOutputter(object):
                 [item.rating + remove_file_extension(item.raw_text) for item in song_list]  # + item.id
             )
 
-            print('  Printing sorted list for "' + list_desc + '":')
+            print('--Printing sorted list for "' + list_desc + '":')
             if new_list_string:
                 print(new_list_string)
             print('  Printed: "' + list_length + '" items for "' + list_desc + '"')
@@ -362,7 +362,7 @@ class FileActions(object):
         self.commit = commit
 
     def export_new_master_list_to_file(self, master_list):
-        file_path = os.path.join(self.base_directory, r'..\list\new_master_list.txt')
+        file_path = os.path.join(self.base_directory, '..', 'list', 'new_master_list.txt')
         list_outputter = ListOutputter()
         list_outputter.export_list_to_file(master_list, file_path, self.commit)
 

@@ -18,12 +18,11 @@ from paths import MUSIC_DIR, PYTHON_DIR
 url_base = 'https://www.googleapis.com/youtube/v3'
 
 
-def search_for_song(file_name, channel_id=None):
-    title = os.path.splitext(file_name)[0]
+def search_for_song(song_name, channel_id=None):
     api_endpoint = 'search'
     params = {
         'key': get_api_key(),
-        'q': title,
+        'q': song_name,
         'part': 'snippet',
     }
     if channel_id:
@@ -66,7 +65,8 @@ def write_results_to_file(query_string, search_results):
 def iterate_through_songs_in_file(input_file):
     with open(input_file, 'r') as read_file:
         data = read_file.readlines()
-    for song_name in data:
+    for file_name in data:
+        song_name = os.path.splitext(file_name)[0]
         search_for_song(song_name)
 
 
