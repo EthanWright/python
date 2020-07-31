@@ -5,10 +5,10 @@ import os
 
 
 def list_files(directory):
-    return [
+    return sorted([
         file_name for file_name in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, file_name))
-    ]
+    ])
 
 
 def move_file(source_file_path, target_file_path, verbose=True, commit=False):

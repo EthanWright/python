@@ -98,7 +98,7 @@ def print_data_from_stdout(stdout):
         if line_clean.startswith('Output #0,'):
             return
         if line_clean.startswith('Input #0,'):
-            file_name = line_clean.rsplit('\\', 1)[1]
+            file_name = os.path.split(line_clean)[1]
             if file_name.endswith('\':'):
                 file_name = file_name[:-2]
             print(file_name)

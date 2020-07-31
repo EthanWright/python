@@ -16,18 +16,19 @@ import youtube_dl
 
 from video_ids_db import DB
 
-position_file = r'input\position.txt'
+position_file = os.path.join('input', 'position.txt')
 TEN = 10
 
 
-def retrieve_all_video_ids_from_file(input_file):
+def retrieve_all_video_ids_from_file(file_name):
+    file_path = os.path.join('input', file_name)
     video_id_list = []
-    with open(input_file, 'r') as f:
+    with open(file_path, 'r') as f:
         for video_id in f:
             if not video_id:
                 continue
             video_id_list.append(video_id.strip())
-    exit("Confirm")
+    # exit("Confirm")
     call_youtube_dl(video_id_list)
 
 
@@ -116,7 +117,7 @@ def call_youtube_dl(video_id_list):
                 print(e)
                 continue
 
-            sleepy_time(3*60)
+            sleepy_time(8*60)
 
 
 def extract_video_id(video_id):
@@ -133,21 +134,30 @@ def clean_video_id(video_id):
 def sleepy_time(seconds_to_sleep=10):
     seconds_to_sleep = int(seconds_to_sleep)
     print(f'Sleeping! [{seconds_to_sleep} seconds]', end='', flush=True)
-    sleep_string = '.' * 10
-    for x in range(int(seconds_to_sleep / TEN)):
-        if x % 6 == 0:
-            print('')
+    sleep_string = '.'  # * 10
+    remainder = seconds_to_sleep % TEN
+    one_minute = TEN * 6
+    ten_minutes = TEN * one_minute
+
+    for x in range(0, seconds_to_sleep - remainder, TEN):
+        if x % one_minute == 0:
+            if x > 0 and x % ten_minutes == 0:
+                print(' ' + str(x))
+            else:
+                print('')
         print(sleep_string, end='', flush=True)
         time.sleep(TEN)
 
-    time.sleep(int(seconds_to_sleep % TEN))
+    time.sleep(remainder)
     print('\n')
 
 
 if __name__ == '__main__':
-    # input_file = 'input/video_ids.txt'
-    # retrieve_all_video_ids_from_file(input_file)
+    # input_file = 'video_ids_to_listen_to.txt'
+    # input_file = 'video_ids.txt'
+    # input_file = 'video_ids_albums.txt'
+    input_file = 'video_ids_songs.txt'
 
-    input_file = 'input/video_ids_to_listen_to.txt'
-    retrieve_one_video_id_from_file_tracked()
+    retrieve_all_video_ids_from_file(input_file)
+    # retrieve_one_video_id_from_file_tracked()
 

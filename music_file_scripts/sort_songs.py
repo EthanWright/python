@@ -62,7 +62,7 @@ import time
 from pprint import pprint
 
 from common import (
-    list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files, has_file_extension
+    list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files
 )
 from fix_names import FixFileNames, song_version
 from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_DIR
@@ -93,7 +93,9 @@ def run(actions):
         (text_file_list, "Master List"),
         commit=commit
     )
-    song_differ.print_results()
+
+    if not export_list and not move_dupes and not move_bad:
+        song_differ.print_results()
 
     file_actions = FileActions(file_sorting_path, verbose=verbose, commit=commit)
 
