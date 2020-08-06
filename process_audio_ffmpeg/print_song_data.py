@@ -129,12 +129,23 @@ def run(input_directory, export_metadata=False):
 if __name__ == '__main__':
     default_path = POST_ROCK_DUPES_DIR
     parser = argparse.ArgumentParser(description='Print Audio/Video file details')
-    parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
-    # parser.add_argument('--commit', action='store_true', help='Rename Files')
-    # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
+    parser.add_argument('directory', nargs='?', help='Target Directory')
+    parser.add_argument('--dupes', '-d', action='store_true', default=False, help='Renaming Albums')
+    parser.add_argument('--needs-metadata', '-n', action='store_true', default=False, help='Renaming Songs')
     parser.add_argument('--export-metadata', action='store_true', help='Export Track metadata to a file')
-
+    # parser.add_argument('--commit', action='store_true', help='Commit')
+    # parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     args = parser.parse_args()
+
+    if args.dupes:
+        music_directory = POST_ROCK_DUPES_DIR
+    elif args.needs-metadata:
+        music_directory = POST_ROCK_NEEDS_METADATA_DIR
+    elif args.directory:
+        music_directory = args.directory
+    else:  # Default
+        music_directory = POST_ROCK_DUPES_DIR
+
     run(args.directory, export_metadata=args.export_metadata)
 
 """

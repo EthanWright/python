@@ -115,23 +115,36 @@ def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, 
 
 
 def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, commit=False):
-    source_directory, source_file_name = source_file_path.rsplit('\\', 1)
+    source_directory, source_file_name = os.path.split(source_file_path)
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
 
-    cli_options = [
-        ('-i', '"' + source_file_path + '"'),
-        ('-f', 'ffmetadata'),
-        ('-i', '"' + metadata_file_path + '"'),
-        ('-c', 'copy'),
-        ('-map_metadata', '1'),
+    # cli_options = [
+    #     ('-i', '"' + source_file_path + '"'),
+    #     ('-f', 'ffmetadata'),
+    #     ('-i', '"' + metadata_file_path + '"'),
+    #     ('-c', 'copy'),
+    #     ('-map_metadata', '1'),
+    # ]
+    # if purl:
+    #     cli_options.append(('-metadata', f'purl={purl}'))
+    #
+    # cli_options_string = ' '.join([flag + ' ' + value for flag, value in cli_options])
+    # command = f'ffmpeg {cli_options_string} "{output_path}"'
+    # # command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 -metadata purl={purl} "{output_path}"'
+
+    command = [
+        'ffmpeg',
+        '-i', source_file_path,
+        '-f', 'ffmetadata',
+        '-i', metadata_file_path,
+        '-c', 'copy',
+        '-map_metadata', '1',
     ]
     if purl:
-        cli_options.append(('-metadata', f'purl={purl}'))
+        command.extend(['-metadata', 'purl=' + purl])
+    command.append(output_path)
 
-    cli_options_string = ' '.join([flag + ' ' + value for flag, value in cli_options])
-    command = f'ffmpeg {cli_options_string} "{output_path}"'
-    # command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 -metadata purl={purl} "{output_path}"'
     call_ffmpeg(command, verbose=verbose, commit=commit)
 
 

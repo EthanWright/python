@@ -18,17 +18,7 @@ replace_strings = [
     # (',', ' and'),  # TODO
     (',', ''),  # TODO
     (' - - ', ' - '),
-    # ('COMACOZER', 'Comacozer'),
-    # ('FARGO', 'Fargo'),
-    # ('Grimlake', 'GrimLake'),
-    # ('Kauan', 'KAUAN'),
-    # ('Kosatka', 'KOSATKA'),
-    # ('KRANE', 'Krane'),
-    # ('Monkey3', 'MONKEY3'),
-    # ('Staghorn', 'STAGHORN'),
-    # ('KRANE', 'Krane'),
-    # ('THREESTEPSTOTHEOCEAN', 'Threestepstotheocean'),
-    # ('Torzs', 'TORZS'),
+
 ]
 
 remove_chars = [
@@ -50,30 +40,6 @@ remove_phrases = [
     # 'DnB ',
 ]
 remove_strings = remove_chars + remove_phrases
-
-# Songs Only
-remove_phrases_songs_only = [
-    # 'Post Rock',
-    # 'Post Rock Mix',
-    # 'Post Rock Hungary',
-    # 'Post Rock Australia',
-    # 'Post Rock_Metal_Experimental Austria',
-    # 'Post Rock_Metal_Experimental Italy',
-    # 'Post Rock and Post metal Compilation',
-    # 'Post-Whatever Russia Mixtape Vol 1 (Collaboration with 9eCn3)',
-    # 'Post-Whatever Switzerland',
-    # 'Post-Whatever India',
-    # 'Post-Whatever Russia',
-    # 'Post-Whatever Belgium',
-    # 'Post Music Spain Mixtape',
-    # 'Best Of Post Rock',
-    # 'A Thousand Arms',
-    # 'Below The Frost Line',
-    # 'Black Hill and heklAa',
-    # 'Alienation (Synthwave',
-    # 'Psybient Greatest Anthems All Time Mix',
-    # 'WPRDs Top 30 Post-Rock_Metal_Experimental Songs of 2017 (Part 2)',
-]
 
 #####################################################################################################
 
@@ -133,8 +99,6 @@ replace_chars_mapping = {
     8322: '2',
     8710: 'A',
     10096: '(', 10097: ')', 12304: '(', 12305: ')',
-
-
 }
 
 remove_char_codes = [
@@ -151,14 +115,15 @@ improper_format_regexes = [
 # improper_format_regexes_songs_only = [
 #     r'^Post',
 # ]
-required_strings = []
-required_strings_songs_only = [
+
+# required_strings_songs_only = [
+required_strings = [
     r' - ',
 ]
 
 #####################################################################################################
 
-# TODO Which one is right?
+# TODO Which one is right? Keep '()' vs trim '()'
 parenthetical_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or [string]
 # parenthetical_regex = r'[\[\(]([^\)\]]*)[\)\]]'  # (string) or [string]
 
@@ -244,6 +209,7 @@ song_info_prefix = [
     'Prod by',
 ]
 song_info = song_info_prefix + song_info_suffix
+
 #  Specific songs
 acceptable_song_specific_parenthetical_phrases = [
     'r',
@@ -390,11 +356,4 @@ acceptable_song_specific_parenthetical_phrases = [
     'The Lighthouse Symphony Pt2',
 
 ]
-# TODO Handle this via cli args
-RENAMING_SONGS = True
-# RENAMING_SONGS = False
 
-# Add SONGS ONLY lists
-if RENAMING_SONGS:
-    remove_strings += remove_phrases_songs_only
-    required_strings += required_strings_songs_only

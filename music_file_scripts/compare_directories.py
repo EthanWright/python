@@ -4,6 +4,7 @@ Compare files between two directories and move the files if needed
 Ethan Wright - 6/11/20
 """
 
+import argparse
 import copy
 import os
 
@@ -15,7 +16,7 @@ from paths import MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_ORIGINAL_ALB
 class MusicFileList(object):
     ffn = FixFileNames()
 
-    def __init__(self, directory, good_folder, bad_folder):
+    def __init__(self, directory, good_folder, bad_folder, commit=False):
         self.directory = directory
         self.target_good = os.path.join(directory, good_folder)
         self.target_bad = os.path.join(directory, bad_folder)
@@ -24,6 +25,7 @@ class MusicFileList(object):
         self.total_items = len(self.sorted_music_list)
         self.current_song = None
         self.current_song_simplified = None
+        self.commit = commit
 
         self._set_current_song()
 
@@ -36,7 +38,7 @@ class MusicFileList(object):
 
     def move_current_song_no_match(self, result_string=None):
         result_string = 'X NO MATCH'
-        self._move_current_song(self.target_bad, result_string=result_string, commit=False)
+        self._move_current_song(self.target_bad, result_string=result_string, commit=self.commit)
 
     def _move_current_song(self, target_directory, result_string=None, commit=False):
         file_name = self.current_song
@@ -68,11 +70,11 @@ class MusicFileList(object):
         return self.ffn.get_new_name(remove_file_extension(name)).lower()
 
 
-def sort_directory_contents(directory_1, directory_2):
+def sort_directory_contents(directory_1, directory_2, commit=False):
     matches_count = 0
 
-    music_file_list_1 = MusicFileList(directory_1, 'replacement_found', 'extra')
-    music_file_list_2 = MusicFileList(directory_2, 'liked_replacements', 'extra')
+    music_file_list_1 = MusicFileList(directory_1, 'replacement_found', 'extra', commit=commit)
+    music_file_list_2 = MusicFileList(directory_2, 'liked_replacements', 'extra', commit=commit)
 
     while music_file_list_1.current_song and music_file_list_2.current_song:
 
@@ -104,12 +106,19 @@ def sort_directory_contents(directory_1, directory_2):
 
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description='Compare Directories')
+    parser.add_argument('--commit', action='store_true', help='Commit Changes')
+    args = parser.parse_args()
+
     # existing_music = POST_ROCK_ORIGINAL_ALBUMS_DIR
     existing_music = POST_ROCK_SONGS_TO_SORT_DIR
 
     # new_music = r'E:\- Backup -\Music\post_rock\original_albums'
     # new_music = r'E:\- Backup -\Music\post_rock\songs_to_sort'
     # new_music = r'F:\backup\Music\post_rock\original_albums'
-    new_music = r'F:\backup\Music\post_rock\songs_to_sort'
+    # new_music = r'F:\backup\Music\post_rock\songs_to_sort'
 
-    sort_directory_contents(existing_music, new_music)
+    new_music = r'/media/mimorox/My Passport/backup/Music/post_rock/songs_to_sort/'
+
+    sort_directory_contents(existing_music, new_music, commit=args.commit)

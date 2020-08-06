@@ -25,14 +25,29 @@ from common import list_music_files, clean_file_name
 from paths import MUSIC_DIR, POST_ROCK_NEW_ALBUMS_DIR, POST_ROCK_NEW_SONGS_DIR, POST_ROCK_NEEDS_METADATA_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR
 
 
-def run_song_splitter(source_file_path, song_dir=None, error_dir=None, done_dir=None, verbose=0, commit=False):
-    metadata, stdout = get_metadata(source_file_path, verbose=-1)
-    split_data = parse_metadata_for_chapters(metadata)
-    if len(split_data) == 0:
-        return move_to_subdir(source_file_path, error_dir, commit=commit, error=True)
-    purl = extract_field_from_stdout(stdout, 'purl')
-    split_file(source_file_path, split_data, purl, output_directory=song_dir, verbose=verbose, commit=commit)
-    move_to_subdir(source_file_path, done_dir, commit=commit)
+class SongSplitter(object):
+
+    def __init__(self, split_song_dir=None, error_dir=None, done_dir=None, verbose=0, commit=False):
+        self.split_song_dir = split_song_dir
+        self.error_dir = error_dir
+        self.done_dir = done_dir
+        self.verbose = verbose
+        self.commit = commit
+
+    def split_songs_in_directory(self, directory):
+        for file_name in list_music_files(directory):
+            # print(file_name)
+            self.call_split_file(directory, file_name)
+
+    def call_split_file(self, directory, file_name):
+        full_path = os.path.join(directory, file_name)
+        metadata, stdout = get_metadata(full_path, verbose=-1)
+        split_data = parse_metadata_for_chapters(metadata)
+        if len(split_data) == 0:
+            return move_to_subdir(full_path, file_name, self.error_dir, commit=self.commit, print_error_msg=True)
+        purl = extract_field_from_stdout(stdout, 'purl')
+        split_file(full_path, file_name, split_data, purl, output_directory=self.split_song_dir, verbose=self.verbose, commit=self.commit)
+        move_to_subdir(full_path, file_name, self.done_dir, commit=self.commit)
 
 
 def extract_field_from_stdout(stdout, stdout_field):
@@ -101,21 +116,18 @@ def artist_is_part_of_a_mix(artist):
     return False
 
 
-def move_to_subdir(source_file_path, output_directory, commit=False, error=False):
-    if error:
+def move_to_subdir(source_file_path, file_name, output_directory, commit=False, print_error_msg=False):
+    if print_error_msg:
         print(f'Can not split file. Marking as error: {source_file_path}')
-    source_dir, name = source_file_path.rsplit('\\', 1)
-    target_file_path = os.path.join(output_directory, name)
+    target_file_path = os.path.join(output_directory, file_name)
     if commit:
         os.rename(source_file_path, target_file_path)
 
 
-def split_file(source_file_path, split_data, purl, output_directory=None, verbose=0, commit=False):
-
-    source_directory, source_file_name = source_file_path.rsplit('\\', 1)
+def split_file(source_file_path, source_file_name, split_data, purl, output_directory=None, verbose=0, commit=False):
 
     if not output_directory:
-        output_directory = source_directory
+        output_directory = os.path.split(source_file_path)[0]
     if not os.path.exists(output_directory):
         raise Exception(f'Output directory does not exist: {output_directory}')
 
@@ -146,8 +158,27 @@ def split_file(source_file_path, split_data, purl, output_directory=None, verbos
             new_file_name = f'{title}_{suffix}.{extension}'
             output_path = os.path.join(output_directory, new_file_name)
 
-        # command = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
-        command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+        # command_2 = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
+        # command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+
+        command = [
+            'ffmpeg',
+            '-i', source_file_path,
+            '-acodec', 'copy',
+            '-metadata', 'purl=' + purl,
+            '-ss', str(start_timestamp),
+            '-to', str(end_timestamp),
+            output_path
+        ]
+        # command_2 = [
+        #     'ffmpeg',
+        #     '-ss', str(start_timestamp),
+        #     '-to', str(end_timestamp),
+        #     '-i', source_file_path,
+        #     '-acodec', 'copy',
+        #     '-metadata', 'purl=' + purl,
+        #     output_path
+        # ]
         print(f'Creating File: {new_file_name}')
         call_ffmpeg(command, verbose=-1, commit=commit)
 
@@ -161,12 +192,8 @@ def run(directory, verbose, commit):
     song_output_dir = POST_ROCK_NEW_SONGS_DIR  # 'individual_songs'
     error_output_dir = POST_ROCK_NEEDS_METADATA_DIR  # 'needs_metadata'
     done_output_dir = POST_ROCK_ORIGINAL_ALBUMS_DIR  # 'split_albums'
-
-    for file_name in list_music_files(directory):
-        # print(file_name)
-        file_path = os.path.join(directory, file_name)
-        if os.path.isfile(file_path):
-            run_song_splitter(file_path, song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=commit)
+    song_splitter = SongSplitter(split_song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=commit)
+    song_splitter.split_songs_in_directory(directory)
 
 
 if __name__ == '__main__':
@@ -174,7 +201,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
-    parser.add_argument('--commit', action='store_true', help='Rename Files')
+    parser.add_argument('--commit', action='store_true', help='Commit Changes')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     args = parser.parse_args()

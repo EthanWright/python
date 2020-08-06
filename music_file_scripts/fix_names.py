@@ -12,7 +12,7 @@ from string_definitions import *
 from functools import reduce
 
 from common import list_music_files, rename_file_safe, invalid_music_extensions
-from paths import MUSIC_DIR, POST_ROCK_DIR, POST_ROCK_NEW_ALBUMS_DIR
+from paths import MUSIC_DIR, POST_ROCK_DIR, POST_ROCK_NEW_ALBUMS_DIR, POST_ROCK_NEW_SONGS_DIR
 
 
 class RenameFilesInDir(object):
@@ -45,6 +45,7 @@ class RenameFilesInDir(object):
         song_title, extension = file_name.rsplit('.', 1)
         if extension not in invalid_music_extensions:
             new_song_title = self.get_new_name(song_title)
+            # if not albums_only: # TODO ?
             self.extra_actions(new_song_title)
             if new_song_title != song_title:
                 new_file_name = new_song_title + '.' + extension
@@ -60,12 +61,7 @@ class RenameFilesInDir(object):
 class CapitalizeArtist(RenameFilesInDir):
 
     def get_new_name(self, file_name):
-        new_name = copy.deepcopy(file_name)
-        caps_name = self.capitalize_artist(new_name)
-        if caps_name != new_name:
-            # new_name = join('renamed', caps_name)
-            new_name = caps_name
-        return new_name
+        return self.capitalize_artist(copy.deepcopy(file_name))
 
     def capitalize_artist(self, name):
         new_words = []
@@ -87,6 +83,7 @@ class CapitalizeArtist(RenameFilesInDir):
             first_letter = word[0]
             word_lower = word.lower()
             some = word[1:]
+            # TODO Simplify
             if word == word.upper() and not all_caps:
                 word_formatted = word
             elif word_lower in should_be_lower and len(new_words) > 0:
@@ -107,6 +104,7 @@ class CapitalizeArtist(RenameFilesInDir):
 class FixFileNames(RenameFilesInDir):
 
     def extra_actions(self, file_name):
+        # Check formatting, don't try to rename
         self.editor.check_formatting(file_name)
 
     def get_new_name(self, file_name):
@@ -132,9 +130,6 @@ class FixFileNames(RenameFilesInDir):
 
         # If there is a remix artist, extract it, and prepend it to the file_name
         new_name = self.add_remix_artist(new_name)
-
-        # # Check formatting, don't try to rename
-        # self.editor.check_formatting(new_song_title)
 
         return new_name
 
@@ -299,7 +294,7 @@ class StringEditor(object):
     def print_is_commit_true_or_false(self):
         if not self.commit:
             print('~~~ NOT Commiting Changes! ~~~')
-            print('Change the commit flag to persist changes')
+            print('Provide the --commit flag to persist changes')
         else:
             print("!!! Commiting Changes !!!")
 
@@ -411,6 +406,7 @@ class Stats(object):
             {'title': 'UNHANDLED', 'data': self.unhandled},
             {'title': 'IMPROPER FORMATTING', 'data': self.improper_formatting, 'simple': True},
         ]
+
         output_categories = [
             {'title': 'STATS', 'data': stats_output},
             {'title': 'PROBLEMS', 'data': problems_output},
@@ -442,26 +438,34 @@ class Stats(object):
 ########################################################################################################
 
 if __name__ == '__main__':
-    # default_path = POST_ROCK_FULL_ALBUMS_DIR
-    default_path = POST_ROCK_NEW_ALBUMS_DIR
 
     parser = argparse.ArgumentParser(description='Fix Song Names')
-    parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
+    parser.add_argument('directory', nargs='?', help='Target Directory')
     parser.add_argument('--commit', action='store_true', help='Rename Files')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     parser.add_argument('--capitalize-artist', action='store_true', help='Capitalize Artist Names and that\'s it')
-    # TODO
-    # parser.add_argument('--albums', '-a', action='store_true', default=False, help='Renaming Albums')
+    parser.add_argument('--albums', '-a', action='store_true', default=False, help='Renaming Albums')
+    parser.add_argument('--songs', '-s', action='store_true', default=False, help='Renaming Songs')
     args = parser.parse_args()
 
-    music_directory = args.directory
-    if not music_directory.startswith('C:/'):
+    if args.songs:
+        music_directory = POST_ROCK_NEW_SONGS_DIR
+    elif args.albums:
+        music_directory = POST_ROCK_NEW_ALBUMS_DIR
+    elif args.directory:
+        music_directory = args.directory
+    else:  # Default
+        music_directory = POST_ROCK_NEW_ALBUMS_DIR
+
+    if not music_directory.startswith('C:/') and not music_directory.startswith('/'):
         music_directory = os.path.join(MUSIC_DIR, music_directory)
 
     rename_type = FixFileNames
     if args.capitalize_artist:
         rename_type = CapitalizeArtist
+
     name_fixer = rename_type(verbose=args.verbose, commit=args.commit)
+
     name_fixer.fix_file_names(music_directory)
     # name_fixer.fix_file_names(music_directory, recursive=True)
 
