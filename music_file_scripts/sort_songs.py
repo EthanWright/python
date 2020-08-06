@@ -65,7 +65,7 @@ from common import (
     list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files
 )
 from fix_names import FixFileNames, song_version
-from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_DIR
+from paths import Paths
 
 fix_file_names = FixFileNames()
 
@@ -78,7 +78,7 @@ def run(actions):
     commit = actions.commit
     sub_directory = actions.sub_directory
 
-    directory = os.path.join(MUSIC_DIR, sub_directory)
+    directory = os.path.join(Paths.MUSIC_DIR, sub_directory)
     file_sorting_path = os.path.join(directory, 'songs_to_sort')
     song_file_path = os.path.join(directory, 'list', 'master_list.txt')
 
@@ -413,7 +413,7 @@ class FileActions(object):
 
 
 if __name__ == '__main__':
-    default_path = POST_ROCK_DIR
+    default_path = Paths.POST_ROCK_DIR
     parser = argparse.ArgumentParser(description='Compare Songs to Master List and sort according to the rules')
     parser.add_argument('sub_directory', nargs='?', default=default_path, help='Target Sub Directory')
     parser.add_argument('--commit', action='store_true', help='Commit File Changes')

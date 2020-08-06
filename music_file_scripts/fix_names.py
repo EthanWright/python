@@ -12,7 +12,7 @@ from string_definitions import *
 from functools import reduce
 
 from common import list_music_files, rename_file_safe, invalid_music_extensions
-from paths import MUSIC_DIR, POST_ROCK_DIR, POST_ROCK_NEW_ALBUMS_DIR, POST_ROCK_NEW_SONGS_DIR
+from paths import Paths
 
 
 class RenameFilesInDir(object):
@@ -21,8 +21,11 @@ class RenameFilesInDir(object):
         self.editor = StringEditor(verbose=verbose, commit=commit)
 
     def fix_file_names(self, directory, recursive=False):
+        self.editor.log_message(f'Performing Action: "{self.action_name}"', level=0)
+        self.editor.log_message(f'Target Directory: "{directory}"', level=0)
         self.editor.print_is_commit_true_or_false()
         if recursive:
+            self.editor.log_message(f'Recursive is True', level=0)
             self._fix_file_names_recursive(directory)
         else:
             self._fix_file_names(directory)
@@ -59,6 +62,7 @@ class RenameFilesInDir(object):
 
 
 class CapitalizeArtist(RenameFilesInDir):
+    action_name = 'Capitalize Artist'
 
     def get_new_name(self, file_name):
         return self.capitalize_artist(copy.deepcopy(file_name))
@@ -102,6 +106,7 @@ class CapitalizeArtist(RenameFilesInDir):
 
 
 class FixFileNames(RenameFilesInDir):
+    action_name = 'Rename Songs'
 
     def extra_actions(self, file_name):
         # Check formatting, don't try to rename
@@ -293,10 +298,10 @@ class StringEditor(object):
 
     def print_is_commit_true_or_false(self):
         if not self.commit:
-            print('~~~ NOT Commiting Changes! ~~~')
-            print('Provide the --commit flag to persist changes')
+            self.log_message('~~~ NOT Commiting Changes! ~~~', level=0)
+            self.log_message('Provide the --commit flag to persist changes', level=0)
         else:
-            print("!!! Commiting Changes !!!")
+            self.log_message("!!! Commiting Changes !!!", level=0)
 
     def log_message(self, message, level=1):
         if level <= self.verbose:
@@ -449,13 +454,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.songs:
-        music_directory = POST_ROCK_NEW_SONGS_DIR
+        music_directory = Paths.POST_ROCK_NEW_SONGS_DIR
     elif args.albums:
-        music_directory = POST_ROCK_NEW_ALBUMS_DIR
+        music_directory = Paths.POST_ROCK_NEW_ALBUMS_DIR
     elif args.directory:
         music_directory = args.directory
     else:  # Default
-        music_directory = POST_ROCK_NEW_ALBUMS_DIR
+        music_directory = Paths.POST_ROCK_NEW_ALBUMS_DIR
 
     if not music_directory.startswith('C:/') and not music_directory.startswith('/'):
         music_directory = os.path.join(MUSIC_DIR, music_directory)

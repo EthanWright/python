@@ -245,6 +245,7 @@ acceptable_song_specific_parenthetical_phrases = [
     'Free flight',
     'Light of Day',
     '259 Days Far',
+    'The Deep Pt 1',
     'Dark of Night',
     'Second Chance',
     'While Im Away',
