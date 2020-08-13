@@ -331,7 +331,7 @@ class ListOutputter(object):
             print('--Printing sorted list for "' + list_desc + '":')
             if new_list_string:
                 print(new_list_string)
-            print('  Printed: "' + list_length + '" items for "' + list_desc + '"')
+            print('--Printed: "' + list_length + '" items for "' + list_desc + '"')
         print('')
 
     @staticmethod

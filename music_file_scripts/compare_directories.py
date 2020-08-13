@@ -119,6 +119,7 @@ if __name__ == '__main__':
     # new_music = r'F:\backup\Music\post_rock\original_albums'
     # new_music = r'F:\backup\Music\post_rock\songs_to_sort'
 
-    new_music = r'/media/mimorox/My Passport/backup/Music/post_rock/songs_to_sort/'
+    # new_music = r'/media/mimorox/My Passport/backup/Music/post_rock/songs_to_sort/'
+    new_music = r'/media/mimorox/My Passport/- Backup -/Music/post_rock/songs_to_sort/'
 
     sort_directory_contents(existing_music, new_music, commit=args.commit)

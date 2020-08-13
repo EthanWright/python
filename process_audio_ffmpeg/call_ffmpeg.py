@@ -12,7 +12,7 @@ def print_message(severity, verbose_level, message):
 
 
 def call_ffmpeg(command, verbose=0, commit=False):
-    print_message(1, verbose, 'Running ffmpeg CLI command:\n' + command)
+    # print_message(1, verbose, 'Running ffmpeg CLI command:\n' + command)
     if not commit:
         print_message(0, verbose, f'~~~ NOT Committing Changes ~~~')
         return None, None
@@ -24,6 +24,7 @@ def call_ffmpeg(command, verbose=0, commit=False):
 
 
 def execute_ffmpeg_cli_command(command):
+    # import pdb;pdb.set_trace()
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
     result, stdout = p.communicate()
 
@@ -36,5 +37,6 @@ def execute_ffmpeg_cli_command(command):
 
 
 def get_metadata(file_name, verbose=0):
-    command = f'ffmpeg -i "{file_name}" -f ffmetadata -'
+    # command = f'ffmpeg -i "{file_name}" -f ffmetadata -'
+    command = ['ffmpeg', '-i', file_name, '-f', 'ffmetadata', '-']
     return call_ffmpeg(command, verbose=verbose, commit=True)

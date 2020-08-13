@@ -11,7 +11,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from common import list_music_files
-from paths import MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_DUPES_DIR
+from paths import Paths
 
 MEGA = 1024 * 1024
 
@@ -120,14 +120,12 @@ def print_data_from_stdout(stdout):
                 raise Exception(f'Problem with input: {line_clean}')
 
 
-def run(input_directory, export_metadata=False):
-    directory = os.path.join(MUSIC_DIR, input_directory)
+def run(directory, export_metadata=False):
     for file_name in list_music_files(directory):
         print_song_data(directory, file_name, export_metadata=export_metadata)
 
 
 if __name__ == '__main__':
-    default_path = POST_ROCK_DUPES_DIR
     parser = argparse.ArgumentParser(description='Print Audio/Video file details')
     parser.add_argument('directory', nargs='?', help='Target Directory')
     parser.add_argument('--dupes', '-d', action='store_true', default=False, help='Renaming Albums')
@@ -138,15 +136,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.dupes:
-        music_directory = POST_ROCK_DUPES_DIR
+        music_directory = Paths.POST_ROCK_DUPES_DIR
     elif args.needs-metadata:
-        music_directory = POST_ROCK_NEEDS_METADATA_DIR
+        music_directory = Paths.POST_ROCK_NEEDS_METADATA_DIR
     elif args.directory:
         music_directory = args.directory
     else:  # Default
-        music_directory = POST_ROCK_DUPES_DIR
+        music_directory = Paths.POST_ROCK_DUPES_DIR
 
-    run(args.directory, export_metadata=args.export_metadata)
+    run(music_directory, export_metadata=args.export_metadata)
 
 """
 python print_song_data.py
