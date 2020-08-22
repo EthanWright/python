@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     if args.dupes:
         music_directory = Paths.POST_ROCK_DUPES_DIR
-    elif args.needs-metadata:
+    elif args.needs_metadata:
         music_directory = Paths.POST_ROCK_NEEDS_METADATA_DIR
     elif args.directory:
         music_directory = args.directory
@@ -148,4 +148,5 @@ if __name__ == '__main__':
 
 """
 python print_song_data.py
+python print_song_data.py --needs-metadata --export-metadata
 """

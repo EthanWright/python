@@ -26,7 +26,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg
 from common import list_music_files, clean_file_name
-from paths import MUSIC_DIR, POST_ROCK_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR, POST_ROCK_NEEDS_METADATA_DIR
+from paths import Paths
 
 
 # Parsing Functions
@@ -171,14 +171,14 @@ def extract_field_from_stdout(stdout, stdout_field):
 
 
 def run(sub_directory, verbose=0, commit=False, remove_first=False):
-    directory = os.path.join(MUSIC_DIR, sub_directory)
+    directory = os.path.join(Paths.MUSIC_DIR, sub_directory)
     for file_name in list_music_files(directory):
         if not (file_name.startswith('added_metadata') or file_name.startswith('removed_metadata')):
             add_metadata_from_file(directory, file_name, remove_first=remove_first, verbose=verbose, commit=commit)
 
 
 if __name__ == '__main__':
-    default_path = POST_ROCK_NEEDS_METADATA_DIR
+    default_path = Paths.POST_ROCK_NEEDS_METADATA_DIR
 
     parser = argparse.ArgumentParser(description='Add Metadata to Song Files')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')

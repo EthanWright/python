@@ -478,8 +478,6 @@ if __name__ == '__main__':
 
 r"""
 python fix_names.py
-
-python fix_names.py post_rock\new_albums -v
-python fix_names.py post_rock\new_songs -v
-
+python fix_names.py --songs
+python fix_names.py post_rock/new_albums -v
 """

@@ -22,7 +22,7 @@ import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
 from common import list_music_files, clean_file_name
-from paths import MUSIC_DIR, POST_ROCK_NEW_ALBUMS_DIR, POST_ROCK_NEW_SONGS_DIR, POST_ROCK_NEEDS_METADATA_DIR, POST_ROCK_ORIGINAL_ALBUMS_DIR
+from paths import Paths
 
 
 class SongSplitter(object):
@@ -189,15 +189,15 @@ def split_file(source_file_path, source_file_name, split_data, purl, output_dire
 
 
 def run(directory, verbose, commit):
-    song_output_dir = POST_ROCK_NEW_SONGS_DIR  # 'individual_songs'
-    error_output_dir = POST_ROCK_NEEDS_METADATA_DIR  # 'needs_metadata'
-    done_output_dir = POST_ROCK_ORIGINAL_ALBUMS_DIR  # 'split_albums'
+    song_output_dir = Paths.POST_ROCK_NEW_SONGS_DIR  # 'individual_songs'
+    error_output_dir = Paths.POST_ROCK_NEEDS_METADATA_DIR  # 'needs_metadata'
+    done_output_dir = Paths.POST_ROCK_ORIGINAL_ALBUMS_DIR  # 'split_albums'
     song_splitter = SongSplitter(split_song_dir=song_output_dir, error_dir=error_output_dir, done_dir=done_output_dir, verbose=verbose, commit=commit)
     song_splitter.split_songs_in_directory(directory)
 
 
 if __name__ == '__main__':
-    default_path = POST_ROCK_NEW_ALBUMS_DIR
+    default_path = Paths.POST_ROCK_NEW_ALBUMS_DIR
 
     parser = argparse.ArgumentParser(description='Spilt Song Files Based on Metadata')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
@@ -205,7 +205,7 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     args = parser.parse_args()
-    run(os.path.join(MUSIC_DIR, args.directory), args.verbose, args.commit)
+    run(os.path.join(Paths.MUSIC_DIR, args.directory), args.verbose, args.commit)
 
 
 """

@@ -7,7 +7,7 @@ import argparse
 import os
 
 from call_ffmpeg import call_ffmpeg
-from paths import VIDEO_DIR, MUSIC_DIR, POST_ROCK_SONGS_TO_SORT_DIR, POST_ROCK_DIR
+from paths import Paths
 
 
 def convert_timestamp_to_float(timestamp):
@@ -32,19 +32,35 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
     # Both commands have their charms. Trimming the input file rather than the
     # output file seems to usually work better, but sometimes it's the opposite
     # Consult the ffmpeg docs for more details about the trimming process.
-    command = f'ffmpeg -ss {start} -to {end} -i "{source_file_path}" -c copy "{output_path}"'  # Trim input
+    # command = f'ffmpeg -ss {start} -to {end} -i "{source_file_path}" -c copy "{output_path}"'  # Trim input
+    command = [
+        'ffmpeg',
+        '-ss', start,
+        '-to', end,
+        '-i', source_file_path,
+        '-c', 'copy',
+        output_path
+    ]
     if command_version in [2, '2']:
-        command = f'ffmpeg -i "{source_file_path}" -c copy -ss {start} -to {end} "{output_path}"'  # Trim output
+        # command = f'ffmpeg -i "{source_file_path}" -c copy -ss {start} -to {end} "{output_path}"'  # Trim output
+        command = [
+            'ffmpeg',
+            '-i', source_file_path,
+            '-c', 'copy',
+            '-ss', start,
+            '-to', end,
+            output_path
+        ]
 
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
 def run(args):
-    # target_path = os.path.join(VIDEO_DIR, args.file)
-    # target_path = os.path.join(MUSIC_DIR, args.file)
-    # target_path = os.path.join(POST_ROCK_DIR, args.file)
-    # target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, args.file)
-    target_path = os.path.join(POST_ROCK_SONGS_TO_SORT_DIR, 'trim', args.file)
+    # target_path = os.path.join(Paths.VIDEO_DIR, args.file)
+    # target_path = os.path.join(Paths.MUSIC_DIR, args.file)
+    # target_path = os.path.join(Paths.POST_ROCK_DIR, args.file)
+    # target_path = os.path.join(Paths.POST_ROCK_SONGS_TO_SORT_DIR, args.file)
+    target_path = os.path.join(Paths.POST_ROCK_SONGS_TO_SORT_DIR, 'trim', args.file)
 
     start = convert_timestamp_to_float(args.start)
     end = convert_timestamp_to_float(args.end)
@@ -70,7 +86,7 @@ if __name__ == '__main__':
 r"""
 python trim_file.py "FILE" xx:xx xx:xx
 python trim_file.py ""
-.
+
 """
 
 
