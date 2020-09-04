@@ -67,6 +67,13 @@ class CapitalizeArtist(RenameFilesInDir):
     def get_new_name(self, file_name):
         return self.capitalize_artist(copy.deepcopy(file_name))
 
+    @staticmethod
+    def contains_num(word):
+        for x in range(10):
+            if str(x) in word:
+                return True
+        return False
+
     def capitalize_artist(self, name):
         new_words = []
         should_be_lower = [
@@ -74,28 +81,27 @@ class CapitalizeArtist(RenameFilesInDir):
         ]
 
         artist, title = name.split(' - ', 1)
-        if len(artist) <= 6 and artist[0] == artist[0].upper():
-            return name
-
         all_caps = artist == artist.upper()
-
         words = artist.split(' ')
-        if len(words) <= 2 and len(artist) <= 8 and all_caps:
-            return name
 
         for word in words:
             first_letter = word[0]
             word_lower = word.lower()
             some = word[1:]
-            # TODO Simplify
-            if word == word.upper() and not all_caps:
+            if word == word.upper() and (len(artist) <= 8 or not all_caps):
                 word_formatted = word
             elif word_lower in should_be_lower and len(new_words) > 0:
                 word_formatted = word_lower
-            elif (len(word) == 1 and word != 'i' and len(new_words) > 0) or not first_letter.isalpha() or (some != some.lower() and some != some.upper()) or (first_letter.islower() and word != word.lower()):
-                word_formatted = word
             else:
-                word_formatted = first_letter.upper() + word_lower[1:]
+                if some != some.lower() and some != some.upper():
+                    word_formatted = word
+                elif self.contains_num(word):
+                    # TODO Check if word without num is mixed case?
+                    word_formatted = word
+                elif len(word) == 1 and word != 'i' and len(new_words) > 0:
+                    word_formatted = word
+                else:
+                    word_formatted = first_letter.upper() + word_lower[1:]
 
             new_words.append(word_formatted)
 
@@ -103,6 +109,8 @@ class CapitalizeArtist(RenameFilesInDir):
         if artist != new_artist:
             return self.editor.replace_string(name, artist, new_artist)
         return name
+
+        # Tests: M0N0CHR0ME ZER0
 
 
 class FixFileNames(RenameFilesInDir):
@@ -463,7 +471,7 @@ if __name__ == '__main__':
         music_directory = Paths.POST_ROCK_NEW_ALBUMS_DIR
 
     if not music_directory.startswith('C:/') and not music_directory.startswith('/'):
-        music_directory = os.path.join(MUSIC_DIR, music_directory)
+        music_directory = os.path.join(Paths.MUSIC_DIR, music_directory)
 
     rename_type = FixFileNames
     if args.capitalize_artist:

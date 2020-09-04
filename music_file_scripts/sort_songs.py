@@ -80,7 +80,7 @@ def run(actions):
 
     directory = os.path.join(Paths.MUSIC_DIR, sub_directory)
     file_sorting_path = os.path.join(directory, 'songs_to_sort')
-    song_file_path = os.path.join(directory, 'list', 'master_list.txt')
+    song_file_path = os.path.join(directory, 'txt', 'master_list.txt')
 
     computer_file_list = gather_file_names_from_path(file_sorting_path)
     text_file_list = read_song_file(song_file_path)
@@ -173,7 +173,7 @@ class DiffSongLists(object):
     def print_results(self):
         list_outputter = ListOutputter()
         self.list_1.print_results()
-        list_outputter.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=False)  # Computer Only
+        list_outputter.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=True)  # Computer Only
         self.list_2.print_results()
 
         # no_rating = [item for item in self.unique_2 if item.rating == '']
@@ -364,7 +364,7 @@ class FileActions(object):
         self.commit = commit
 
     def export_new_master_list_to_file(self, master_list):
-        file_path = os.path.join(self.base_directory, '..', 'list', 'new_master_list.txt')
+        file_path = os.path.join(self.base_directory, '..', 'txt', 'new_master_list.txt')
         list_outputter = ListOutputter()
         list_outputter.export_list_to_file(master_list, file_path, self.commit)
 
@@ -391,7 +391,7 @@ class FileActions(object):
                 move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
 
         if self.commit and export_logs:
-            logs_dir = os.path.join(destination_path, 'logs')
+            logs_dir = os.path.join(self.base_directory, '..', 'txt', 'deletion_logs')
             if not os.path.isdir(logs_dir):
                 logs_dir = destination_path
             all_songs_string = '\n'.join([song_data.raw_text for song_data in song_data_list])
