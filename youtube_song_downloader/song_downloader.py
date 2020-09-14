@@ -103,9 +103,10 @@ def call_youtube_dl(video_id_list):
                 continue  # ???
 
             # Check if it has been downloaded
-            if db.exists(video_id):
-                print(f'ERROR! {video_id} already exists!')
-                continue
+            if db:
+                if db.exists(video_id):
+                    print(f'ERROR! {video_id} already exists!')
+                    continue
 
             print('Downloading: ' + video_id)
             print('Time: ' + time.asctime())
@@ -117,7 +118,8 @@ def call_youtube_dl(video_id_list):
                 print(e)
                 continue
 
-            sleepy_time(8*60)
+            # sleepy_time(40*60)
+            sleepy_time(10*60)
 
 
 def extract_video_id(video_id):

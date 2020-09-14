@@ -103,7 +103,7 @@ def extract_artist(file_path):
 
 def artist_is_part_of_a_mix(artist):
     artist = artist.lower()
-    mix_prefixes = ['A Post', 'Post', '2019', '5 hours']
+    mix_prefixes = ['A Post', 'Post', '2019', '5 hours', 'Mixtape']
     for prefix in mix_prefixes:
         if artist.startswith(prefix.lower()):
             return True

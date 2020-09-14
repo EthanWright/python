@@ -78,9 +78,10 @@ def run(actions):
     commit = actions.commit
     sub_directory = actions.sub_directory
 
-    directory = os.path.join(Paths.MUSIC_DIR, sub_directory)
-    file_sorting_path = os.path.join(directory, 'songs_to_sort')
-    song_file_path = os.path.join(directory, 'txt', 'master_list.txt')
+    file_sorting_path = Paths.POST_ROCK_SONGS_TO_SORT_DIR
+    if sub_directory:
+        file_sorting_path = os.path.join(Paths.MUSIC_DIR, sub_directory)
+    song_file_path = os.path.join(file_sorting_path, 'txt', 'master_list.txt')
 
     computer_file_list = gather_file_names_from_path(file_sorting_path)
     text_file_list = read_song_file(song_file_path)
