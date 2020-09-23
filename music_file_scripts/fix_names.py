@@ -95,7 +95,7 @@ class CapitalizeArtist(RenameFilesInDir):
             else:
                 if some != some.lower() and some != some.upper():
                     word_formatted = word
-                elif self.contains_num(word):
+                elif self.contains_num(word) and len(new_words) > 0:
                     # TODO Check if word without num is mixed case?
                     word_formatted = word
                 elif len(word) == 1 and word != 'i' and len(new_words) > 0:

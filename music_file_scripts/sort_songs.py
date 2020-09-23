@@ -98,7 +98,7 @@ def run(actions):
     if not export_list and not move_dupes and not move_bad:
         song_differ.print_results()
 
-    file_actions = FileActions(file_sorting_path, verbose=verbose, commit=commit)
+    file_actions = FileActions(Paths.MUSIC_DIR, verbose=verbose, commit=commit)
 
     if export_list:
         master_list = sorted(text_file_list + song_differ.unique_1)
@@ -342,7 +342,8 @@ class ListOutputter(object):
         list_length = str(len(song_list))
         print('Total Lines In List: ' + list_length + '\n')
 
-        file_path = os.path.join(file_name)
+        # file_path = os.path.join(file_name)  # TODO What was this for?
+        file_path = file_name
         if os.path.isfile(file_path):
             raise Exception('File already exists: "' + file_name + '"')
 
@@ -365,7 +366,8 @@ class FileActions(object):
         self.commit = commit
 
     def export_new_master_list_to_file(self, master_list):
-        file_path = os.path.join(self.base_directory, '..', 'txt', 'new_master_list.txt')
+        # TODO Use constant for path
+        file_path = os.path.join(self.base_directory, 'to_sort_post_rock', 'txt', 'new_master_list.txt')
         list_outputter = ListOutputter()
         list_outputter.export_list_to_file(master_list, file_path, self.commit)
 
@@ -380,31 +382,34 @@ class FileActions(object):
 
     def move_songs(self, song_data_list, destination_dir, export_logs=True):
         print('Moving ' + str(len(song_data_list)) + ' song files to: "' + destination_dir + '"')
-        destination_path = os.path.join(self.base_directory, destination_dir)
+        # TODO Use constant for path
+        destination_path = os.path.join(self.base_directory, 'z_processing', destination_dir)
 
         for song_data in song_data_list:
             file_name = song_data.raw_text
             if self.verbose >= 1:
                 print(f'Moving "{file_name}"')
-            old_full_path = os.path.join(self.base_directory, file_name)
+            # TODO Use constant for path
+            old_full_path = os.path.join(self.base_directory, 'to_sort_post_rock', file_name)
             new_full_path = os.path.join(destination_path, file_name)
             if self.commit:
                 move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
 
         if self.commit and export_logs:
-            logs_dir = os.path.join(self.base_directory, '..', 'txt', 'deletion_logs')
+            logs_dir = os.path.join(self.base_directory, 'txt')
             if not os.path.isdir(logs_dir):
                 logs_dir = destination_path
             all_songs_string = '\n'.join([song_data.raw_text for song_data in song_data_list])
 
             # Write songs to cumulative list in a txt file
-            file_name = 'all_files.txt'
+            file_name = f'all_files_{destination_dir}.txt'
             file_path = os.path.join(logs_dir, file_name)
             with open(file_path, 'a') as write_file:
                 write_file.write(all_songs_string)
 
             # Also write changes for only this run to it's own file
-            this_run_file_name = time.strftime('%d_%m_%Y_%H_%M_%S') + '.txt'
+            # this_run_file_name = time.strftime('%d_%m_%Y_%H_%M_%S') + '.txt'
+            this_run_file_name = time.strftime('%Y_%m_%d_%H_%M_%S') + '.txt'
             file_path = os.path.join(logs_dir, this_run_file_name)
             with open(file_path, 'w') as write_file:
                 write_file.write(all_songs_string)

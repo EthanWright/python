@@ -109,6 +109,8 @@ def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, 
         song_file_path, purl = remove_metadata(directory, file_name, verbose=verbose, commit=commit)
 
     file_data = open(metadata_input_path, 'r').readlines()
+    if not file_data:
+        return
     parse_file_data_into_metadata_file(file_data, metadata_output_path, commit=commit)
 
     add_metadata(song_file_path, metadata_output_path, purl=purl, verbose=verbose, commit=commit)
