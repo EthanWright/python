@@ -124,7 +124,7 @@ required_strings = [
 
 #####################################################################################################
 
-# TODO Which one is right? Keep '()' vs trim '()'
+# Which one is right? Keep '()' vs trim '()' ?
 parenthetical_regex = r'([\[\(][^\)\]]*[\)\]])'  # (string) or [string]
 # parenthetical_regex = r'[\[\(]([^\)\]]*)[\)\]]'  # (string) or [string]
 

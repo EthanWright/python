@@ -50,11 +50,12 @@ def parse_file_data_into_metadata_file(input_data, output_file, commit=False):
         start, end, title = track_data_list[x]
         if not end:
             end = track_data_list[x + 1][0]
+        start = str(start).rsplit('.', 1)[0]
+        end = str(end).rsplit('.', 1)[0]
+        # print(f'{start} - {end} | {title}')
 
         metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
-        metadata_file_content += 'START=%s\n' % str(start)
-        metadata_file_content += 'END=%s\n' % str(end)
-        metadata_file_content += 'title=%s\n' % title
+        metadata_file_content += f'START={start}\nEND={end}\ntitle={title}\n'
 
     if commit:
         with io.open(output_file, 'wt', encoding='utf-8') as f:
@@ -146,7 +147,6 @@ def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, com
     if purl:
         command.extend(['-metadata', 'purl=' + purl])
     command.append(output_path)
-
     call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
@@ -156,7 +156,16 @@ def remove_metadata(source_directory, source_file_name, verbose=0, commit=False)
     output_file_name = 'removed_metadata_' + source_file_name
     output_path = os.path.join(source_directory, output_file_name)
     # Remove ALL metadata
-    command = f'ffmpeg -i "{source_file_path}" -c copy -map_metadata -1 -fflags +bitexact -flags:a +bitexact "{output_path}"'
+    # command = f'ffmpeg -i "{source_file_path}" -c copy -map_metadata -1 -fflags +bitexact -flags:a +bitexact "{output_path}"'
+    command = [
+        'ffmpeg',
+        '-i', source_file_path,
+        '-c', 'copy',
+        '-map_metadata', '-1',
+        '-fflags', '+bitexact',
+        '-flags:a', '+bitexact',
+        output_path
+    ]
     result, stdout = call_ffmpeg(command, verbose=verbose, commit=commit)
     purl = 'No PURL!'
     if stdout:

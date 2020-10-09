@@ -56,14 +56,14 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
 
 
 def run(args):
-    # target_path = os.path.join(Paths.VIDEO_DIR, args.file)
-    # target_path = os.path.join(Paths.MUSIC_DIR, args.file)
-    # target_path = os.path.join(Paths.POST_ROCK_DIR, args.file)
-    # target_path = os.path.join(Paths.POST_ROCK_SONGS_TO_SORT_DIR, args.file)
-    target_path = os.path.join(Paths.POST_ROCK_SONGS_TO_SORT_DIR, 'trim', args.file)
-
     start = convert_timestamp_to_float(args.start)
     end = convert_timestamp_to_float(args.end)
+
+    # target_dir = Paths.VIDEOS
+    # target_dir = Paths.POST_ROCK_SONGS
+    target_dir = os.path.join('trim', Paths.PROCESSING_DIR)
+    target_path = os.path.join(target_dir, args.file)
+
     trim_video_file(target_path, start, end, command_version=args.command, verbose=args.verbose, commit=args.commit)
 
     # Both commands at the same time
@@ -83,10 +83,10 @@ if __name__ == '__main__':
 
     run(parser.parse_args())
 
+
 r"""
-python trim_file.py "FILE" xx:xx xx:xx
-python trim_file.py ""
+python trim_file.py "FILE" xx:xx xx:xx --commit
+python trim_file.py "" --commit
 
 """
-
 
