@@ -10,8 +10,9 @@ import os
 import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
-from common import list_music_files
+from file_scripts_common import list_music_files
 from paths import Paths
+from utils import get_track_data_from_metadata, format_time_value
 
 MEGA = 1024 * 1024
 
@@ -33,51 +34,28 @@ class Output(object):
             print(data)
 
 
-def format_metadata(metadata):
-    return_list = []
-    for chapter in metadata.split('[CHAPTER]'):
-        regex = 'START=([0-9]+)\nEND=([0-9]+)\ntitle=(.+)\n'
-        result = re.search(regex, chapter)
-        if result:
-            data = result.groups()
+def format_track_data(track_data):
+    return_data = ''
+    for item in track_data:
+        start_timestamp = format_time_value(item.get('start_timestamp'))
+        end_timestamp = format_time_value(item.get('end_timestamp'))
+        title = item.get('title')
+        return_data += f'{title} {start_timestamp} - {end_timestamp}\n'
 
-            if len(data) == 3:
-                start_time_value = float(data[0].strip()) / 1000.0
-                end_time_value = float(data[1].strip()) / 1000.0
-                title = data[2].strip()
-
-                start_timestamp = format_time_value(start_time_value)
-                end_timestamp = format_time_value(end_time_value)
-
-                return_list.append(f'{title} {start_timestamp} - {end_timestamp}')
-
-    return '\n'.join(return_list)
-
-
-def format_time_value(time_value):
-    timestamp_minutes = int(time_value / 60)
-    timestamp_seconds = time_value % 60
-
-    timestamp_seconds_int = int(timestamp_seconds)
-    timestamp_seconds_str = str(timestamp_seconds_int)
-    if timestamp_seconds_int < 10:
-        timestamp_seconds_str = '0' + timestamp_seconds_str
-
-    # TODO Is this wise?
-    # timestamp_seconds_decimal = timestamp_seconds - float(timestamp_seconds_int)
-    # if timestamp_seconds_decimal:
-    #     timestamp_seconds_str = timestamp_seconds_str + '.' + str(timestamp_seconds_decimal)[2:5]
-
-    return f'{timestamp_minutes}:{timestamp_seconds_str}'
+    return return_data
 
 
 def print_song_data(directory, file_name, export_metadata=False):
     source_file_path = os.path.join(directory, file_name)
     metadata, stdout = get_metadata(source_file_path)
+
+    # Write data to file
     if export_metadata:
-        formatted_metadata = format_metadata(metadata)
+        track_data = get_track_data_from_metadata(metadata)
+        formatted_track_data = format_track_data(track_data)
         printer = Output(source_file_path + '.txt')
-        printer.output(formatted_metadata)
+        printer.output(formatted_track_data)
+
     print_data_from_stdout(stdout)
     print_file_size(source_file_path)
     print('---')
@@ -136,13 +114,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.dupes:
-        music_directory = Paths.POST_ROCK_DUPES_DIR
+        music_directory = Paths.POST_ROCK_DUPES
     elif args.needs_metadata:
-        music_directory = Paths.POST_ROCK_NEEDS_METADATA_DIR
+        music_directory = Paths.POST_ROCK_NEEDS_METADATA
     elif args.directory:
         music_directory = args.directory
     else:  # Default
-        music_directory = Paths.POST_ROCK_DUPES_DIR
+        music_directory = Paths.POST_ROCK_DUPES
 
     run(music_directory, export_metadata=args.export_metadata)
 

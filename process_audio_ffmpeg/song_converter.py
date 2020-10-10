@@ -8,27 +8,19 @@ import os
 import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
-from common import list_music_files
+from file_scripts_common import list_music_files
 from paths import Paths
+from utils import extract_field_from_metadata
 
 
 def run(file_path, commit=False):
     if os.path.isdir(file_path):
         return
     metadata, stdout_data = get_metadata(file_path)
-    title = parse_metadata_for_field(metadata, 'title')
+    title = extract_field_from_metadata(metadata, 'title')
     if not title:
         title = os.path.split(file_path)[1].rsplit('.', 1)[0]
     convert_file_to_opus(file_path, title, commit=commit)
-
-
-def parse_metadata_for_field(metadata, field):
-    search_string = field + '='
-    for line in metadata.split('\n'):
-        line_clean = line.strip()
-        if line_clean.startswith(search_string):
-            return line_clean.replace(search_string, '').strip()
-    return None
 
 
 def convert_file_to_opus(source_file_path, new_name, commit=False):
@@ -49,8 +41,8 @@ def convert_file_to_opus(source_file_path, new_name, commit=False):
 
 if __name__ == '__main__':
 
-    # directory = POST_ROCK_TO_SORT_DIR
-    # directory = POST_ROCK_FULL_ALBUMS_DIR
+    # directory = POST_ROCK_TO_SORT
+    # directory = POST_ROCK_FULL_ALBUMS
     directory = r'/home/mimorox/Documents/temp/bookmarks/podcasts'
 
     commit_result = True

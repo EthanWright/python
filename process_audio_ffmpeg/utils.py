@@ -67,8 +67,8 @@ def parse_ffmetadata_chapter(chapter):
     result = re.search(regex, chapter)
     if result and len(result.groups()) == 3:
         return {
-            'start_timestamp': (int(result.groups()[0].strip()) + 1) / 1000,
-            'end_timestamp': (int(result.groups()[1].strip()) - 1) / 1000,
+            'start_timestamp': (int(result.groups()[0].strip())) / 1000,
+            'end_timestamp': (int(result.groups()[1].strip())) / 1000,
             'title': result.groups()[2].strip(),
         }
 
@@ -83,18 +83,18 @@ def extract_timestamps(data_string):
 
 
 def format_time_value(time_value):
-    timestamp_minutes = int(time_value / 60)
-    timestamp_seconds = time_value % 60
-
+    timestamp_minutes = int(time_value / 60.0)
+    timestamp_seconds = time_value % 60.0
     timestamp_seconds_int = int(timestamp_seconds)
     timestamp_seconds_str = str(timestamp_seconds_int)
     if timestamp_seconds_int < 10:
         timestamp_seconds_str = '0' + timestamp_seconds_str
 
-    # TODO Is this wise?
+    # Add some precision
     timestamp_seconds_decimal = timestamp_seconds - float(timestamp_seconds_int)
+    timestamp_seconds_decimal = round(timestamp_seconds_decimal, 3)
     if timestamp_seconds_decimal:
-        timestamp_seconds_str = timestamp_seconds_str + '.' + str(timestamp_seconds_decimal)[2:5]
+        timestamp_seconds_str = timestamp_seconds_str + '.' + str(timestamp_seconds_decimal)[2:]
 
     return f'{timestamp_minutes}:{timestamp_seconds_str}'
 
