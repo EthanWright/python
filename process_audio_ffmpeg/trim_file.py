@@ -8,7 +8,7 @@ import os
 
 from call_ffmpeg import call_ffmpeg
 from paths import Paths
-from utils import convert_timestamp_to_float
+from utils import convert_timestamp_to_float_seconds, convert_float_to_str_safe, convert_str_timestamp_to_str_seconds
 
 
 def trim_video_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
@@ -47,20 +47,11 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
-def convert_timestamp_to_str(timestamp):
-    str_timestamp = str(convert_timestamp_to_seconds(timestamp))
-    if str_timestamp.startswith('.'):
-        str_timestamp = '0' + str_timestamp
-    return str_timestamp
-
-
 def run(args):
-    # TODO Which?
-    start = convert_timestamp_to_str(args.start)
-    end = convert_timestamp_to_str(args.end)
-    # start2 = convert_timestamp_to_seconds(args.start)
-    # end2 = convert_timestamp_to_seconds(args.end)
 
+    # TODO Do I need to convert to seconds? Try passing timestamp
+    start = convert_str_timestamp_to_str_seconds(args.start)
+    end = convert_str_timestamp_to_str_seconds(args.end)
 
     # target_dir = Paths.VIDEOS
     # target_dir = Paths.POST_ROCK_SONGS
