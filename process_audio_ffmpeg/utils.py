@@ -54,7 +54,7 @@ def parse_track_data_string(data_string):
 
     title = clean_file_name(title)  # TODO Too strict?
     # print(f'{milliseconds} - {milliseconds2} | {title}')
-    # return milliseconds, milliseconds2, title
+    # TODO Convert to str before return?
     return {
         'start_timestamp': milliseconds,
         'end_timestamp': milliseconds2,
@@ -82,6 +82,7 @@ def extract_timestamps(data_string):
     return re.findall(regex, data_string)
 
 
+# Float of seconds to string
 def format_time_value(time_value):
     timestamp_minutes = int(time_value / 60.0)
     timestamp_seconds = time_value % 60.0
@@ -100,7 +101,7 @@ def format_time_value(time_value):
 
 
 def convert_timestamp_to_milliseconds(timestamp):
-    return convert_timestamp_to_seconds(timestamp) * 1000.0
+    return convert_timestamp_to_seconds(timestamp)# * 1000.0
 
 
 # TODO Determine which function to use
@@ -108,6 +109,8 @@ def convert_timestamp_to_seconds(timestamp):
     a = convert_timestamp_to_seconds_1(timestamp)
     b = convert_timestamp_to_seconds_2(timestamp)
     if a != b:
+        print(a)
+        print(b)
         import pdb;pdb.set_trace()
     return a
 

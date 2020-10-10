@@ -8,15 +8,7 @@ import os
 
 from call_ffmpeg import call_ffmpeg
 from paths import Paths
-
-
-def convert_timestamp_to_float(timestamp):
-    if ':' in timestamp:
-        minutes, seconds = timestamp.split(':')
-        timestamp = str((float('0' + minutes) * 60.0) + float(seconds)).rstrip('0').rstrip('.')
-    if timestamp.startswith('.'):
-        timestamp = '0' + timestamp
-    return timestamp
+from utils import convert_timestamp_to_float
 
 
 def trim_video_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
@@ -55,9 +47,20 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
+def convert_timestamp_to_str(timestamp):
+    str_timestamp = str(convert_timestamp_to_seconds(timestamp))
+    if str_timestamp.startswith('.'):
+        str_timestamp = '0' + str_timestamp
+    return str_timestamp
+
+
 def run(args):
-    start = convert_timestamp_to_float(args.start)
-    end = convert_timestamp_to_float(args.end)
+    # TODO Which?
+    start = convert_timestamp_to_str(args.start)
+    end = convert_timestamp_to_str(args.end)
+    # start2 = convert_timestamp_to_seconds(args.start)
+    # end2 = convert_timestamp_to_seconds(args.end)
+
 
     # target_dir = Paths.VIDEOS
     # target_dir = Paths.POST_ROCK_SONGS

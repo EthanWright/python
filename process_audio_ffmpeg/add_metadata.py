@@ -22,81 +22,39 @@ Ethan Wright - 6/11/20
 import argparse
 import io
 import os
-import re
 
 from call_ffmpeg import call_ffmpeg
-from common import list_music_files, clean_file_name
+from file_scripts_common import list_music_files
 from paths import Paths
+from utils import get_track_data_from_file, extract_field_from_stdout
 
 
-# Parsing Functions
-def parse_file_data_into_metadata_file(input_data, output_file, commit=False):
-    if input_data[0].startswith(';FFMETADATA1'):
-        return input_data
-    track_data_list = []
-    # base_num = 0  # TODO Only for stupid formats
-    for track_data in input_data:
-        start_time, end_time, title = parse_string(track_data)
+def parse_track_data_into_metadata(track_data_list):
 
-        # end_time = start_time + base_num  # TODO Only for stupid formats
-        # start_time = base_num  # TODO Only for stupid formats
-        # base_num = end_time  # TODO Only for stupid formats
-
-        track_data_list.append((start_time, end_time, title))
-    track_data_list.append((None, None, None))
-
+    # base_num = 0  # Only for stupid formats
     metadata_file_content = ';FFMETADATA1\n'
-    for x in range(len(track_data_list) - 1):
-        start, end, title = track_data_list[x]
+    chapter_start = '[CHAPTER]\nTIMEBASE=1/1000\n'
+
+    for x in range(len(track_data_list)):
+        track_data = track_data_list[x]
+        start = track_data.get('start_timestamp')
+        end = track_data.get('end_timestamp')
+        title = track_data.get('title')
+
+        # end = start + base_num  # Only for stupid formats
+        # start = base_num  # Only for stupid formats
+        # base_num = end  # Only for stupid formats
+
         if not end:
-            end = track_data_list[x + 1][0]
+            end = track_data_list[x + 1].get('start')
+        # TODO Convert to milliseconds ?
         start = str(start).rsplit('.', 1)[0]
         end = str(end).rsplit('.', 1)[0]
+
         # print(f'{start} - {end} | {title}')
+        metadata_file_content += f'{chapter_start}START={start}\nEND={end}\ntitle={title}\n'
 
-        metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
-        metadata_file_content += f'START={start}\nEND={end}\ntitle={title}\n'
-
-    if commit:
-        with io.open(output_file, 'wt', encoding='utf-8') as f:
-            f.write(metadata_file_content)
-
-
-def parse_string(data_string):
-    timestamps = extract_timestamps(data_string)
-
-    if len(timestamps) == 0:
-        raise Exception('No timestamp in: ' + data_string)
-
-    milliseconds = convert_timestamp_to_milliseconds(timestamps[0])
-    title = data_string.replace(timestamps[0], '')
-    milliseconds2 = None
-    if len(timestamps) == 2:
-        milliseconds2 = convert_timestamp_to_milliseconds(timestamps[1])
-        title = title.replace(timestamps[1], '')
-
-    title = clean_file_name(title)  # TODO Too strict?
-    # print(f'{milliseconds} - {milliseconds2} | {title}')
-    return milliseconds, milliseconds2, title
-
-
-def extract_timestamps(data_string):
-    # regex = r'([0-9]{1,3}:[0-9][0-9]\.?[0-9]*)'
-    regex = r'[^0-9:]?([0-9:]*:[0-9][0-9]?\.?[0-9]*)[^(0-9:)]?'
-    return re.findall(regex, data_string)
-
-
-def convert_timestamp_to_milliseconds(timestamp):
-    total_seconds = 0.0
-    minutes, seconds = timestamp.rsplit(':', 1)
-    if minutes:
-        if ':' in minutes:
-            hours, minutes = minutes.rsplit(':', 1)
-            total_seconds += float(hours) * 60.0 * 60.0
-        total_seconds += float(minutes) * 60.0
-    total_seconds += float(seconds)
-
-    return total_seconds * 1000.0
+    return metadata_file_content
 
 
 def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, commit=False):
@@ -109,32 +67,24 @@ def add_metadata_from_file(directory, file_name, remove_first=False, verbose=0, 
     if remove_first:
         song_file_path, purl = remove_metadata(directory, file_name, verbose=verbose, commit=commit)
 
-    file_data = open(metadata_input_path, 'r').readlines()
-    if not file_data:
-        return
-    parse_file_data_into_metadata_file(file_data, metadata_output_path, commit=commit)
+    track_data_list = get_track_data_from_file(metadata_input_path)
 
-    add_metadata(song_file_path, metadata_output_path, purl=purl, verbose=verbose, commit=commit)
+    metadata_file_content = parse_track_data_into_metadata(track_data_list)
+
+    if metadata_file_content and commit:
+        with io.open(metadata_output_path, 'wt', encoding='utf-8') as f:
+            f.write(metadata_file_content)
+
+    call_add_metadata(song_file_path, metadata_output_path, purl=purl, verbose=verbose, commit=commit)
 
 
-def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, commit=False):
+def call_add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, commit=False):
     source_directory, source_file_name = os.path.split(source_file_path)
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
 
-    # cli_options = [
-    #     ('-i', '"' + source_file_path + '"'),
-    #     ('-f', 'ffmetadata'),
-    #     ('-i', '"' + metadata_file_path + '"'),
-    #     ('-c', 'copy'),
-    #     ('-map_metadata', '1'),
-    # ]
-    # if purl:
-    #     cli_options.append(('-metadata', f'purl={purl}'))
-    #
-    # cli_options_string = ' '.join([flag + ' ' + value for flag, value in cli_options])
-    # command = f'ffmpeg {cli_options_string} "{output_path}"'
-    # # command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 -metadata purl={purl} "{output_path}"'
+    # command = ' '.join([value for value in cli_options]) + '"{output_path}"'
+    # command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 -metadata purl={purl} "{output_path}"'
 
     command = [
         'ffmpeg',
@@ -147,7 +97,7 @@ def add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0, com
     if purl:
         command.extend(['-metadata', 'purl=' + purl])
     command.append(output_path)
-    call_ffmpeg(command, verbose=verbose, commit=commit)
+    result, stdout = call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
 def remove_metadata(source_directory, source_file_name, verbose=0, commit=False):
@@ -174,22 +124,15 @@ def remove_metadata(source_directory, source_file_name, verbose=0, commit=False)
     return output_path, purl
 
 
-def extract_field_from_stdout(stdout, stdout_field):
-    for line in stdout.split('\n'):
-        line_clean = line.strip()
-        if stdout_field in line_clean:
-            return line_clean.rsplit(' ', 1)[1]
-
-
 def run(sub_directory, verbose=0, commit=False, remove_first=False):
-    directory = os.path.join(Paths.MUSIC_DIR, sub_directory)
+    directory = os.path.join(Paths.MUSIC, sub_directory)
     for file_name in list_music_files(directory):
         if not (file_name.startswith('added_metadata') or file_name.startswith('removed_metadata')):
             add_metadata_from_file(directory, file_name, remove_first=remove_first, verbose=verbose, commit=commit)
 
 
 if __name__ == '__main__':
-    default_path = Paths.POST_ROCK_NEEDS_METADATA_DIR
+    default_path = Paths.POST_ROCK_NEEDS_METADATA
 
     parser = argparse.ArgumentParser(description='Add Metadata to Song Files')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')
@@ -200,6 +143,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     run(args.directory, args.verbose, args.commit, remove_first=args.remove_first)
 
-r"""
+"""
 python add_metadata.py
 """
