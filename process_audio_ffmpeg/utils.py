@@ -42,22 +42,23 @@ def parse_track_data_string(data_string):
 
     if len(timestamps) == 0:
         print('No timestamp in: ' + data_string)
-        return
+        return None
 
-    milliseconds = convert_timestamp_to_milliseconds(timestamps[0])
+    start_milliseconds = convert_timestamp_to_float_milliseconds(timestamps[0])
     title = data_string.replace(timestamps[0], '')
 
-    milliseconds2 = None
+    end_milliseconds = None
     if len(timestamps) == 2:
-        milliseconds2 = convert_timestamp_to_milliseconds(timestamps[1])
+        end_milliseconds = convert_timestamp_to_float_milliseconds(timestamps[1])
         title = title.replace(timestamps[1], '')
 
     title = clean_file_name(title)  # TODO Too strict?
-    # print(f'{milliseconds} - {milliseconds2} | {title}')
-    # TODO Convert to str before return?
+    # print(f'{start_seconds} - {end_seconds} | {title}')
+
+    # TODO Make a class for chapter_data?
     return {
-        'start_timestamp': milliseconds,
-        'end_timestamp': milliseconds2,
+        'start_timestamp': start_milliseconds,
+        'end_timestamp': end_milliseconds,
         'title': title,
     }
 
@@ -66,14 +67,14 @@ def parse_ffmetadata_chapter(chapter):
     regex = 'START=([0-9]+)\nEND=([0-9]+)\ntitle=(.+)\n'
     result = re.search(regex, chapter)
     if result and len(result.groups()) == 3:
+        # TODO Make a class for chapter_data?
+        start_milliseconds = int(result.groups()[0].strip())
+        end_milliseconds = int(result.groups()[1].strip())
         return {
-            'start_timestamp': (int(result.groups()[0].strip())) / 1000,
-            'end_timestamp': (int(result.groups()[1].strip())) / 1000,
+            'start_timestamp': start_milliseconds,
+            'end_timestamp': end_milliseconds,
             'title': result.groups()[2].strip(),
         }
-
-
-# Timestamps ###
 
 
 def extract_timestamps(data_string):
@@ -82,12 +83,15 @@ def extract_timestamps(data_string):
     return re.findall(regex, data_string)
 
 
-# Float of seconds to string
 def format_time_value(time_value):
+
+    time_value = float(time_value / 1000.0)
+
     timestamp_minutes = int(time_value / 60.0)
     timestamp_seconds = time_value % 60.0
     timestamp_seconds_int = int(timestamp_seconds)
     timestamp_seconds_str = str(timestamp_seconds_int)
+
     if timestamp_seconds_int < 10:
         timestamp_seconds_str = '0' + timestamp_seconds_str
 
@@ -100,22 +104,17 @@ def format_time_value(time_value):
     return f'{timestamp_minutes}:{timestamp_seconds_str}'
 
 
-def convert_timestamp_to_milliseconds(timestamp):
-    return convert_timestamp_to_seconds(timestamp)# * 1000.0
+def convert_timestamp_to_float_milliseconds(timestamp):
+    # TODO round ? int ?
+    return convert_timestamp_to_float_seconds(timestamp) * 1000.0
 
 
-# TODO Determine which function to use
-def convert_timestamp_to_seconds(timestamp):
-    a = convert_timestamp_to_seconds_1(timestamp)
-    b = convert_timestamp_to_seconds_2(timestamp)
-    if a != b:
-        print(a)
-        print(b)
-        import pdb;pdb.set_trace()
-    return a
+def convert_timestamp_to_float_seconds(timestamp):
+    # return convert_timestamp_to_float_seconds_1(timestamp)
+    return convert_timestamp_to_float_seconds_2(timestamp)
 
 
-def convert_timestamp_to_seconds_1(timestamp):
+def convert_timestamp_to_float_seconds_1(timestamp):
     total_seconds = 0.0
     seconds = timestamp
 
@@ -131,10 +130,22 @@ def convert_timestamp_to_seconds_1(timestamp):
     return total_seconds
 
 
-def convert_timestamp_to_seconds_2(timestamp):
+def convert_timestamp_to_float_seconds_2(timestamp):
     total_seconds = 0.0
     count = 0.0
     for item in reversed(timestamp.split(':')):
         total_seconds += float(item) * pow(60.0, float(count))
-        count += 1
+        count += 1.0
     return total_seconds
+
+
+def convert_float_to_str_safe(float_time):
+    str_time = str(float_time)
+    if str_time.startswith('.'):
+        str_time = '0' + str_time
+
+    return str_time
+
+
+def convert_str_timestamp_to_str_seconds(timestamp):
+    return convert_float_to_str_safe(convert_timestamp_to_float_seconds(timestamp))

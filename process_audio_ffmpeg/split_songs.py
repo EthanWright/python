@@ -23,7 +23,9 @@ import re
 from call_ffmpeg import call_ffmpeg, get_metadata
 from file_scripts_common import list_music_files, clean_file_name
 from paths import Paths
-from utils import get_track_data_from_metadata, get_track_data_from_file, extract_field_from_stdout
+from utils import (
+    get_track_data_from_metadata, get_track_data_from_file, extract_field_from_stdout, convert_float_to_str_safe, format_time_value
+)
 
 
 class SongSplitter(object):
@@ -81,9 +83,13 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
         start_timestamp = data.get('start_timestamp')
         end_timestamp = data.get('end_timestamp')
         title = clean_file_name(data.get('title'))
-
         # TODO ?
-        # end_timestamp -= 1
+        # end_timestamp -= 1.0
+        start_timestamp = format_time_value(start_timestamp)
+        end_timestamp = format_time_value(end_timestamp)
+
+        # start_timestamp = convert_float_to_str_safe(start_timestamp)
+        # end_timestamp = convert_float_to_str_safe(end_timestamp)
 
         if 'livestream' in source_file_name.lower():
             title += ' (Live)'
@@ -104,17 +110,13 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
 
         # command_2 = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
         # command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
-        # TODO Remove prints
-        # TODO Convert to seconds ?
-        print(str(start_timestamp))
-        print(str(end_timestamp))
         command = [
             'ffmpeg',
             '-i', source_file_path,
             '-acodec', 'copy',
             '-metadata', 'purl=' + purl,
-            '-ss', str(start_timestamp),
-            '-to', str(end_timestamp),
+            '-ss', start_timestamp,
+            '-to', end_timestamp,
             output_path
         ]
         # command_2 = [

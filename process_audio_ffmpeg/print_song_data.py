@@ -12,7 +12,7 @@ import re
 from call_ffmpeg import call_ffmpeg, get_metadata
 from file_scripts_common import list_music_files
 from paths import Paths
-from utils import get_track_data_from_metadata, format_time_value
+from utils import get_track_data_from_metadata, format_time_value, convert_float_to_str_safe
 
 MEGA = 1024 * 1024
 

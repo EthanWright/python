@@ -26,7 +26,7 @@ import os
 from call_ffmpeg import call_ffmpeg
 from file_scripts_common import list_music_files
 from paths import Paths
-from utils import get_track_data_from_file, extract_field_from_stdout
+from utils import get_track_data_from_file, convert_float_to_str_safe, extract_field_from_stdout
 
 
 def parse_track_data_into_metadata(track_data_list):
@@ -47,9 +47,13 @@ def parse_track_data_into_metadata(track_data_list):
 
         if not end:
             end = track_data_list[x + 1].get('start')
-        # TODO Convert to milliseconds ?
-        start = str(start).rsplit('.', 1)[0]
-        end = str(end).rsplit('.', 1)[0]
+
+        start = convert_float_to_str_safe(start).rsplit('.', 1)[0]
+        end = convert_float_to_str_safe(end).rsplit('.', 1)[0]
+
+        # TODO Did I need this?
+        # start = start.rsplit('.', 1)[0]
+        # end = end.rsplit('.', 1)[0]
 
         # print(f'{start} - {end} | {title}')
         metadata_file_content += f'{chapter_start}START={start}\nEND={end}\ntitle={title}\n'
