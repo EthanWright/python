@@ -77,10 +77,11 @@ def run(actions):
     verbose = actions.verbose
     commit = actions.commit
     sub_directory = actions.sub_directory
+    stats = actions.stats
 
-    file_sorting_path = Paths.POST_ROCK_SONGS_TO_SORT_DIR
+    file_sorting_path = Paths.POST_ROCK
     if sub_directory:
-        file_sorting_path = os.path.join(Paths.MUSIC_DIR, sub_directory)
+        file_sorting_path = os.path.join(Paths.MUSIC, sub_directory)
     song_file_path = os.path.join(file_sorting_path, 'txt', 'master_list.txt')
 
     computer_file_list = gather_file_names_from_path(file_sorting_path)
@@ -98,21 +99,28 @@ def run(actions):
     if not export_list and not move_dupes and not move_bad:
         song_differ.print_results()
 
-    file_actions = FileActions(Paths.MUSIC_DIR, verbose=verbose, commit=commit)
+    file_actions = FileActions(file_sorting_path, verbose=verbose, commit=commit)
+
+    if stats:
+        stats = song_differ.list_2.get_stats()
+        pprint(stats)  # TODO Prettier
 
     if export_list:
-        master_list = sorted(text_file_list + song_differ.unique_1)
-        remove_bad_songs = True  # TODO CLI arg ?
-        if remove_bad_songs:
-            bad_songs = [item for item in song_differ.list_2 if item.rating == '--']
-            master_list = sorted([song for song in master_list if song not in bad_songs])
-        file_actions.export_new_master_list_to_file(master_list)
+        bad_song_ids = song_differ.list_2.get_bad_ids()
+        all_songs = text_file_list + song_differ.unique_1
+        # all_songs = sorted(all_songs)  # TODO Did this help?
+        all_songs = sorted([song for song in all_songs if song.id not in bad_song_ids])
+        file_actions.export_new_master_list_to_file(all_songs)
+
     if move_dupes:
+        # Move duplicate files on computer
         dupes = song_differ.list_1.duplicate_items
         file_actions.move_dupes(dupes)
+
     if move_bad:
-        bad_songs = [item.id for item in song_differ.list_2 if item.rating == '--']
-        bad_song_file_names = [item for item in song_differ.list_1 if item.id in bad_songs]
+        # Get -- songs from the text file, then get file names from the file list
+        bad_song_ids = song_differ.list_2.get_bad_ids()
+        bad_song_file_names = [item for item in song_differ.list_1 if item.id in bad_song_ids]
         file_actions.move_bad(bad_song_file_names)
 
 
@@ -124,9 +132,9 @@ def read_song_file(song_file_path):
     song_data = []
     # Read in every song from the Master List
     for song_title in open(song_file_path, 'r').readlines():
+        rating = ''
         regex = r'(^\+\+?|^--?)[^(-+)]'
         match = re.search(regex, song_title)
-        rating = ''
         if match:
             rating = match.group(1)
         # Remove rating string and whitespace, and add to rating dictionary
@@ -269,7 +277,8 @@ class SongDataList(object):
         self.name = name
         self.sorted_list = sorted(starting_list)
         self.total_items = len(self.sorted_list)
-        self.duplicate_items = self._extract_dupes()
+        self.duplicate_items = None
+        self.bad_ratings = None
         self.list_pointer = 0
         self.current_item = ''
         self._set_current_item()
@@ -296,7 +305,29 @@ class SongDataList(object):
     def print_results(self):
         list_outputter = ListOutputter()
         list_outputter.print_list(self, f'All Songs On {self.name}', print_full_list=False)
-        list_outputter.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
+        list_outputter.print_list(self.get_duplicate_items(), f'Duplicates on {self.name}', print_full_list=True)
+
+    def get_bad_ids(self):
+        if not self.bad_ratings:
+            self.bad_ratings = [item.id for item in self if item.rating == '--']
+        return self.bad_ratings
+
+    def get_stats(self):
+        # Count ratings
+        rating_dict = {}
+        for item in self:
+            if item.rating not in rating_dict:
+                rating_dict[item.rating] = 0
+            rating_dict[item.rating] += 1
+
+        # TODO Cache list counts per rating?
+        # self.cached_stats = rating_dict
+        return rating_dict
+
+    def get_duplicate_items(self):
+        if not self.duplicate_items:
+            self.duplicate_items = self._extract_dupes()
+        return self.duplicate_items
 
     def _extract_dupes(self):
         dupes = []
@@ -336,16 +367,14 @@ class ListOutputter(object):
         print('')
 
     @staticmethod
-    def export_list_to_file(song_list, file_name, commit=False):
+    def export_list_to_file(song_list, file_path, commit=False):
 
-        print('Outputting sorted Master List to file: "' + file_name + '"')
+        print('Outputting sorted Master List to file: "' + file_path + '"')
         list_length = str(len(song_list))
         print('Total Lines In List: ' + list_length + '\n')
 
-        # file_path = os.path.join(file_name)  # TODO What was this for?
-        file_path = file_name
         if os.path.isfile(file_path):
-            raise Exception('File already exists: "' + file_name + '"')
+            raise Exception('File already exists: "' + file_path + '"')
 
         new_list_string = '\n'.join(
             [item.rating + remove_file_extension(item.raw_text) for item in song_list]
@@ -360,14 +389,13 @@ class ListOutputter(object):
 
 class FileActions(object):
 
-    def __init__(self, base_directory, verbose=0, commit=False):
-        self.base_directory = base_directory
+    def __init__(self, song_directory, verbose=0, commit=False):
+        self.song_directory = song_directory
         self.verbose = verbose
         self.commit = commit
 
     def export_new_master_list_to_file(self, master_list):
-        # TODO Use constant for path
-        file_path = os.path.join(self.base_directory, 'to_sort_post_rock', 'txt', 'new_master_list.txt')
+        file_path = os.path.join(Paths.TXT, 'new_master_list.txt')
         list_outputter = ListOutputter()
         list_outputter.export_list_to_file(master_list, file_path, self.commit)
 
@@ -382,35 +410,30 @@ class FileActions(object):
 
     def move_songs(self, song_data_list, destination_dir, export_logs=True):
         print('Moving ' + str(len(song_data_list)) + ' song files to: "' + destination_dir + '"')
-        # TODO Use constant for path
-        destination_path = os.path.join(self.base_directory, 'z_processing', destination_dir)
+        destination_path = os.path.join(Paths.PROCESSING, destination_dir)
 
         for song_data in song_data_list:
             file_name = song_data.raw_text
             if self.verbose >= 1:
-                print(f'Moving "{file_name}"')
-            # TODO Use constant for path
-            old_full_path = os.path.join(self.base_directory, 'to_sort_post_rock', file_name)
+                print(f'Moving "{file_name}" to {destination_dir}')
+
+            old_full_path = os.path.join(self.song_directory, file_name)
             new_full_path = os.path.join(destination_path, file_name)
             if self.commit:
                 move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
 
         if self.commit and export_logs:
-            logs_dir = os.path.join(self.base_directory, 'txt')
-            if not os.path.isdir(logs_dir):
-                logs_dir = destination_path
             all_songs_string = '\n'.join([song_data.raw_text for song_data in song_data_list])
 
             # Write songs to cumulative list in a txt file
             file_name = f'all_files_{destination_dir}.txt'
-            file_path = os.path.join(logs_dir, file_name)
+            file_path = os.path.join(Paths.TXT, file_name)
             with open(file_path, 'a') as write_file:
                 write_file.write(all_songs_string)
 
-            # Also write changes for only this run to it's own file
-            # this_run_file_name = time.strftime('%d_%m_%Y_%H_%M_%S') + '.txt'
+            # Write changes from this run to its own file
             this_run_file_name = time.strftime('%Y_%m_%d_%H_%M_%S') + '.txt'
-            file_path = os.path.join(logs_dir, this_run_file_name)
+            file_path = os.path.join(Paths.TXT, this_run_file_name)
             with open(file_path, 'w') as write_file:
                 write_file.write(all_songs_string)
 
@@ -419,7 +442,7 @@ class FileActions(object):
 
 
 if __name__ == '__main__':
-    default_path = Paths.POST_ROCK_DIR
+    default_path = Paths.POST_ROCK
     parser = argparse.ArgumentParser(description='Compare Songs to Master List and sort according to the rules')
     parser.add_argument('sub_directory', nargs='?', default=default_path, help='Target Sub Directory')
     parser.add_argument('--commit', action='store_true', help='Commit File Changes')
@@ -427,6 +450,7 @@ if __name__ == '__main__':
     parser.add_argument('--export-list', action='store_true', help='Print New Master List')
     parser.add_argument('--move-dupes', action='store_true', help='Move duplicate files on the computer to a common file')
     parser.add_argument('--move-bad', action='store_true', help='Move bad files on the computer somewhere else')
+    parser.add_argument('--stats', action='store_true', help='Print out statistics for the ratings in the text file')
 
     run(parser.parse_args())
 
