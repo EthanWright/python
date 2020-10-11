@@ -11,7 +11,7 @@ from paths import Paths
 from utils import convert_timestamp_to_float_seconds, convert_float_to_str_safe, convert_str_timestamp_to_str_seconds
 
 
-def trim_video_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
+def trim_media_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
 
     file_path, extension = source_file_path.rsplit('.', 1)
     output_path = file_path + ' - clip' + str(suffix) + '.' + extension
@@ -24,45 +24,45 @@ def trim_video_file(source_file_path, start, end, command_version=1, suffix='', 
     # Both commands have their charms. Trimming the input file rather than the
     # output file seems to usually work better, but sometimes it's the opposite
     # Consult the ffmpeg docs for more details about the trimming process.
-    # command = f'ffmpeg -ss {start} -to {end} -i "{source_file_path}" -c copy "{output_path}"'  # Trim input
+    # command = f'ffmpeg -i "{source_file_path}" -c copy -ss {start} -to {end} "{output_path}"'  # Trim output
     command = [
         'ffmpeg',
-        '-ss', start,
-        '-to', end,
         '-i', source_file_path,
         '-c', 'copy',
+        '-ss', start,
+        '-to', end,
         output_path
     ]
     if command_version in [2, '2']:
-        # command = f'ffmpeg -i "{source_file_path}" -c copy -ss {start} -to {end} "{output_path}"'  # Trim output
+        # command = f'ffmpeg -ss {start} -to {end} -i "{source_file_path}" -c copy "{output_path}"'  # Trim input
         command = [
             'ffmpeg',
-            '-i', source_file_path,
-            '-c', 'copy',
             '-ss', start,
             '-to', end,
+            '-i', source_file_path,
+            '-c', 'copy',
             output_path
         ]
-
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
 def run(args):
 
-    # TODO Do I need to convert to seconds? Try passing timestamp
-    start = convert_str_timestamp_to_str_seconds(args.start)
-    end = convert_str_timestamp_to_str_seconds(args.end)
+    # start = convert_str_timestamp_to_str_seconds(args.start)
+    # end = convert_str_timestamp_to_str_seconds(args.end)
+    start = '0' + args.start
+    end = '0' + args.end
 
     # target_dir = Paths.VIDEOS
     # target_dir = Paths.POST_ROCK_SONGS
-    target_dir = os.path.join('trim', Paths.PROCESSING_DIR)
+    target_dir = os.path.join(Paths.PROCESSING, 'trim')
     target_path = os.path.join(target_dir, args.file)
 
-    trim_video_file(target_path, start, end, command_version=args.command, verbose=args.verbose, commit=args.commit)
+    trim_media_file(target_path, start, end, command_version=args.command, verbose=args.verbose, commit=args.commit)
 
     # Both commands at the same time
     # for command_v in [1, 2]:
-    #     trim_video_file(target_path, start, end, command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit)
+    #     trim_media_file(target_path, start, end, command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit)
 
 
 if __name__ == '__main__':
@@ -72,13 +72,13 @@ if __name__ == '__main__':
     parser.add_argument('start', help='Start Timestamp')
     parser.add_argument('end', help='End Timestamp')
     parser.add_argument('--commit', action='store_true', help='Commit')
-    parser.add_argument('--command', default=2, help='Command Type')
+    parser.add_argument('--command', default=1, help='Command Type')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     run(parser.parse_args())
 
 
-r"""
+"""
 python trim_file.py "FILE" xx:xx xx:xx --commit
 python trim_file.py "" --commit
 

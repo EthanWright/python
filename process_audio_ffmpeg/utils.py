@@ -134,8 +134,9 @@ def convert_timestamp_to_float_seconds_2(timestamp):
     total_seconds = 0.0
     count = 0.0
     for item in reversed(timestamp.split(':')):
-        total_seconds += float(item) * pow(60.0, float(count))
-        count += 1.0
+        if item:
+            total_seconds += float(item) * pow(60.0, float(count))
+            count += 1.0
     return total_seconds
 
 

@@ -108,8 +108,8 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
             new_file_name = f'{title}_{suffix}.{extension}'
             output_path = os.path.join(output_directory, new_file_name)
 
-        # command_2 = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
         # command = f'ffmpeg -i "{source_file_path}" -acodec copy -metadata purl={purl} -ss {start_timestamp} -to {end_timestamp} "{output_path}"'
+        # command_2 = f'ffmpeg -ss {start_timestamp} -to {end_timestamp} -i "{source_file_path}" -acodec copy -metadata purl={purl} "{output_path}"'
         command = [
             'ffmpeg',
             '-i', source_file_path,
