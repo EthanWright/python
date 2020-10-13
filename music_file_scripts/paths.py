@@ -55,6 +55,12 @@ class PathConfig(object):
     # def get_linux_path(self):
     # def get_windows_path(self):
 
+    external_drive_path_1_args = ['/', 'media', AccountNames.LINUX_ACCOUNT_NAME, 'My Passport', '- Backup -']
+    EXTERNAL_DRIVE_1 = os.path.join(*external_drive_path_1_args)
+
+    external_drive_path_2_args = ['/', 'media', AccountNames.LINUX_ACCOUNT_NAME, 'My Passport', 'backup']
+    EXTERNAL_DRIVE_2 = os.path.join(*external_drive_path_2_args)
+
 
 class PathDictionary(object):
 
@@ -74,7 +80,7 @@ class PathDictionary(object):
 
 class PathGen(object):
 
-    def __init__(self, config, root_path=''):
+    def __init__(self, config=PathConfig, root_path=''):
         self.path_dictionary = PathDictionary(config.file_structure)
 
         if not root_path:
@@ -95,11 +101,4 @@ class PathGen(object):
         return cls(root_path=root_path)
 
 
-Paths = PathGen(PathConfig)
-
-
-# TODO Delete tests
-if __name__ == '__main__':
-    p3 = PathGen.gen_path_from_root(root_path='')
-    print('root_path.ROOT', p3.ROOT)
-    print('root_path.MUSIC', p3.MUSIC)
+Paths = PathGen()
