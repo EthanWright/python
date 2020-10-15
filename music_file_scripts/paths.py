@@ -52,14 +52,22 @@ class PathConfig(object):
     windows_path_args = ['C:', 'Users', AccountNames.WINDOWS_ACCOUNT_NAME, 'Documents']
     WINDOWS_HOME_DIR = os.path.join(*windows_path_args)
 
-    # def get_linux_path(self):
-    # def get_windows_path(self):
+    EXTERNAL_DRIVE_1_HOME_DIR = '- Backup -'
+    EXTERNAL_DRIVE_2_HOME_DIR = 'backup'
 
-    external_drive_path_1_args = ['/', 'media', AccountNames.LINUX_ACCOUNT_NAME, 'My Passport', '- Backup -']
-    EXTERNAL_DRIVE_1 = os.path.join(*external_drive_path_1_args)
+    # LINUX
+    external_drive_linux_path_args = ['/', 'media', AccountNames.LINUX_ACCOUNT_NAME, 'My Passport']
+    EXTERNAL_DRIVE_1 = os.path.join(*external_drive_linux_path_args, EXTERNAL_DRIVE_1_HOME_DIR)
+    EXTERNAL_DRIVE_2 = os.path.join(*external_drive_linux_path_args, EXTERNAL_DRIVE_2_HOME_DIR)
 
-    external_drive_path_2_args = ['/', 'media', AccountNames.LINUX_ACCOUNT_NAME, 'My Passport', 'backup']
-    EXTERNAL_DRIVE_2 = os.path.join(*external_drive_path_2_args)
+    # WINDOWS
+    # external_drive_windows_path_1_args = ['E:', EXTERNAL_DRIVE_1_HOME_DIR]
+    # external_drive_windows_path_2_args = ['F:', EXTERNAL_DRIVE_2_HOME_DIR]
+    # EXTERNAL_DRIVE_1 = os.path.join(*external_drive_windows_path_1_args)
+    # EXTERNAL_DRIVE_2 = os.path.join(*external_drive_windows_path_2_args)
+
+    # TODO Make functions for retrieving root paths?
+    # def get_linux_external_path(self): ...
 
 
 class PathDictionary(object):

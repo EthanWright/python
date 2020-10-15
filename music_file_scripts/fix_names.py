@@ -462,13 +462,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.songs:
-        music_directory = Paths.POST_ROCK_NEW_SONGS
+        music_directory = Paths.NEW_SONGS
     elif args.albums:
-        music_directory = Paths.POST_ROCK_NEW_ALBUMS
+        music_directory = Paths.NEW_ALBUMS
     elif args.directory:
         music_directory = args.directory
     else:  # Default
-        music_directory = Paths.POST_ROCK_NEW_ALBUMS
+        music_directory = Paths.NEW_ALBUMS
 
     if not music_directory.startswith('C:/') and not music_directory.startswith('/'):
         music_directory = os.path.join(Paths.MUSIC_DIR, music_directory)

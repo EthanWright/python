@@ -50,19 +50,32 @@ def run(args):
 
     # start = convert_str_timestamp_to_str_seconds(args.start)
     # end = convert_str_timestamp_to_str_seconds(args.end)
-    start = '0' + args.start
-    end = '0' + args.end
+    start = args.start
+    end = args.end
+    if start.startswith(':'):
+        start = '0' + args.start
+    if end.startswith(':'):
+        end = '0' + args.end
 
-    # target_dir = Paths.VIDEOS
-    # target_dir = Paths.POST_ROCK_SONGS
-    target_dir = os.path.join(Paths.PROCESSING, 'trim')
+    if args.video:
+        target_dir = Paths.VIDEOS
+        command = 2
+    else:
+        target_dir = os.path.join(Paths.PROCESSING, 'trim')
+        command = 1
+
+    if args.command:
+        command = args.command
+
     target_path = os.path.join(target_dir, args.file)
-
-    trim_media_file(target_path, start, end, command_version=args.command, verbose=args.verbose, commit=args.commit)
+    trim_media_file(target_path, start, end, command_version=command, verbose=args.verbose, commit=args.commit)
 
     # Both commands at the same time
     # for command_v in [1, 2]:
-    #     trim_media_file(target_path, start, end, command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit)
+    #     trim_media_file(
+    #         target_path, start, end,
+    #         command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit
+    #     )
 
 
 if __name__ == '__main__':
@@ -71,8 +84,9 @@ if __name__ == '__main__':
     parser.add_argument('file', help='Target File')
     parser.add_argument('start', help='Start Timestamp')
     parser.add_argument('end', help='End Timestamp')
+    parser.add_argument('--video', action='store_true', help='Trim a video file')
     parser.add_argument('--commit', action='store_true', help='Commit')
-    parser.add_argument('--command', default=1, help='Command Type')
+    parser.add_argument('--command', help='Command Type')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     run(parser.parse_args())
@@ -81,6 +95,7 @@ if __name__ == '__main__':
 """
 python trim_file.py "FILE" xx:xx xx:xx --commit
 python trim_file.py "" --commit
+
 
 """
 
