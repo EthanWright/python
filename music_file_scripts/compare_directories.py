@@ -10,7 +10,7 @@ import os
 
 from common import list_music_files, move_file, remove_file_extension
 from fix_names import FixFileNames
-from paths import Paths, PathGen
+from paths import Paths, PathGen, PathConfig
 
 
 class MusicFileList(object):
@@ -112,9 +112,6 @@ if __name__ == '__main__':
     parser.add_argument('--commit', action='store_true', help='Commit Changes')
     args = parser.parse_args()
 
-    # existing_music = Paths.POST_ROCK_ORIGINAL_ALBUMS
-    existing_music = Paths.POST_ROCK
-
     # new_music = r'E:\- Backup -\Music\post_rock\original_albums'
     # new_music = r'E:\- Backup -\Music\post_rock\songs_to_sort'
     # new_music = r'F:\backup\Music\post_rock\original_albums'
@@ -122,7 +119,9 @@ if __name__ == '__main__':
     # new_music = r'/media/mimorox/My Passport/backup/Music/to_sort_post_rock/'
     # new_music = r'/media/mimorox/My Passport/- Backup -/Music/to_sort_post_rock/'
 
-    external_path = PathGen.gen_path_from_root(root_path='/media/mimorox/My Passport/- Backup -')
-    new_music = external_path.POST_ROCK
+    external_drive_root = PathGen.gen_path_from_root(root_path=PathConfig.EXTERNAL_DRIVE_2)
+    new_music = external_drive_root.POST_ROCK
+
+    existing_music = Paths.POST_ROCK
 
     sort_directory_contents(existing_music, new_music, commit=args.commit)

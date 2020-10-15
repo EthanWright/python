@@ -21,9 +21,9 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
         output_path = file_path + ' - clip_' + str(count) + '.' + extension
         print(f'File already exists, appending _{count}')
 
-    # Both commands have their charms. Trimming the input file rather than the
-    # output file seems to usually work better, but sometimes it's the opposite
-    # Consult the ffmpeg docs for more details about the trimming process.
+    # Both commands have their charms. Trimming the input file seems to work better
+    # for video, while trimming the output file is usually more accurate for audio
+    # files. Consult the ffmpeg docs for more details about the trimming process.
     # command = f'ffmpeg -i "{source_file_path}" -c copy -ss {start} -to {end} "{output_path}"'  # Trim output
     command = [
         'ffmpeg',
@@ -48,14 +48,13 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
 
 def run(args):
 
-    # start = convert_str_timestamp_to_str_seconds(args.start)
-    # end = convert_str_timestamp_to_str_seconds(args.end)
     start = args.start
     end = args.end
+
     if start.startswith(':'):
-        start = '0' + args.start
+        start = '0' + start
     if end.startswith(':'):
-        end = '0' + args.end
+        end = '0' + end
 
     if args.video:
         target_dir = Paths.VIDEOS
