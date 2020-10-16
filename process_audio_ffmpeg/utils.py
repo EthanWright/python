@@ -146,7 +146,3 @@ def convert_float_to_str_safe(float_time):
         str_time = '0' + str_time
 
     return str_time
-
-
-def convert_str_timestamp_to_str_seconds(timestamp):
-    return convert_float_to_str_safe(convert_timestamp_to_float_seconds(timestamp))

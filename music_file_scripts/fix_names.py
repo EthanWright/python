@@ -12,8 +12,9 @@ from string_definitions import (
     StrConstants, CharacterCodes,
     remove_strings, replace_strings, required_strings,
     parenthetical_regex, potential_problem_regexes, improper_format_regexes,
-    song_version_descriptors, song_info_prefix, song_version_prefix,
-    acceptable_song_specific_parenthetical_phrases,
+    song_version, song_version_prefix, song_version_suffix,
+    song_info, song_info_prefix, song_info_suffix,
+    song_version_descriptors, acceptable_song_specific_parenthetical_phrases,
 )
 from functools import reduce
 
