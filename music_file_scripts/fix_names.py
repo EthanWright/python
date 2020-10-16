@@ -8,7 +8,13 @@ import copy
 import os
 import re
 
-from string_definitions import *
+from string_definitions import (
+    StrConstants, CharacterCodes,
+    remove_strings, replace_strings, required_strings,
+    parenthetical_regex, potential_problem_regexes, improper_format_regexes,
+    song_version_descriptors, song_info_prefix, song_version_prefix,
+    acceptable_song_specific_parenthetical_phrases,
+)
 from functools import reduce
 
 from common import list_music_files, rename_file_safe, invalid_music_extensions
@@ -75,14 +81,17 @@ class CapitalizeArtist(RenameFilesInDir):
         return False
 
     def capitalize_artist(self, name):
+
+        if StrConstants.HYPHEN not in name:
+            return name
+
+        artist, title = name.split(StrConstants.HYPHEN, 1)
+        all_caps = artist == artist.upper()
+        words = artist.split(' ')
         new_words = []
         should_be_lower = [
             'the', 'of', 'if', 'is', 'in', 'an', 'a', 'to', 'too', 'or', 'and', 'by', 'at', 'for'
         ]
-
-        artist, title = name.split(' - ', 1)
-        all_caps = artist == artist.upper()
-        words = artist.split(' ')
 
         for word in words:
             first_letter = word[0]
@@ -110,7 +119,7 @@ class CapitalizeArtist(RenameFilesInDir):
             return self.editor.replace_string(name, artist, new_artist)
         return name
 
-        # Tests: M0N0CHR0ME ZER0
+        # TODO Tests: M0N0CHR0ME ZER0
 
 
 class FixFileNames(RenameFilesInDir):
@@ -210,7 +219,7 @@ class StringEditor(object):
 
         self.log_message(f'Pre-pending Remix Artist: \'{remix_artist}\'')
         self.stats.remixed.append(remix_artist)
-        return remix_artist + ' - ' + name
+        return remix_artist + StrConstants.HYPHEN + name
 
     def process_unhandled_char(self, name, invalid_char):
         self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided\n{name}', level=0)
@@ -319,21 +328,21 @@ class StringEditor(object):
     ### String Utils ###
     ######################################################
 
-    @staticmethod
-    def find_strings_to_replace(name):
-        return [replace_data * name.count(replace_data) for replace_data in replace_strings if replace_data[0] in name]
+    # @staticmethod
+    # def find_strings_to_replace(name):
+    #     return [replace_data * name.count(replace_data) for replace_data in strings if replace_data[0] in name]
 
-    @staticmethod
-    def find_strings_to_remove(name):
-        return [string_ * name.count(string_) for string_ in remove_strings if string_ in name]
+    # @staticmethod
+    # def find_strings_to_remove(name):
+    #     return [string_ * name.count(string_) for string_ in remove_strings if string_ in name]
 
     @staticmethod
     def get_invalid_char_replacement(invalid_char):
         ascii_code = ord(invalid_char)
-        if ascii_code in remove_char_codes:
+        if ascii_code in CharacterCodes.remove_char_codes:
             return None
 
-        return replace_chars_mapping.get(ascii_code, invalid_char)
+        return CharacterCodes.replace_chars_mapping.get(ascii_code, invalid_char)
 
     @staticmethod
     def find_invalid_chars(name):
@@ -351,7 +360,7 @@ class StringEditor(object):
 
     @staticmethod
     def already_has_remix_artist(name, remix_artist):
-        first_chunk = name.split(' - ', 1)[0].lower()
+        first_chunk = name.split(StrConstants.HYPHEN, 1)[0].lower()
         if name.startswith(remix_artist.lower()) or first_chunk in remix_artist.lower():
             return True
         return False
@@ -376,7 +385,7 @@ class StringEditor(object):
                 return False
 
         # Is there repetitive information in the title?
-        sections = name.lower().strip().split(' - ')
+        sections = name.lower().strip().split(StrConstants.HYPHEN)
         length = len(sections)
         if length > 2:
             for x in range(length):
