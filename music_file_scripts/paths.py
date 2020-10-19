@@ -35,6 +35,7 @@ class PathConfig(object):
                 PathConstants.NEEDS_METADATA: {},
                 PathConstants.ORIGINAL_ALBUMS: {},
                 PathConstants.NEW_ALBUMS: {},
+                PathConstants.DUPES: {},
             },
         },
         PathConstants.PROGRAMMING: {
@@ -77,7 +78,7 @@ class PathDictionary(object):
         self._parse_config(config, '')
 
     def get_dir(self, dir_name):
-        return self.dirs.get(dir_name, '')
+        return self.dirs.get(dir_name)
 
     def _parse_config(self, config, path_so_far):
         for dir_name, sub_config in config.items():
@@ -102,6 +103,8 @@ class PathGen(object):
     def __getattr__(self, attr):
         sub_dir_name = getattr(PathConstants, attr, attr)
         sub_dir = self.path_dictionary.get_dir(sub_dir_name)
+        if not sub_dir:
+            raise Exception(f"Directory {sub_dir} does not exist")
         return os.path.join(self.root_path, sub_dir)
 
     @classmethod
