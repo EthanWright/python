@@ -31,8 +31,7 @@ def convert_file_to_opus(source_file_path, new_name, commit=False):
 
     # TODO Configurable bitrate from CLI
     command = ['ffmpeg', '-i', source_file_path, '-c:a', 'libopus', '-b:a', '48000', output_path]
-    # command = f'ffmpeg -i "{source_file_path}" -c:a libopus -b:a 48000 "{output_path}"'
-    # command = f'ffmpeg -i "{source_file_path}" -c:a libopus -b:a 320000 "{output_path}"'
+    # windows_command = ' '.join(command)
     print('Running command:\n', command)
     result, stdout = call_ffmpeg(command, commit=commit, verbose=5)
 
@@ -41,9 +40,8 @@ def convert_file_to_opus(source_file_path, new_name, commit=False):
 
 if __name__ == '__main__':
 
-    # directory = POST_ROCK_TO_SORT
-    # directory = POST_ROCK_FULL_ALBUMS
-    directory = r'/home/mimorox/Documents/temp/bookmarks/podcasts'
+    # directory = Paths.TO_SORT
+    directory = Paths.FULL_ALBUMS
 
     commit_result = True
 

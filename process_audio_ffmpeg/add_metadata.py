@@ -34,8 +34,9 @@ def parse_track_data_into_metadata(track_data_list):
     # base_num = 0  # Only for stupid formats
     metadata_file_content = ';FFMETADATA1\n'
     chapter_start = '[CHAPTER]\nTIMEBASE=1/1000\n'
+    len_list = len(track_data_list)
 
-    for x in range(len(track_data_list)):
+    for x in range(len_list):
         track_data = track_data_list[x]
         start = track_data.get('start_timestamp')
         end = track_data.get('end_timestamp')
@@ -46,14 +47,14 @@ def parse_track_data_into_metadata(track_data_list):
         # base_num = end  # Only for stupid formats
 
         if not end:
-            end = track_data_list[x + 1].get('start')
-
-        start = convert_float_to_str_safe(start).rsplit('.', 1)[0]
-        end = convert_float_to_str_safe(end).rsplit('.', 1)[0]
+            if x < len_list - 1:
+                end = track_data_list[x + 1].get('start')
+            else:
+                end = 100000000.0
 
         # TODO Did I need this?
-        # start = start.rsplit('.', 1)[0]
-        # end = end.rsplit('.', 1)[0]
+        # start = convert_float_to_str_safe(start).rsplit('.', 1)[0]
+        # end = convert_float_to_str_safe(end).rsplit('.', 1)[0]
 
         # print(f'{start} - {end} | {title}')
         metadata_file_content += f'{chapter_start}START={start}\nEND={end}\ntitle={title}\n'
@@ -87,9 +88,6 @@ def call_add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0
     print(f'Adding metadata to File: {source_file_name}')
     output_path = os.path.join(source_directory, 'added_metadata_' + source_file_name)
 
-    # command = ' '.join([value for value in cli_options]) + '"{output_path}"'
-    # command = f'ffmpeg -i "{source_file_path}" -f ffmetadata -i "{metadata_file_path}" -c copy -map_metadata 1 -metadata purl={purl} "{output_path}"'
-
     command = [
         'ffmpeg',
         '-i', source_file_path,
@@ -101,6 +99,8 @@ def call_add_metadata(source_file_path, metadata_file_path, purl=None, verbose=0
     if purl:
         command.extend(['-metadata', 'purl=' + purl])
     command.append(output_path)
+    # windows_command = ' '.join(command)
+
     result, stdout = call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
@@ -136,7 +136,7 @@ def run(sub_directory, verbose=0, commit=False, remove_first=False):
 
 
 if __name__ == '__main__':
-    default_path = Paths.POST_ROCK_NEEDS_METADATA
+    default_path = Paths.NEEDS_METADATA
 
     parser = argparse.ArgumentParser(description='Add Metadata to Song Files')
     parser.add_argument('directory', nargs='?', default=default_path, help='Target Directory')

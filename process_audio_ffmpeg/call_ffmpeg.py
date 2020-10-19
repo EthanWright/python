@@ -37,6 +37,6 @@ def execute_ffmpeg_cli_command(command):
 
 
 def get_metadata(file_name, verbose=0):
-    # command = f'ffmpeg -i "{file_name}" -f ffmetadata -'
     command = ['ffmpeg', '-i', file_name, '-f', 'ffmetadata', '-']
+    # windows_command = ' '.join(command)
     return call_ffmpeg(command, verbose=verbose, commit=True)

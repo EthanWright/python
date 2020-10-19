@@ -114,13 +114,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.dupes:
-        music_directory = Paths.POST_ROCK_DUPES
+        music_directory = Paths.DUPES
     elif args.needs_metadata:
-        music_directory = Paths.POST_ROCK_NEEDS_METADATA
+        music_directory = Paths.NEEDS_METADATA
     elif args.directory:
         music_directory = args.directory
     else:  # Default
-        music_directory = Paths.POST_ROCK_DUPES
+        music_directory = Paths.DUPES
 
     run(music_directory, export_metadata=args.export_metadata)
 

@@ -8,7 +8,7 @@ import os
 
 from call_ffmpeg import call_ffmpeg
 from paths import Paths
-from utils import convert_timestamp_to_float_seconds, convert_float_to_str_safe, convert_str_timestamp_to_str_seconds
+from utils import convert_timestamp_to_float_seconds, convert_float_to_str_safe
 
 
 def trim_media_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
@@ -24,7 +24,8 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
     # Both commands have their charms. Trimming the input file seems to work better
     # for video, while trimming the output file is usually more accurate for audio
     # files. Consult the ffmpeg docs for more details about the trimming process.
-    # command = f'ffmpeg -i "{source_file_path}" -c copy -ss {start} -to {end} "{output_path}"'  # Trim output
+
+    # Trim output
     command = [
         'ffmpeg',
         '-i', source_file_path,
@@ -33,8 +34,10 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
         '-to', end,
         output_path
     ]
+    # windows_command = ' '.join(command)
+
     if command_version in [2, '2']:
-        # command = f'ffmpeg -ss {start} -to {end} -i "{source_file_path}" -c copy "{output_path}"'  # Trim input
+        # Trim input
         command = [
             'ffmpeg',
             '-ss', start,
@@ -43,6 +46,7 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
             '-c', 'copy',
             output_path
         ]
+        # windows_command = ' '.join(command)
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
@@ -94,7 +98,6 @@ if __name__ == '__main__':
 """
 python trim_file.py "FILE" xx:xx xx:xx --commit
 python trim_file.py "" --commit
-
 
 """
 
