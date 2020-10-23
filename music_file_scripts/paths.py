@@ -103,8 +103,10 @@ class PathGen(object):
     def __getattr__(self, attr):
         sub_dir_name = getattr(PathConstants, attr, attr)
         sub_dir = self.path_dictionary.get_dir(sub_dir_name)
-        if not sub_dir:
-            raise Exception(f"Directory {sub_dir} does not exist")
+        if sub_dir is None:
+            if attr in ['HOME_DIR', 'HOME', 'ROOT_DIR', 'ROOT']:
+                return self.root_path
+            raise Exception(f'Directory "{sub_dir}" does not exist')
         return os.path.join(self.root_path, sub_dir)
 
     @classmethod
