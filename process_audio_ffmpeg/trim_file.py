@@ -26,17 +26,18 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
     # files. Consult the ffmpeg docs for more details about the trimming process.
 
     # Trim output
-    command = [
-        'ffmpeg',
-        '-i', source_file_path,
-        '-c', 'copy',
-        '-ss', start,
-        '-to', end,
-        output_path
-    ]
-    # windows_command = ' '.join(command)
+    if command_version in [1, '1']:
+        command = [
+            'ffmpeg',
+            '-i', source_file_path,
+            '-c', 'copy',
+            '-ss', start,
+            '-to', end,
+            output_path
+        ]
+        # windows_command = ' '.join(command)
 
-    if command_version in [2, '2']:
+    elif command_version in [2, '2']:
         # Trim input
         command = [
             'ffmpeg',
@@ -47,6 +48,7 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
             output_path
         ]
         # windows_command = ' '.join(command)
+
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
 
@@ -71,14 +73,17 @@ def run(args):
         command = args.command
 
     target_path = os.path.join(target_dir, args.file)
-    trim_media_file(target_path, start, end, command_version=command, verbose=args.verbose, commit=args.commit)
 
-    # Both commands at the same time
-    # for command_v in [1, 2]:
-    #     trim_media_file(
-    #         target_path, start, end,
-    #         command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit
-    #     )
+    if args.both:
+        # Both commands at the same time
+        for command_v in [1, 2]:
+            trim_media_file(
+                target_path, start, end,
+                command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit
+            )
+        return
+
+    trim_media_file(target_path, start, end, command_version=command, verbose=args.verbose, commit=args.commit)
 
 
 if __name__ == '__main__':
@@ -90,6 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('--video', action='store_true', help='Trim a video file')
     parser.add_argument('--commit', action='store_true', help='Commit')
     parser.add_argument('--command', help='Command Type')
+    parser.add_argument('--both', help='Both commands types at the same time')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     run(parser.parse_args())
@@ -100,4 +106,3 @@ python trim_file.py "FILE" xx:xx xx:xx --commit
 python trim_file.py "" --commit
 
 """
-
