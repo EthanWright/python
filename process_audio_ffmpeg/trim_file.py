@@ -48,6 +48,8 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
             output_path
         ]
         # windows_command = ' '.join(command)
+    else:
+        raise Exception("Invalid command type specified")
 
     return call_ffmpeg(command, verbose=verbose, commit=commit)
 
@@ -64,13 +66,8 @@ def run(args):
 
     if args.video:
         target_dir = Paths.VIDEOS
-        command = 2
     else:
         target_dir = os.path.join(Paths.PROCESSING, 'trim')
-        command = 1
-
-    if args.command:
-        command = args.command
 
     target_path = os.path.join(target_dir, args.file)
 
@@ -82,6 +79,13 @@ def run(args):
                 command_version=command_v, suffix=str(command_v), verbose=args.verbose, commit=args.commit
             )
         return
+
+    elif args.command:
+        command = args.command
+    elif args.video:
+        command = 2
+    else:
+        command = 1
 
     trim_media_file(target_path, start, end, command_version=command, verbose=args.verbose, commit=args.commit)
 
@@ -95,7 +99,7 @@ if __name__ == '__main__':
     parser.add_argument('--video', action='store_true', help='Trim a video file')
     parser.add_argument('--commit', action='store_true', help='Commit')
     parser.add_argument('--command', help='Command Type')
-    parser.add_argument('--both', help='Both commands types at the same time')
+    parser.add_argument('--both', action='store_true', help='Both command types at the same time')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
 
     run(parser.parse_args())
