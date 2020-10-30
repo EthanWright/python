@@ -12,7 +12,7 @@ import re
 from call_ffmpeg import call_ffmpeg, get_metadata
 from file_scripts_common import list_music_files
 from paths import Paths
-from utils import get_track_data_from_metadata, format_time_value, convert_float_to_str_safe
+from utils import get_track_data_from_metadata, format_into_timestamp, convert_float_to_str_safe
 
 MEGA = 1024 * 1024
 
@@ -37,8 +37,8 @@ class Output(object):
 def format_track_data(track_data):
     return_data = ''
     for item in track_data:
-        start_timestamp = format_time_value(item.get('start_timestamp'))
-        end_timestamp = format_time_value(item.get('end_timestamp'))
+        start_timestamp = format_into_timestamp(item.get('start_timestamp'))
+        end_timestamp = format_into_timestamp(item.get('end_timestamp'))
         title = item.get('title')
         return_data += f'{title} {start_timestamp} - {end_timestamp}\n'
 

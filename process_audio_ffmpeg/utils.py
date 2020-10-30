@@ -1,6 +1,6 @@
 import re
 
-from file_scripts_common import clean_file_name
+SIXTY = 60.0
 
 
 def extract_field_from_metadata(metadata, field):
@@ -52,14 +52,18 @@ def parse_track_data_string(data_string):
         end_milliseconds = convert_timestamp_to_float_milliseconds(timestamps[1])
         title = title.replace(timestamps[1], '')
 
-    title = clean_file_name(title)  # TODO Too strict?
+    title = remove_track_number_from_title(title)
+    # Remove Track Title Prefixes ('1.' or '01.')
+    if re.match(r'[0-9][0-9]?\..*', title):
+        title = title.split('.', 1)[1]
+
     # print(f'{start_seconds} - {end_seconds} | {title}')
 
     # TODO Make a class for chapter_data?
     return {
         'start_timestamp': start_milliseconds,
         'end_timestamp': end_milliseconds,
-        'title': title,
+        'title': title.strip(),
     }
 
 
@@ -83,25 +87,21 @@ def extract_timestamps(data_string):
     return re.findall(regex, data_string)
 
 
-def format_time_value(time_value):
+def format_into_timestamp(value):
 
-    time_value = float(time_value / 1000.0)
+    # seconds vs milliseconds ?
+    time_value = int(value / 1000.0)
 
-    timestamp_minutes = int(time_value / 60.0)
-    timestamp_seconds = time_value % 60.0
-    timestamp_seconds_int = int(timestamp_seconds)
-    timestamp_seconds_str = str(timestamp_seconds_int)
+    minutes = int(time_value / SIXTY)
+    seconds = time_value % SIXTY
+    minutes_str = str(minutes)
+    seconds_str = str(seconds)
 
-    if timestamp_seconds_int < 10:
-        timestamp_seconds_str = '0' + timestamp_seconds_str
+    spacer = ':'
+    if seconds < 10.0:
+        spacer += '0'
 
-    # Add some precision
-    timestamp_seconds_decimal = timestamp_seconds - float(timestamp_seconds_int)
-    timestamp_seconds_decimal = round(timestamp_seconds_decimal, 3)
-    if timestamp_seconds_decimal:
-        timestamp_seconds_str = timestamp_seconds_str + '.' + str(timestamp_seconds_decimal)[2:]
-
-    return f'{timestamp_minutes}:{timestamp_seconds_str}'
+    return f'{minutes_str}{spacer}{seconds_str}'
 
 
 def convert_timestamp_to_float_milliseconds(timestamp):
@@ -122,8 +122,8 @@ def convert_timestamp_to_float_seconds_1(timestamp):
         minutes, seconds = timestamp.rsplit(':', 1)
         if ':' in minutes:
             hours, minutes = minutes.rsplit(':', 1)
-            total_seconds += float(hours) * 60.0 * 60.0
-        total_seconds += float(minutes) * 60.0
+            total_seconds += float(hours) * SIXTY * SIXTY
+        total_seconds += float(minutes) * SIXTY
 
     total_seconds += float(seconds)
 
@@ -135,7 +135,7 @@ def convert_timestamp_to_float_seconds_2(timestamp):
     count = 0.0
     for item in reversed(timestamp.split(':')):
         if item:
-            total_seconds += float(item) * pow(60.0, float(count))
+            total_seconds += float(item) * pow(SIXTY, float(count))
             count += 1.0
     return total_seconds
 
