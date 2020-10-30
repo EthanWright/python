@@ -58,7 +58,7 @@ def parse_bookmarks_file(file_path):
 def parse_bookmarks_into_new_file(bookmarks_file, output_file):
 
     include_sections = ['Todo']
-    ignore_sections = ['Bookmarks Toolbar', 'Programming']
+    ignore_sections = ['Databases', 'System Design', 'Front End']
 
     def is_folder_list_in_section_list(folder_list, sections):
         for folder_item in folder_list:
