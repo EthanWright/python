@@ -7,10 +7,10 @@ import os
 
 
 def list_files(directory):
-    return [
+    return sorted([
         file_name for file_name in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, file_name))
-    ]
+    ])
 
 
 def move_file(source_file_path, target_file_path, verbose=True, commit=False):
@@ -20,7 +20,8 @@ def move_file(source_file_path, target_file_path, verbose=True, commit=False):
         raise Exception(f'File already exists: {target_file_path}')
 
     if verbose:
-        print(f'{source_file_path} Shall move')  # to {target_file_path}')
+        print(f'{source_file_path} Shall move')
+        print(f'{target_file_path} is the destination')
     if not commit:
         return
     os.rename(source_file_path, target_file_path)
@@ -41,6 +42,8 @@ def rename_file_safe(directory, file_name, new_file_name, verbose=True,  commit=
 
 #####################################################################################
 
+
+# TODO Move to separate file
 class TraverseDirectory(object):
 
     def handle_dir(self, dir_name, directory, full_path):
