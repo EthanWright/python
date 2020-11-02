@@ -61,9 +61,8 @@ import time
 
 from pprint import pprint
 
-from common import (
-    list_music_file_names, move_file, remove_file_extension, rename_file_safe, list_music_files
-)
+from common import list_music_file_names, list_music_files, remove_file_extension
+from file_scripts_common import move_file, rename_file_safe
 from fix_names import FixFileNames, song_version
 from paths import Paths
 
@@ -185,9 +184,12 @@ class DiffSongLists(object):
         list_outputter.print_list(self.unique_1, f'Only on {self.list_1.name}', print_full_list=True)  # Computer Only
         self.list_2.print_results()
 
+        # Master List No Rating Only
         # no_rating = [item for item in self.unique_2 if item.rating == '']
-        # list_outputter.print_list(no_rating, f'Only on {self.list_2.name}', print_full_list=True)  # Master List No Rating Only
-        list_outputter.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=True)  # Master List Only
+        # list_outputter.print_list(no_rating, f'Only on {self.list_2.name}', print_full_list=True)
+
+        # Master List Only
+        list_outputter.print_list(self.unique_2, f'Only on {self.list_2.name}', print_full_list=True)
 
 
 class SongData(object):

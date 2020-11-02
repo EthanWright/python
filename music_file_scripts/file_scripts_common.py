@@ -1,5 +1,7 @@
 """
 Common file script functions
+
+Ethan Wright 6/08/20
 """
 import os
 
@@ -40,6 +42,8 @@ def rename_file_safe(directory, file_name, new_file_name, verbose=True,  commit=
 
 #####################################################################################
 
+
+# TODO Move to separate file
 class TraverseDirectory(object):
 
     def handle_dir(self, dir_name, directory, full_path):

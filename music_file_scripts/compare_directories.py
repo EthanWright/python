@@ -8,8 +8,9 @@ import argparse
 import copy
 import os
 
-from common import list_music_files, move_file, remove_file_extension
-from fix_names import FixFileNames
+from common import list_music_files, remove_file_extension
+from file_scripts_common import move_file
+# from fix_names import FixFileNames
 from paths import Paths, PathGen, PathConfig
 
 
@@ -29,9 +30,13 @@ class MusicFileList(object):
 
         self._set_current_song()
 
+    @staticmethod
+    def sorting_function(string_value):
+        # return self.simplify_file_name_fuzzier(string_value)  # More Exact Match
+        return string_value.lower()
+
     def _get_sorted_music_list(self):
-        # return sorted(list_music_files(self.directory), key=self.simplify_file_name_fuzzier)
-        return sorted(list_music_files(self.directory), key=lambda x: x.lower())
+        return sorted(list_music_files(self.directory), key=self.sorting_function)
 
     def move_current_song_match_found(self, result_string=None):
         # result_string = '   MATCHED'
@@ -57,8 +62,8 @@ class MusicFileList(object):
         if self.music_list_pointer < self.total_items:
             result = self.sorted_music_list[self.music_list_pointer]
             self.current_song = result
-            # self.current_song_simplified = self.simplify_file_name_fuzzier(result)
-            self.current_song_simplified = result.lower()  # More Exact Match (Need to change sorting key too!)
+            self.current_song_simplified = self.sorting_function(result)
+
         else:
             self.current_song = None
             self.current_song_simplified = None
@@ -111,13 +116,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Compare Directories')
     parser.add_argument('--commit', action='store_true', help='Commit Changes')
     args = parser.parse_args()
-
-    # new_music = r'E:\- Backup -\Music\post_rock\original_albums'
-    # new_music = r'E:\- Backup -\Music\post_rock\songs_to_sort'
-    # new_music = r'F:\backup\Music\post_rock\original_albums'
-    # new_music = r'F:\backup\Music\post_rock\songs_to_sort'
-    # new_music = r'/media/mimorox/My Passport/backup/Music/to_sort_post_rock/'
-    # new_music = r'/media/mimorox/My Passport/- Backup -/Music/to_sort_post_rock/'
 
     external_drive_root = PathGen.gen_path_from_root(root_path=PathConfig.EXTERNAL_DRIVE_2)
     new_music = external_drive_root.POST_ROCK

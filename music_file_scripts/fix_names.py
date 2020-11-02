@@ -18,7 +18,8 @@ from string_definitions import (
 )
 from functools import reduce
 
-from common import list_music_files, rename_file_safe, invalid_music_extensions
+from common import list_music_files, invalid_music_extensions
+from file_scripts_common import rename_file_safe
 from paths import Paths
 
 
