@@ -1,6 +1,9 @@
 import re
 
+
+# TODO Separate class/file for string constants?
 SIXTY = 60.0
+SPACED_HYPHEN = ' - '
 
 
 def extract_field_from_metadata(metadata, field):
@@ -52,14 +55,14 @@ def parse_track_data_string(data_string):
         end_milliseconds = convert_timestamp_to_float_milliseconds(timestamps[1])
         title = title.replace(timestamps[1], '')
 
-    title = remove_track_number_from_title(title)
     # Remove Track Title Prefixes ('1.' or '01.')
     if re.match(r'[0-9][0-9]?\..*', title):
         title = title.split('.', 1)[1]
 
-    # print(f'{start_seconds} - {end_seconds} | {title}')
+    # print(f'{start_milliseconds}{SPACED_HYPHEN}{end_milliseconds} | {title}')
 
-    # TODO Make a class for chapter_data?
+    # TODO Make a container class for Timestamp?
+    # TODO Make a container class for ChapterData?
     return {
         'start_timestamp': start_milliseconds,
         'end_timestamp': end_milliseconds,
@@ -90,7 +93,8 @@ def extract_timestamps(data_string):
 def format_into_timestamp(value):
 
     # seconds vs milliseconds ?
-    time_value = int(value / 1000.0)
+    # TODO cast to int() ?
+    time_value = convert_milliseconds_to_seconds(value)
 
     minutes = int(time_value / SIXTY)
     seconds = time_value % SIXTY
@@ -104,9 +108,18 @@ def format_into_timestamp(value):
     return f'{minutes_str}{spacer}{seconds_str}'
 
 
+def convert_seconds_to_milliseconds(timestamp):
+    return timestamp * 1000.0
+
+
+def convert_milliseconds_to_seconds(timestamp):
+    return timestamp / 1000.0
+
+
 def convert_timestamp_to_float_milliseconds(timestamp):
-    # TODO round ? int ?
-    return convert_timestamp_to_float_seconds(timestamp) * 1000.0
+    return convert_seconds_to_milliseconds(
+        convert_timestamp_to_float_seconds(timestamp)
+    )
 
 
 def convert_timestamp_to_float_seconds(timestamp):
@@ -141,6 +154,8 @@ def convert_timestamp_to_float_seconds_2(timestamp):
 
 
 def convert_float_to_str_safe(float_time):
+    if not isinstance(float_time, float):
+        raise Exception("Bad")
     str_time = str(float_time)
     if str_time.startswith('.'):
         str_time = '0' + str_time
