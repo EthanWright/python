@@ -12,7 +12,14 @@ import os
 import re
 import time
 import datetime
-import youtube_dl
+
+# import youtube_dl
+# from youtube_dl import YoutubeDL
+# from youtube_dl.utils import DownloadError
+
+# import yt_dlc as youtube_dl
+from yt_dlc import YoutubeDL
+from yt_dlc.utils import DownloadError
 
 from video_ids_db import DB
 
@@ -75,7 +82,7 @@ def set_position(new_position):
 def call_youtube_dl(video_id_list):
 
     ydl_opts = {
-        # 'verbose': True,  # For debugging
+        'verbose': True,  # For debugging
         # 'format': 'worstaudio/worst',  # For testing
         'format': 'bestaudio/best',  # Obviously
         # 'outtmpl': '%(title)s - %(artist)s.%(ext)s',  # Edited youtube-dl project to do this
@@ -91,7 +98,7 @@ def call_youtube_dl(video_id_list):
     if isinstance(video_id_list, str):
         video_id_list = [video_id_list]
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with YoutubeDL(ydl_opts) as ydl:
         db = DB()
         for video_id in video_id_list:
 
@@ -113,13 +120,13 @@ def call_youtube_dl(video_id_list):
 
             try:
                 ydl.download([video_id])
-            except youtube_dl.utils.DownloadError as e:
+            except DownloadError as e:
                 print('ERROR!')
                 print(e)
                 continue
 
             # sleepy_time(40*60)
-            sleepy_time(10*60)
+            sleepy_time(8*60)
 
 
 def extract_video_id(video_id):
