@@ -12,7 +12,7 @@ import re
 from call_ffmpeg import call_ffmpeg, get_metadata
 from file_scripts_common import list_music_files
 from paths import Paths
-from utils import get_track_data_from_metadata, format_into_timestamp, convert_float_to_str_safe
+from utils import SPACED_HYPHEN, get_track_data_from_metadata, format_into_timestamp, convert_float_to_str_safe
 
 MEGA = 1024 * 1024
 
@@ -40,7 +40,7 @@ def format_track_data(track_data):
         start_timestamp = format_into_timestamp(item.get('start_timestamp'))
         end_timestamp = format_into_timestamp(item.get('end_timestamp'))
         title = item.get('title')
-        return_data += f'{title} {start_timestamp} - {end_timestamp}\n'
+        return_data += f'{title} {start_timestamp}{SPACED_HYPHEN}{end_timestamp}\n'
 
     return return_data
 

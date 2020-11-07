@@ -14,12 +14,13 @@ from utils import convert_timestamp_to_float_seconds, convert_float_to_str_safe
 def trim_media_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
 
     file_path, extension = source_file_path.rsplit('.', 1)
-    output_path = file_path + ' - clip' + str(suffix) + '.' + extension
+    output_path = file_path + SPACED_HYPHEN + 'clip' + str(suffix) + '.' + extension
     count = 1
     while os.path.isfile(output_path):
         count += 1
-        output_path = file_path + ' - clip_' + str(count) + '.' + extension
-        print(f'File already exists, appending _{count}')
+        suffix = '_' + str(count)
+        output_path = file_path + SPACED_HYPHEN + 'clip' + suffix + '.' + extension
+        print(f'File already exists, appending {suffix}')
 
     # Both commands have their charms. Trimming the input file seems to work better
     # for video, while trimming the output file is usually more accurate for audio
@@ -59,6 +60,11 @@ def run(args):
     start = args.start
     end = args.end
 
+    # TODO Check for no ':' and format appropriately
+    # Or is this ok?
+    # Try testing: .xx x.x -.x xx.x xxx.x
+    # if ':' not in start:
+
     if start.startswith(':'):
         start = '0' + start
     if end.startswith(':'):
@@ -92,7 +98,7 @@ def run(args):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description='Fix Song Names')
+    parser = argparse.ArgumentParser(description='Trim audio and video files')
     parser.add_argument('file', help='Target File')
     parser.add_argument('start', help='Start Timestamp')
     parser.add_argument('end', help='End Timestamp')
@@ -107,6 +113,6 @@ if __name__ == '__main__':
 
 """
 python trim_file.py "FILE" xx:xx xx:xx --commit
-python trim_file.py "" --commit
+python trim_file.py "" --commit 
 
 """
