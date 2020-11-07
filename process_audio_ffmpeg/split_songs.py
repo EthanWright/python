@@ -21,10 +21,12 @@ import os
 import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
-from file_scripts_common import list_music_files, clean_file_name
+from file_scripts_common import list_music_files
 from paths import Paths
 from utils import (
-    get_track_data_from_metadata, get_track_data_from_file, extract_field_from_stdout, convert_float_to_str_safe
+    SPACED_HYPHEN,
+    get_track_data_from_metadata, get_track_data_from_file,
+    extract_field_from_stdout, convert_float_to_str_safe
 )
 
 
@@ -78,20 +80,10 @@ def move_to_subdir(source_file_path, file_name, output_directory, commit=False, 
 
 def format_timestamp(_timestamp):
 
-    # Perform different formatting depending on the input type
-    if isinstance(_timestamp, str):
-        # TODO Check if I got string of seconds, or a timestamp string
-        # TODO Format to x:xx:xx? Or convert to milliseconds str?
-        # _timestamp = format_time_value(_timestamp)
-        exit("TODO")
+    if not isinstance(_timestamp, float):
+        _timestamp = float(_timestamp)
 
-    if isinstance(_timestamp, int):
-        _timestamp = float(_timestamp / 1000.0)
-
-    if isinstance(_timestamp, float):
-        _timestamp = convert_float_to_str_safe(_timestamp)
-
-    return _timestamp
+    return convert_float_to_str_safe(_timestamp / 1000.0)
 
 
 def split_file(source_file_path, source_file_name, track_data, purl, output_directory=None, verbose=0, commit=False):
@@ -106,6 +98,25 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
 
     print(f'Splitting File: {source_file_name}')
 
+    def generate_file_name_safe_inline(new_name):
+        if 'livestream' in source_file_name.lower():
+            new_name += ' (Live)'
+
+        if artist:
+            new_name = f'{artist}{SPACED_HYPHEN}{new_name}'
+
+        new_file_name = f'{new_name}.{extension}'
+        output_full_path = os.path.join(output_directory, new_file_name)
+        suffix = 1
+        while os.path.isfile(output_full_path):
+            suffix += 1
+            print('File already exists, appending _' + str(suffix))
+            new_file_name = f'{new_name}_{suffix}.{extension}'
+            output_full_path = os.path.join(output_directory, new_file_name)
+
+        print(f'Creating File: {new_file_name}')
+        return output_full_path
+
     for data in track_data:
 
         start_timestamp = data.get('start_timestamp')
@@ -117,26 +128,17 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
             print(f'Start Timestamp: {start_timestamp}')
             print(f'End Timestamp: {end_timestamp}')
 
-        # end_timestamp -= 1.0  # miliiseconds  # TODO ?
+        # end_timestamp -= 1.0  # milliseconds  # TODO ?
 
         title = clean_file_name(data.get('title'))
 
-        if 'livestream' in source_file_name.lower():
-            title += ' (Live)'
+        output_path = generate_file_name_safe_inline(title)
 
-        if artist:
-            title = f'{artist} - {title}'
-
-        new_file_name = f'{title}.{extension}'
-
-        output_path = os.path.join(output_directory, new_file_name)
-
-        suffix = 1
-        while os.path.isfile(output_path):
-            suffix += 1
-            print('File already exists, appending _' + str(suffix))
-            new_file_name = f'{title}_{suffix}.{extension}'
-            output_path = os.path.join(output_directory, new_file_name)
+        # if 'livestream' in source_file_name.lower():
+        #     title += ' (Live)'
+        # if artist:
+        #     title = f'{artist}{SPACED_HYPHEN}{title}'
+        # output_path = generate_file_name_safe(output_directory, title, extension)
 
         command = [
             'ffmpeg',
@@ -155,12 +157,11 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
         #     '-acodec', 'copy',
         #     '-metadata', 'purl=' + purl,
         #     output_path
-        # ]
+
         # TODO Quote file names?
         # windows_command = ' '.join(command)
         # windows_command_2 = ' '.join(command_2)
 
-        print(f'Creating File: {new_file_name}')
         call_ffmpeg(command, verbose=-1, commit=commit)
 
     if not commit:
@@ -169,15 +170,26 @@ def split_file(source_file_path, source_file_name, track_data, purl, output_dire
         print('--- Done!\n')
 
 
+# def generate_file_name_safe(output_directory, title, extension):
+#     new_file_name = f'{title}.{extension}'
+#     output_path = os.path.join(output_directory, new_file_name)
+#     suffix = 1
+#     while os.path.isfile(output_path):
+#         suffix += 1
+#         print('File already exists, appending _' + str(suffix))
+#         new_file_name = f'{title}_{suffix}.{extension}'
+#         output_path = os.path.join(output_directory, new_file_name)
+#
+#     return output_path
+
+
 def extract_artist(file_path):
     dot = '.'
-    hyphen_split = ' - '
-
     file_name = file_path.rsplit(dot, 1)[0]
 
     artist = file_name
-    while hyphen_split in artist:
-        artist = artist.rsplit(hyphen_split, 1)[0]
+    while SPACED_HYPHEN in artist:
+        artist = artist.rsplit(SPACED_HYPHEN, 1)[0]
 
     # Remove `Best of`
     best_of_result = re.match(r'[bB]est [oO]f (.*)$', artist)
@@ -185,7 +197,7 @@ def extract_artist(file_path):
         artist = best_of_result.group(1).strip()
 
     if artist_is_part_of_a_mix(artist):
-        artist = file_name.rsplit(hyphen_split, 1)[-1]
+        artist = file_name.rsplit(SPACED_HYPHEN, 1)[-1]
         artist = artist.split(' (', 1)[0]
         if artist_is_part_of_a_mix(artist):
             return None
@@ -206,6 +218,24 @@ def artist_is_part_of_a_mix(artist):
             return True
 
     return False
+
+
+def clean_file_name(title):
+
+    # Remove Track Title Prefixes ('1.' or '01.')
+    if re.match(r'[0-9][0-9]?\..*', title):
+        title = title.split('.', 1)[1].strip()
+
+    # Remove characters that mess with ffmpeg cli commands
+    remove_chars = '?"`#*<>|\'\\'
+    for char in remove_chars:
+        title = title.replace(char, '')
+    title = title.strip(':- \n')
+    title = title.replace(':', ' -')
+    title = title.replace('/', ' ')
+
+    # Limit of 159 chars for a file name. '.opus' is 5, so trim title to 154
+    return title[:154]
 
 
 def run(album_input_dir, verbose, commit, file_data):
