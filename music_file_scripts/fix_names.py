@@ -9,7 +9,8 @@ import os
 import re
 
 from string_definitions import (
-    StrConstants, CharacterCodes,
+    SPACED_HYPHEN,
+    CharacterCodes,
     remove_strings, replace_strings, required_strings,
     parenthetical_regex, potential_problem_regexes, improper_format_regexes,
     song_version, song_version_prefix, song_version_suffix,
@@ -84,10 +85,10 @@ class CapitalizeArtist(RenameFilesInDir):
 
     def capitalize_artist(self, name):
 
-        if StrConstants.HYPHEN not in name:
+        if SPACED_HYPHEN not in name:
             return name
 
-        artist, title = name.split(StrConstants.HYPHEN, 1)
+        artist, title = name.split(SPACED_HYPHEN, 1)
         all_caps = artist == artist.upper()
         words = artist.split(' ')
         new_words = []
@@ -221,7 +222,7 @@ class StringEditor(object):
 
         self.log_message(f'Pre-pending Remix Artist: \'{remix_artist}\'')
         self.stats.remixed.append(remix_artist)
-        return remix_artist + StrConstants.HYPHEN + name
+        return remix_artist + SPACED_HYPHEN + name
 
     def process_unhandled_char(self, name, invalid_char):
         self.log_message(f'unhandled Character found: {invalid_char} (' + str(ord(invalid_char)) + f') No replacement provided\n{name}', level=0)
@@ -362,7 +363,7 @@ class StringEditor(object):
 
     @staticmethod
     def already_has_remix_artist(name, remix_artist):
-        first_chunk = name.split(StrConstants.HYPHEN, 1)[0].lower()
+        first_chunk = name.split(SPACED_HYPHEN, 1)[0].lower()
         if name.startswith(remix_artist.lower()) or first_chunk in remix_artist.lower():
             return True
         return False
@@ -387,7 +388,7 @@ class StringEditor(object):
                 return False
 
         # Is there repetitive information in the title?
-        sections = name.lower().strip().split(StrConstants.HYPHEN)
+        sections = name.lower().strip().split(SPACED_HYPHEN)
         length = len(sections)
         if length > 2:
             for x in range(length):

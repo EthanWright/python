@@ -5,8 +5,11 @@ Ethan Wright - 6/10/20
 """
 
 
-class StrConstants(object):
-    HYPHEN = ' - '
+# TODO New file for str_constants
+# class StrConstants(object):
+#     SPACED_HYPHEN = ' - '
+# from string_constants.StrConstants import SPACED_HYPHEN
+SPACED_HYPHEN = ' - '
 
 
 class CharacterCodes(object):
@@ -90,7 +93,7 @@ replace_strings = [
     (' x ', ' and '),
     # (',', ' and'),  # TODO
     (',', ''),  # TODO
-    (' - - ', StrConstants.HYPHEN),
+    (' - - ', SPACED_HYPHEN),
 
 ]
 
@@ -117,7 +120,7 @@ remove_strings = remove_chars + remove_phrases
 
 # required_strings_songs_only = [
 required_strings = [
-    StrConstants.HYPHEN,
+    SPACED_HYPHEN,
 ]
 
 improper_format_regexes = [

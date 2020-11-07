@@ -63,7 +63,7 @@ from pprint import pprint
 
 from common import list_music_file_names, list_music_files, remove_file_extension
 from file_scripts_common import move_file, rename_file_safe
-from fix_names import FixFileNames, song_version
+from fix_names import FixFileNames, song_version, SPACED_HYPHEN
 from paths import Paths
 
 fix_file_names = FixFileNames()
@@ -255,7 +255,7 @@ class SongData(object):
                 phrase_2, more_2 = extra_data_2.split(')', 1)
                 if phrase_1 != phrase_2 and (more_1 != more_2 or not more_1 and not more_2):
                     return False
-                if more_1.startswith(' - ') and more_2.startswith(' - '):
+                if more_1.startswith(SPACED_HYPHEN) and more_2.startswith(SPACED_HYPHEN):
                     return more_1 == more_2
                 return True
 
