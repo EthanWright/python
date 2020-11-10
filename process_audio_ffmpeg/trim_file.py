@@ -8,7 +8,7 @@ import os
 
 from call_ffmpeg import call_ffmpeg
 from paths import Paths
-from utils import convert_timestamp_to_float_seconds, convert_float_to_str_safe
+from utils import SPACED_HYPHEN, convert_timestamp_to_float_seconds, convert_float_to_str_safe
 
 
 def trim_media_file(source_file_path, start, end, command_version=1, suffix='', verbose=False, commit=False):
