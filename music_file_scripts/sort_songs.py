@@ -81,10 +81,11 @@ def run(actions):
     file_sorting_path = Paths.POST_ROCK
     if sub_directory:
         file_sorting_path = os.path.join(Paths.MUSIC, sub_directory)
-    song_file_path = os.path.join(file_sorting_path, 'txt', 'master_list.txt')
+    # txt_song_file_path = os.path.join(file_sorting_path, 'txt', 'master_list.txt')
+    txt_song_file_path = os.path.join(Paths.TXT, 'master_list.txt')
 
     computer_file_list = gather_file_names_from_path(file_sorting_path)
-    text_file_list = read_song_file(song_file_path)
+    text_file_list = read_song_file(txt_song_file_path)
 
     # computer_song_data = SongDataList(computer_file_list, "Computer")
     # text_song_data = SongDataList(text_file_list, "Master List")
@@ -114,13 +115,13 @@ def run(actions):
     if move_dupes:
         # Move duplicate files on computer
         dupes = song_differ.list_1.duplicate_items
-        file_actions.move_dupes(dupes)
+        file_actions.move_songs(dupes, 'dupes', export_logs=False)
 
     if move_bad:
         # Get -- songs from the text file, then get file names from the file list
         bad_song_ids = song_differ.list_2.get_bad_ids()
         bad_song_file_names = [item for item in song_differ.list_1 if item.id in bad_song_ids]
-        file_actions.move_bad(bad_song_file_names)
+        file_actions.move_songs(bad_song_file_names, 'delete')
 
 
 def gather_file_names_from_path(files_to_sort_path):
@@ -279,7 +280,7 @@ class SongDataList(object):
         self.name = name
         self.sorted_list = sorted(starting_list)
         self.total_items = len(self.sorted_list)
-        self.duplicate_items = None
+        self._duplicate_items = None
         self.bad_ratings = None
         self.list_pointer = 0
         self.current_item = ''
@@ -307,7 +308,7 @@ class SongDataList(object):
     def print_results(self):
         list_outputter = ListOutputter()
         list_outputter.print_list(self, f'All Songs On {self.name}', print_full_list=False)
-        list_outputter.print_list(self.get_duplicate_items(), f'Duplicates on {self.name}', print_full_list=True)
+        list_outputter.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
 
     def get_bad_ids(self):
         if not self.bad_ratings:
@@ -326,10 +327,11 @@ class SongDataList(object):
         # self.cached_stats = rating_dict
         return rating_dict
 
-    def get_duplicate_items(self):
-        if not self.duplicate_items:
-            self.duplicate_items = self._extract_dupes()
-        return self.duplicate_items
+    @property
+    def duplicate_items(self):
+        if not self._duplicate_items:
+            self._duplicate_items = self._extract_dupes()
+        return self._duplicate_items
 
     def _extract_dupes(self):
         dupes = []
@@ -400,15 +402,6 @@ class FileActions(object):
         file_path = os.path.join(Paths.TXT, 'new_master_list.txt')
         list_outputter = ListOutputter()
         list_outputter.export_list_to_file(master_list, file_path, self.commit)
-
-    def move_dupes(self, dupes_list):
-        return self.move_songs(dupes_list, r'dupes', export_logs=False)
-
-    def move_bad(self, bad_songs):
-        return self.move_songs(bad_songs, r'delete')
-
-    def move_good(self, good_songs):
-        self.move_songs(good_songs, r'liked')
 
     def move_songs(self, song_data_list, destination_dir, export_logs=True):
         print('Moving ' + str(len(song_data_list)) + ' song files to: "' + destination_dir + '"')

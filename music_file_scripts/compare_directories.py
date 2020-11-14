@@ -15,7 +15,7 @@ from paths import Paths, PathGen, PathConfig
 
 
 class MusicFileList(object):
-    ffn = FixFileNames()
+    # ffn = FixFileNames()
 
     def __init__(self, directory, good_folder, bad_folder, commit=False):
         self.directory = directory
@@ -72,8 +72,8 @@ class MusicFileList(object):
         self.music_list_pointer += 1
         self._set_current_song()
 
-    def simplify_file_name_fuzzier(self, name):
-        return self.ffn.get_new_name(remove_file_extension(name)).lower()
+    # def simplify_file_name_fuzzier(self, name):
+    #     return self.ffn.get_new_name(remove_file_extension(name)).lower()
 
 
 def sort_directory_contents(directory_1, directory_2, commit=False):
@@ -117,7 +117,8 @@ if __name__ == '__main__':
     parser.add_argument('--commit', action='store_true', help='Commit Changes')
     args = parser.parse_args()
 
-    external_drive_root = PathGen.gen_path_from_root(root_path=PathConfig.EXTERNAL_DRIVE_2)
+    root_path = PathConfig.EXTERNAL_DRIVE_1
+    external_drive_root = PathGen.gen_path_from_root(root_path=root_path)
     new_music = external_drive_root.POST_ROCK
 
     existing_music = Paths.POST_ROCK
