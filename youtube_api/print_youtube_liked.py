@@ -28,7 +28,7 @@ def get_oauth_token():
         # 'client_secret': client_secret,
         'scope': 'https://www.googleapis.com/auth/youtube',
         'response_type': 'token',  # What does 'code' do?
-        'redirect_uri': 'https://localhost'  # Does't really matter
+        'redirect_uri': 'https://localhost'  # Doesn't really matter
     }
     encoded_url_params = urllib.parse.urlencode(params)
     exit(f'Go here:\n{oauth_endpoint}?{encoded_url_params}')
@@ -50,7 +50,7 @@ def get_liked_videos():
     while 'pageToken' not in params or params.get('pageToken'):
         headers = {'Authorization': f'Bearer {token}'}
         result = call_youtube_api(url_base, api_endpoint, params, headers=headers)
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         for video in result.get('items', []):
             video_ids.append(video.get('id'))
 
