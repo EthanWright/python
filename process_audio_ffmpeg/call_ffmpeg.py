@@ -12,7 +12,7 @@ def print_message(severity, verbose_level, message):
 
 
 def call_ffmpeg(command, verbose=0, commit=False):
-    # print_message(1, verbose, 'Running ffmpeg CLI command:\n' + command)
+    print_message(1, verbose, 'Running ffmpeg CLI command:\n' + str(command))
     if not commit:
         print_message(0, verbose, f'~~~ NOT Committing Changes ~~~')
         return None, None
