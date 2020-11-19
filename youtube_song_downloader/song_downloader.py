@@ -13,13 +13,11 @@ import re
 import time
 import datetime
 
-# import youtube_dl
-# from youtube_dl import YoutubeDL
-# from youtube_dl.utils import DownloadError
+from youtube_dl import YoutubeDL
+from youtube_dl.utils import DownloadError
 
-# import yt_dlc as youtube_dl
-from yt_dlc import YoutubeDL
-from yt_dlc.utils import DownloadError
+# from yt_dlc import YoutubeDL
+# from yt_dlc.utils import DownloadError
 
 from video_ids_db import DB
 
