@@ -44,9 +44,10 @@ def split_file_name_simple(file_name):
 def is_extension_valid(extension):
     if extension:
         if len(extension) <= 5:
-            if extension not in invalid_music_extensions + music_extensions:
-                return False
+            if extension.lower() not in invalid_music_extensions + music_extensions:
                 # raise Exception('Unexpected file extension encountered: ' + extension)
+                print('Unexpected file extension encountered: ' + extension)
+                return False
             return True
     return False
 

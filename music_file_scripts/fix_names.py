@@ -100,7 +100,7 @@ class CapitalizeArtist(RenameFilesInDir):
             first_letter = word[0]
             word_lower = word.lower()
             some = word[1:]
-            if word == word.upper() and (len(artist) <= 8 or not all_caps):
+            if word == word.upper() and (len(artist) <= 7 or not all_caps):
                 word_formatted = word
             elif word_lower in should_be_lower and len(new_words) > 0:
                 word_formatted = word_lower
@@ -327,9 +327,9 @@ class StringEditor(object):
         if level <= self.verbose:
             print(message)
 
-    ######################################################
-    ### String Utils ###
-    ######################################################
+######################################################
+### String Utils ###
+######################################################
 
     # @staticmethod
     # def find_strings_to_replace(name):
@@ -353,8 +353,8 @@ class StringEditor(object):
 
     @staticmethod
     def extract_remix_artist(name):
-        if 'remix' in name or 'Remix' in name:
-            regex = r'[\[\(]([^\]^\)]*)[ _-][rR]emix[\)\]]'
+        if 'remix' in name.lower():
+            regex = r'[\[\(]([^\]^\)]*)[ _-][rR][eE][mM][iI][xX][\)\]]'
             # regex2 = r'[\[\(]([^\]^\)]*)[ _-]([rR]e?)?[mM]ix[\)\]]'  # TODO Test
             remix_artist = re.findall(regex, name)
             if remix_artist:

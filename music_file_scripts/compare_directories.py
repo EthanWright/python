@@ -108,6 +108,8 @@ def sort_directory_contents(directory_1, directory_2, commit=False):
     while music_file_list_2.current_song:
         music_file_list_2.move_current_song_no_match()
 
+    print(f'Total Items in List 1: {music_file_list_1.total_items}')
+    print(f'Total Items in List 2: {music_file_list_2.total_items}')
     print(f'Matches: {matches_count}')
 
 

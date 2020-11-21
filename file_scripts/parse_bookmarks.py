@@ -6,8 +6,8 @@ from paths import Paths
 
 
 def parse_bookmark_entry(line_string):
-    if '<DT><A ' in line_string:
-        matches = re.search('<DT><A HREF="([^"]*)"([ ]?[^>]*)>(.*)</A>', line_string)
+    matches = re.search('<DT><A HREF="([^"]*)"([ ]?[^>]*)>(.*)</A>', line_string)
+    if matches and len(matches.groups()) == 3:
         return matches.groups()
     return None
 
@@ -20,7 +20,7 @@ def parse_bookmarks_file(file_path):
 
     for line in open(file_path, 'r').readlines():
         matches = parse_bookmark_entry(line)
-        if matches is not None:
+        if matches:
             urls[current_folder].append((matches[0], matches[2]))
 
         # Push old folder when entering new folder, and pop when leaving
@@ -97,6 +97,11 @@ def parse_bookmarks_into_new_file_formatted(bookmarks_file, output_file):
     output = open(output_file, 'w')
     for line in open(bookmarks_file, 'r').readlines():
 
+        if 'Verified' in line:
+            matches = re.search('( Verified .* ago)</A>', line)
+            if matches:
+                line = line.replace(matches.group(1), '')
+
         if '<DT><A ' in line:
             matches = parse_bookmark_entry(line)
             if matches:
@@ -112,17 +117,17 @@ def parse_bookmarks_into_new_file_formatted(bookmarks_file, output_file):
     output.close()
 
 
-def parse_bookmarks_into_new_file_formatted_2(bookmarks_file, output_file):
-    output = open(output_file, 'w')
-    for line in open(bookmarks_file, 'r').readlines():
-        fields = ['ADD_DATE', 'LAST_MODIFIED', 'ICON_URI', 'ICON', 'LAST_CHARSET']
-        for field in fields:
-            if field in line:
-                matches = re.search(f'({field}=".*")( |>)', line)
-                if matches:
-                    line = line.replace(matches.group(1), '')
-        output.write(line)
-    output.close()
+# def parse_bookmarks_into_new_file_formatted_2(bookmarks_file, output_file):
+#     output = open(output_file, 'w')
+#     for line in open(bookmarks_file, 'r').readlines():
+#         fields = ['ADD_DATE', 'LAST_MODIFIED', 'ICON_URI', 'ICON', 'LAST_CHARSET']
+#         for field in fields:
+#             if field in line:
+#                 matches = re.search(f'({field}=".*")( |>)', line)
+#                 if matches:
+#                     line = line.replace(matches.group(1), '')
+#         output.write(line)
+#     output.close()
 
 
 if __name__ == '__main__':

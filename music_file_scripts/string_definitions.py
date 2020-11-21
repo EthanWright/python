@@ -352,6 +352,7 @@ acceptable_song_specific_parenthetical_phrases = [
     'dj stories',
     'WSN Club Dub',
     'Autumn Chills',
+    'TLC vs The XX',
     'Apocalyptic Mix by Das Ich',
     'BBC 1Xtra - Mistajam Daily Does',
     'Zeds Dead VIP Remix Ft Omar LinX',

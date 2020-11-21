@@ -138,7 +138,7 @@ def read_song_file(song_file_path):
         if match:
             rating = match.group(1)
         # Remove rating string and whitespace, and add to rating dictionary
-        song_title = song_title[len(rating):].strip()
+        song_title = song_title[len(rating):].strip().replace('.', '')
         song_data.append(SongData(song_title, rating))
 
     return song_data
@@ -202,7 +202,9 @@ class SongData(object):
 
     @staticmethod
     def simplify_file_name_fuzzier(name):
-        return fix_file_names.get_new_name(remove_file_extension(name)).lower()
+        if '.' in name:
+            name = remove_file_extension(name)
+        return fix_file_names.get_new_name(name).lower()
 
     @staticmethod
     def are_they_really_the_same(name_1, name_2):

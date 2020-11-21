@@ -19,7 +19,9 @@ def extract_field_from_stdout(stdout, stdout_field):
     for line in stdout.split('\n'):
         line_clean = line.strip()
         if stdout_field in line_clean:
-            return line_clean.rsplit(' ', 1)[1]
+            line_clean = line_clean.split(stdout_field)[1]
+            line_clean = line_clean.split(',', 1)[0]
+            return line_clean.split(' ', 1)[1]
 
 
 def get_track_data_from_metadata(metadata):
@@ -27,6 +29,7 @@ def get_track_data_from_metadata(metadata):
 
 
 def get_track_data_from_file(input_path):
+    # TODO Read the file in small chunks ?
     return parse_track_data(open(input_path, 'r').readlines(), parse_track_data_string)
 
 

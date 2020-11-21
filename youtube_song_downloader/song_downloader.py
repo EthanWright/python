@@ -80,7 +80,7 @@ def set_position(new_position):
 def call_youtube_dl(video_id_list):
 
     ydl_opts = {
-        'verbose': True,  # For debugging
+        # 'verbose': True,  # For debugging
         # 'format': 'worstaudio/worst',  # For testing
         'format': 'bestaudio/best',  # Obviously
         # 'outtmpl': '%(title)s - %(artist)s.%(ext)s',  # Edited youtube-dl project to do this
