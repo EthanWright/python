@@ -6,8 +6,9 @@ Ethan Wright - 6/11/20
 import os
 import re
 
-from common import TraverseDirectory, list_music_files
-from paths import MUSIC_DIR, MUSIC_SCRIPT_DIR, POST_ROCK_TO_SORT_DIR
+from common import list_music_files
+from paths import Paths
+from traverse_directory import TraverseDirectory
 
 READ_SIZE_BYTES = 100
 MAX_BYTES_TO_READ = 30000
@@ -74,16 +75,16 @@ def extract_video_ids_to_file(output_path):
     subdirs = [
         # r'liked_redownloaded',
         # r'most_music_redownloaded',
-        # POST_ROCK_FULL_ALBUMS_DIR,
-        # os.path.join(POST_ROCK_FULL_ALBUMS_DIR, r''),
-        POST_ROCK_TO_SORT_DIR,
-        # os.path.join(POST_ROCK_TO_SORT_DIR, r''),
+        # Paths.POST_ROCK_FULL_ALBUMS_DIR,
+        # os.path.join(Paths.POST_ROCK_FULL_ALBUMS_DIR, r''),
+        Paths.POST_ROCK_TO_SORT_DIR,
+        # os.path.join(Paths.POST_ROCK_TO_SORT_DIR, r''),
     ]
 
     with open(output_path, 'w') as write_file:
         traveler = TraverseDirectoryWriteToFile(write_file)
         for subdir in subdirs:
-            directory = os.path.join(MUSIC_DIR, subdir)
+            directory = os.path.join(Paths.MUSIC_DIR, subdir)
             traveler.iterate_files_recursively(directory)
 
 
@@ -91,6 +92,6 @@ if __name__ == '__main__':
     # output_file = r'output\downloaded_video_ids_all.txt'
     # output_file = r'output\all_album_purls.txt'
     output_file = r'output\all_song_purls.txt'
-    output_file_path = os.path.join(MUSIC_SCRIPT_DIR, output_file)
+    output_file_path = os.path.join(Paths.Paths.MUSIC_SCRIPT_DIR, output_file)
 
     extract_video_ids_to_file(output_file_path)
