@@ -123,8 +123,9 @@ def call_youtube_dl(video_id_list):
                 print(e)
                 continue
 
-            # sleepy_time(40*60)
-            sleepy_time(8*60)
+            # sleepy_time(50*60)
+            # sleepy_time(8*60)
+            sleepy_time(sleep_minutes * 60)
 
 
 def extract_video_id(video_id):
@@ -159,12 +160,26 @@ def sleepy_time(seconds_to_sleep=10):
     print('\n')
 
 
+# TODO Clean up
+SONGS = 1
+ALBUMS = 2
+
+# run_type = SONGS
+run_type = ALBUMS
+
+if run_type == SONGS:
+    input_file = 'video_ids_songs.txt'
+    sleep_minutes = 8
+
+elif run_type == ALBUMS:
+    input_file = 'video_ids_albums.txt'
+    sleep_minutes = 50
+
+
 if __name__ == '__main__':
     # input_file = 'video_ids_to_listen_to.txt'
     # input_file = 'video_ids.txt'
-    # input_file = 'video_ids_albums.txt'
-    input_file = 'video_ids_songs.txt'
+    # retrieve_one_video_id_from_file_tracked()
 
     retrieve_all_video_ids_from_file(input_file)
-    # retrieve_one_video_id_from_file_tracked()
 
