@@ -20,7 +20,7 @@ def parse_bookmarks_file(file_path):
 
     for line in open(file_path, 'r').readlines():
         matches = parse_bookmark_entry(line)
-        if matches:
+        if matches and current_folder:  # TODO Allow bookmarks at root level?
             urls[current_folder].append((matches[0], matches[2]))
 
         # Push old folder when entering new folder, and pop when leaving
@@ -57,7 +57,7 @@ def parse_bookmarks_file(file_path):
 
 def parse_bookmarks_into_new_file(bookmarks_file, output_file):
 
-    include_sections = ['Todo', 'Music to Listen to']
+    include_sections = ['Todo']
     ignore_sections = ['Databases', 'System Design', 'Front End']
 
     def is_folder_list_in_section_list(folder_list, sections):
@@ -94,18 +94,23 @@ def parse_bookmarks_into_new_file(bookmarks_file, output_file):
 
 
 def parse_bookmarks_into_new_file_formatted(bookmarks_file, output_file):
+    # video_id_regex = r'https://www.youtube.com/watch\?v=([0-9a-zA-Z\-\_]{11})'
+    # links_dict = {}
+
     output = open(output_file, 'w')
     for line in open(bookmarks_file, 'r').readlines():
-
-        if 'Verified' in line:
-            matches = re.search('( Verified .* ago)</A>', line)
-            if matches:
-                line = line.replace(matches.group(1), '')
 
         if '<DT><A ' in line:
             matches = parse_bookmark_entry(line)
             if matches:
                 line = line.replace(matches[1], '')
+                # if 'youtube.com' in line:
+                #     output.write(line)
+                # link = matches[0].replace(r'http://', '').replace(r'https://', '').replace('www.', '')
+                # link = link.split('?', 1)[0]
+                # if link not in links_dict:
+                #     links_dict[link] = 0
+                # links_dict[link] += 1
 
         if '<H3 ' in line:
             matches = re.search('<H3 ([^>]*)>.*</H3>', line)
@@ -115,6 +120,11 @@ def parse_bookmarks_into_new_file_formatted(bookmarks_file, output_file):
         output.write(line)
 
     output.close()
+
+    # import pdb;pdb.set_trace()
+    # for link, count in links_dict.items():
+    #     if count > 1:
+    #         print(link, count)
 
 
 # def parse_bookmarks_into_new_file_formatted_2(bookmarks_file, output_file):
