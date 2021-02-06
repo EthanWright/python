@@ -68,21 +68,27 @@ def parse_bookmarks_into_new_file(bookmarks_file, output_file):
 
     all_bookmarks = parse_bookmarks_file(bookmarks_file)
 
+    # output_youtube = open('all_youtube_links.txt', 'w')
     output = open(output_file, 'w')
 
     for data in all_bookmarks:
         folder = data.get('folder_name')
         parent_folders = data.get('parent_folders', [])
-        values = data.get('data')
-
         all_folders = parent_folders + [folder]
+
+        values = data.get('data')
         if not values:
             continue
+
+        # if 'Saved' in all_folders:
+        #     for value in values:
+        #         if 'youtube.com' in value[0]:
+        #             output_youtube.write(value[0] + " | " + value[1] + "\n")
+
         if is_folder_list_in_section_list(all_folders, ignore_sections):
             continue
         if not is_folder_list_in_section_list(all_folders, include_sections):
             continue
-
         # indent = len(parent_folders) * '&nbsp;'
         path = ' -> '.join(all_folders)
         output.write("<H3>" + path + " [" + str(len(values)) + "]</H3>\n")
@@ -91,6 +97,7 @@ def parse_bookmarks_into_new_file(bookmarks_file, output_file):
             output.write("<A HREF=\"" + value[0] + "\">" + value[1] + "</A><br>\n")
 
     output.close()
+    # output_youtube.close()
 
 
 def parse_bookmarks_into_new_file_formatted(bookmarks_file, output_file):
