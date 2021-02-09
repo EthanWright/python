@@ -15,13 +15,14 @@ def extract_field_from_metadata(metadata, field):
     return None
 
 
-def extract_field_from_stdout(stdout, stdout_field):
+def extract_field_from_stdout(stdout, stdout_field, default_return=None):
     for line in stdout.split('\n'):
         line_clean = line.strip()
         if stdout_field in line_clean:
             line_clean = line_clean.split(stdout_field)[1]
             line_clean = line_clean.split(',', 1)[0]
             return line_clean.split(' ', 1)[1]
+    return default_return
 
 
 def get_track_data_from_metadata(metadata):

@@ -53,7 +53,7 @@ class SongSplitter(object):
 
         full_path = os.path.join(directory, file_name)
         metadata, stdout = get_metadata(full_path, verbose=-1)
-        purl = extract_field_from_stdout(stdout, 'purl')
+        purl = extract_field_from_stdout(stdout, 'purl', default_return='')
 
         if split_using_file:
             track_data = get_track_data_from_file(full_path + '.txt')
