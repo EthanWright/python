@@ -98,7 +98,7 @@ replace_strings = [
 ]
 
 remove_chars = [
-    '?', '\'', '\\', '/', '"', '`', '.', '#', '*'
+    '?', '\'', '\\', '/', '"', '`', '.', '#', '*', '!'
 ]
 
 remove_phrases = [
@@ -222,6 +222,7 @@ song_info_prefix = [
     'Trimmed',
     'Clip',
     'Demo',
+    'Louder',
 ]
 song_info = song_info_prefix + song_info_suffix
 
@@ -357,6 +358,7 @@ acceptable_song_specific_parenthetical_phrases = [
     'Variations on a Shaker Hymn',
     'Heart Comes Out Of My Chest',
     'Balkan Express Train Robbery',
+    'That Which Cannot Be Created',
     'A tribute To Ralph Serravalle',
     'Hopping On A Pogo-Gypsy Stick',
     'Light and Day Reach For The Sun',
