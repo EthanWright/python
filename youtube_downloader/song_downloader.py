@@ -11,7 +11,6 @@ Ethan Wright 6/15/20
 import os
 import re
 import time
-import datetime
 
 from youtube_dl import YoutubeDL
 from youtube_dl.utils import DownloadError
@@ -19,7 +18,7 @@ from youtube_dl.utils import DownloadError
 # from yt_dlc import YoutubeDL
 # from yt_dlc.utils import DownloadError
 
-from video_ids_db import DB
+# from video_ids_db import DB
 
 position_file = os.path.join('input', 'position.txt')
 TEN = 10
@@ -97,7 +96,7 @@ def call_youtube_dl(video_id_list):
         video_id_list = [video_id_list]
 
     with YoutubeDL(ydl_opts) as ydl:
-        db = DB()
+        # db = DB()
         for video_id in video_id_list:
 
             video_id = clean_video_id(video_id)
@@ -108,10 +107,10 @@ def call_youtube_dl(video_id_list):
                 continue  # ???
 
             # Check if it has been downloaded
-            if db:
-                if db.exists(video_id):
-                    print(f'ERROR! {video_id} already exists!')
-                    continue
+            # if db:
+            #     if db.exists(video_id):
+            #         print(f'ERROR! {video_id} already exists!')
+            #         continue
 
             print('Downloading: ' + video_id)
             print('Time: ' + time.asctime())
@@ -161,10 +160,11 @@ def sleepy_time(seconds_to_sleep=10):
 
 
 # TODO Clean up
+# TODO Create CLI flags for songs vs albums
 SONGS = 1
 ALBUMS = 2
 
-# run_type = SONGS
+#run_type = SONGS
 run_type = ALBUMS
 
 if run_type == SONGS:
