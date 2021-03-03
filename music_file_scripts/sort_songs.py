@@ -73,6 +73,7 @@ def run(actions):
     export_list = actions.export_list
     move_dupes = actions.move_dupes
     move_bad = actions.move_bad
+    move_good = actions.move_good
     verbose = actions.verbose
     commit = actions.commit
     sub_directory = actions.sub_directory
@@ -87,14 +88,14 @@ def run(actions):
     computer_file_list = gather_file_names_from_path(file_sorting_path)
     text_file_list = read_song_file(txt_song_file_path)
 
-    # computer_song_data = SongDataList(computer_file_list, "Computer")
-    # text_song_data = SongDataList(text_file_list, "Master List")
-    # song_differ = DiffSongLists(computer_song_data, text_song_data, commit=commit)
-    song_differ = DiffSongLists(
-        (computer_file_list, "Computer"),
-        (text_file_list, "Master List"),
-        commit=commit
-    )
+    computer_song_data = SongDataList(computer_file_list, "Computer")
+    text_song_data = SongDataList(text_file_list, "Master List")
+    song_differ = DiffSongLists(computer_song_data, text_song_data, commit=commit)
+    # song_differ = DiffSongLists(
+    #     (computer_file_list, "Computer"),
+    #     (text_file_list, "Master List"),
+    #     commit=commit
+    # )
 
     if not export_list and not move_dupes and not move_bad:
         song_differ.print_results()
@@ -106,11 +107,16 @@ def run(actions):
         pprint(stats)  # TODO Prettier
 
     if export_list:
-        bad_song_ids = song_differ.list_2.get_bad_ids()
+        remove_song_ids = song_differ.list_2.get_bad_ids()  # Don't include --
+        remove_song_ids += song_differ.list_2.get_good_ids()  # Don't include ++
+
         all_songs = text_file_list + song_differ.unique_1
         # all_songs = sorted(all_songs)  # TODO Did this help?
-        all_songs = sorted([song for song in all_songs if song.id not in bad_song_ids])
+        all_songs = sorted([song for song in all_songs if song.id not in remove_song_ids])
+
         file_actions.export_new_master_list_to_file(all_songs)
+
+    # TODO Make file moving functions simpler and more generic
 
     if move_dupes:
         # Move duplicate files on computer
@@ -120,8 +126,30 @@ def run(actions):
     if move_bad:
         # Get -- songs from the text file, then get file names from the file list
         bad_song_ids = song_differ.list_2.get_bad_ids()
+
+        # TODO This is the old method
         bad_song_file_names = [item for item in song_differ.list_1 if item.id in bad_song_ids]
+
+        # TODO What about this instead?
+        # bad_song_data = SongDataList(bad_song_ids, "Master List")
+        # song_differ_2 = DiffSongLists(computer_song_data, bad_song_data, commit=commit)
+        # bad_song_file_names = song_differ_2.intersection
+
         file_actions.move_songs(bad_song_file_names, 'delete')
+
+    if move_good:
+        # Get ++ songs from the text file, then get file names from the file list
+        good_song_ids = song_differ.list_2.get_good_ids()
+
+        # TODO This is the old method
+        good_song_file_names = [item for item in song_differ.list_1 if item.id in good_song_ids]
+
+        # TODO What about this instead?
+        # good_song_data = SongDataList(good_song_ids, "Master List")
+        # song_differ_2 = DiffSongLists(computer_song_data, good_song_data, commit=commit)
+        # good_song_file_names = song_differ_2.intersection
+
+        file_actions.move_songs(good_song_file_names, 'good')
 
 
 def gather_file_names_from_path(files_to_sort_path):
@@ -147,8 +175,10 @@ def read_song_file(song_file_path):
 class DiffSongLists(object):
     def __init__(self, list_data_1, list_data_2, commit=False):
         self.commit = commit
-        self.list_1 = SongDataList(list_data_1[0], list_data_1[1])
-        self.list_2 = SongDataList(list_data_2[0], list_data_2[1])
+        self.list_1 = list_data_1
+        self.list_2 = list_data_2
+        # self.list_1 = SongDataList(list_data_1[0], list_data_1[1])
+        # self.list_2 = SongDataList(list_data_2[0], list_data_2[1])
         self.unique_1 = []
         self.unique_2 = []
         self.compute_list_diff()
@@ -204,6 +234,8 @@ class SongData(object):
     def simplify_file_name_fuzzier(name):
         if '.' in name:
             name = remove_file_extension(name)
+        # TODO Is this a good spot to do this?
+        name = name.replace('(Trimmed)', '')
         return fix_file_names.get_new_name(name).lower()
 
     @staticmethod
@@ -268,12 +300,13 @@ class SongData(object):
         return self.are_they_really_the_same(self.id, song_data.id)
 
     def __gt__(self, song_data):
-        if self.are_they_really_the_same(self.id, song_data.id):
+        if self == song_data:
             return False
         return self.id > song_data.id
 
     def __repr__(self):
-        return self.rating + self.raw_text
+        return self.rating + self.raw_text + ' (' + self.id + ')'
+        # return self.rating + self.raw_text
 
 
 class SongDataList(object):
@@ -284,6 +317,7 @@ class SongDataList(object):
         self.total_items = len(self.sorted_list)
         self._duplicate_items = None
         self.bad_ratings = None
+        self.good_ratings = None
         self.list_pointer = 0
         self.current_item = ''
         self._set_current_item()
@@ -316,6 +350,11 @@ class SongDataList(object):
         if not self.bad_ratings:
             self.bad_ratings = [item.id for item in self if item.rating == '--']
         return self.bad_ratings
+
+    def get_good_ids(self):
+        if not self.good_ratings:
+            self.good_ratings = [item.id for item in self if item.rating == '++']
+        return self.good_ratings
 
     def get_stats(self):
         # Count ratings
@@ -420,7 +459,7 @@ class FileActions(object):
                 move_file(old_full_path, new_full_path, verbose=self.verbose, commit=self.commit)
 
         if self.commit and export_logs:
-            all_songs_string = '\n'.join([song_data.raw_text for song_data in song_data_list])
+            all_songs_string = '\n'.join([song_data.raw_text for song_data in song_data_list]) + '\n'
 
             # Write songs to cumulative list in a txt file
             file_name = f'all_files_{destination_dir}.txt'
@@ -445,15 +484,16 @@ if __name__ == '__main__':
     parser.add_argument('--commit', action='store_true', help='Commit File Changes')
     parser.add_argument('--verbose', '-v', action='count', default=0, help='Verbose')
     parser.add_argument('--export-list', action='store_true', help='Print New Master List')
-    parser.add_argument('--move-dupes', action='store_true', help='Move duplicate files on the computer to a common file')
+    parser.add_argument('--move-dupes', action='store_true', help='Move duplicate files on the computer somewhere else')
     parser.add_argument('--move-bad', action='store_true', help='Move bad files on the computer somewhere else')
+    parser.add_argument('--move-good', action='store_true', help='Move good files on the computer somewhere else')
     parser.add_argument('--stats', action='store_true', help='Print out statistics for the ratings in the text file')
 
     run(parser.parse_args())
 
 
-r"""
-python sort_songs.py
+"""
+python sort_songs.py --stats
 """
 
 """ Find dupe file names in directory
