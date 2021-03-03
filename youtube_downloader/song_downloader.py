@@ -84,6 +84,7 @@ def call_youtube_dl(video_id_list):
         'format': 'bestaudio/best',  # Obviously
         # 'outtmpl': '%(title)s - %(artist)s.%(ext)s',  # Edited youtube-dl project to do this
         'keepvideo': False,
+        'ratelimit': 600000,  # --limit-rate 600k | Maximum download rate in bytes per second
         'postprocessors': [
             {'key': 'FFmpegExtractAudio', 'nopostoverwrites': False},  # --extract-audio
             {'key': 'FFmpegMetadata'},  # --add-metadata
@@ -164,8 +165,8 @@ def sleepy_time(seconds_to_sleep=10):
 SONGS = 1
 ALBUMS = 2
 
-#run_type = SONGS
-run_type = ALBUMS
+run_type = SONGS
+#run_type = ALBUMS
 
 if run_type == SONGS:
     input_file = 'video_ids_songs.txt'
