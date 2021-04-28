@@ -196,6 +196,12 @@ def extract_artist(file_path):
     if best_of_result:
         artist = best_of_result.group(1).strip()
 
+    # Remove digits from the start
+    while artist[0] in '0123456789':
+        artist = artist[1:]
+        if not artist:
+            return None
+
     if artist_is_part_of_a_mix(artist):
         artist = file_name.rsplit(SPACED_HYPHEN, 1)[-1]
         artist = artist.split(' (', 1)[0]
@@ -206,8 +212,11 @@ def extract_artist(file_path):
 
 
 def artist_is_part_of_a_mix(artist):
-    artist = artist.lower()
-    mix_prefixes = ['A Post', 'Post', '2019', '5 hours', 'Mixtape']
+
+    artist = artist.lower().strip()
+
+    mix_prefixes = ['A Post', 'Post', 'hours', 'Mixtape']
+
     for prefix in mix_prefixes:
         if artist.startswith(prefix.lower()):
             return True
@@ -227,7 +236,7 @@ def clean_file_name(title):
         title = title.split('.', 1)[1].strip()
 
     # Remove characters that mess with ffmpeg cli commands
-    remove_chars = '?"`#*<>|\'\\'
+    remove_chars = '?"`#*<>|\'\\\.'
     for char in remove_chars:
         title = title.replace(char, '')
     title = title.strip(':- \n')
