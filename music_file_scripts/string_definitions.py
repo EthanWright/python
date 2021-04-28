@@ -220,9 +220,9 @@ song_info_prefix = [
     'Outro',
     'Prod by',
     'Trimmed',
+    'Louder',
     'Clip',
     'Demo',
-    'Louder',
 ]
 song_info = song_info_prefix + song_info_suffix
 

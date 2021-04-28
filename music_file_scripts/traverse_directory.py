@@ -1,3 +1,6 @@
+import os
+
+
 class TraverseDirectory(object):
 
     def handle_dir(self, dir_name, directory, full_path):

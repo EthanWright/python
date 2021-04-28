@@ -3,14 +3,16 @@ import os
 from traverse_directory import TraverseDirectory
 from paths import Paths
 
+ROOT_PATH = Paths.MUSIC
+
 
 def run():
-    # sub_dir = 'liked'
-    # sub_dir = 'liked_redownloaded'
-    sub_dir = 'most_music_redownloaded'
-    # sub_dir = 'most_music'
+    # music_sub_dir = 'phone'
+    # music_sub_dir = 'good'
+    # music_sub_dir = 'to_sort_'
+    # music_sub_dir = 'to_sort_post_rock'
 
-    file_path = os.path.join(Paths.MUSIC, sub_dir)
+    file_path = os.path.join(ROOT_PATH, music_sub_dir)
     output_file_path = os.path.join(file_path, 'all_songs.txt')
 
     print_files_in_directory(file_path, output_file_path)
@@ -22,11 +24,29 @@ def print_files_in_directory(file_path, output_file_path):
     file_lists.write_lists_to_file(output_file_path)
 
 
+class TraverseDirectoryLister(TraverseDirectory):
+
+    def __init__(self, fsl):
+        self.fsl = fsl
+
+    def handle_dir(self, file_name, directory, full_path):
+        self.fsl.dir_list.append(full_path)
+        if full_path in self.fsl.file_dict:
+            raise Exception("oh no " + full_path)
+        self.fsl.file_dict[full_path] = []
+        return True
+
+    def handle_file(self, file_name, directory, full_path):
+        self.fsl.file_dict[directory].append(full_path)
+        return True
+
+
 class FileListsStructured(object):
 
     def __init__(self):
         self.dir_list = []
         self.file_dict = {}
+        # self.extensions = {}
 
     def get_sorted_list_for_dir(self, dir_name):
         return sorted(
@@ -47,38 +67,22 @@ class FileListsStructured(object):
                 write_file.write('--- ' + dir_name + '\n')
     
                 for file_name in self.get_sorted_list_for_dir(dir_name):
-                    if should_write_to_file(file_name):
+                    short_file_name = file_name.replace(ROOT_PATH, '')
+                    if self.should_write_to_file(short_file_name):
                         try:
-                            write_file.write(file_name + '\n')
+                            write_file.write(short_file_name + '\n')
                         except UnicodeEncodeError as e:
-                            exit(f'ERROR writing {file_name}\n{e}')
+                            exit(f'ERROR writing {short_file_name}\n{e}')
     
-                write_file.write('')
+                write_file.write('\n')
+                # write_file.write('')
 
-
-def should_write_to_file(file_name):
-    title, extension = file_name.rsplit('.', 1)
-    self.extensions[extension] = extensions.get(extension, 0) + 1
-    if extension.lower() not in ['jpg', 'txt']:
-        return True
-    return False
-
-
-class TraverseDirectoryLister(TraverseDirectory):
-
-    def __init__(self, fsl):
-        self.fsl = fsl
-
-    def handle_dir(self, file_name, directory, full_path):
-        self.fsl.dir_list.append(full_path)
-        if full_path in self.file_dict:
-            raise Exception("oh no " + full_path)
-        self.fsl.file_dict[full_path] = []
-        return True
-
-    def handle_file(self, file_name, directory, full_path):
-        self.fsl.file_dict[directory].append(full_path)
-        return True
+    def should_write_to_file(self, file_name):
+        title, extension = file_name.rsplit('.', 1)
+        # self.extensions[extension] = self.extensions.get(extension, 0) + 1
+        if extension.lower() not in ['jpg', 'txt']:
+            return True
+        return False
 
 
 if __name__ == '__main__':

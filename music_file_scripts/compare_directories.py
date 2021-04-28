@@ -119,10 +119,20 @@ if __name__ == '__main__':
     parser.add_argument('--commit', action='store_true', help='Commit Changes')
     args = parser.parse_args()
 
+    # TODO Specify HD via CLI arg
     root_path = PathConfig.EXTERNAL_DRIVE_1
     external_drive_root = PathGen.gen_path_from_root(root_path=root_path)
-    new_music = external_drive_root.POST_ROCK
 
+    new_music = external_drive_root.POST_ROCK
     existing_music = Paths.POST_ROCK
+
+    # new_music = os.path.join(external_drive_root.MUSIC, 'most_music', 'most_music_redownloaded')
+    # existing_music = os.path.join(Paths.MUSIC, 'most_music', 'most_music_redownloaded')
+
+    # new_music = os.path.join(external_drive_root.MUSIC, 'liked', 'liked_redownloaded')
+    # existing_music = os.path.join(Paths.MUSIC, 'liked', 'liked_redownloaded')
+
+    # new_music = os.path.join(external_drive_root.MUSIC, 'to_sort_electronic')
+    # existing_music = os.path.join(Paths.MUSIC, 'to_sort_electronic')
 
     sort_directory_contents(existing_music, new_music, commit=args.commit)

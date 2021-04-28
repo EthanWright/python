@@ -109,7 +109,8 @@ def run(actions):
     if export_list:
         remove_song_ids = song_differ.list_2.get_bad_ids()  # Don't include --
         remove_song_ids += song_differ.list_2.get_good_ids()  # Don't include ++
-
+        #for item_ in song_differ.list_2.get_good_ids():
+        #    print(item_)
         all_songs = text_file_list + song_differ.unique_1
         # all_songs = sorted(all_songs)  # TODO Did this help?
         all_songs = sorted([song for song in all_songs if song.id not in remove_song_ids])
@@ -234,14 +235,26 @@ class SongData(object):
     def simplify_file_name_fuzzier(name):
         if '.' in name:
             name = remove_file_extension(name)
+
+        name = fix_file_names.get_new_name(name).lower()
+
+        # TODO Is song_info_prefix useful?
         # TODO Is this a good spot to do this?
-        name = name.replace('(Trimmed)', '')
-        return fix_file_names.get_new_name(name).lower()
+        phrase_trimmed = '(trimmed)'
+        if phrase_trimmed in name:
+            name = name.replace(phrase_trimmed, '')
+
+        phrase_feat = '(feat'
+        if phrase_feat in name:
+            name = name.replace(phrase_feat, '(')
+
+        return name.strip()
 
     @staticmethod
     def are_they_really_the_same(name_1, name_2):
 
         def split_name_safe(name):
+            name = name.replace('  ', ' ').strip()
             if ' (' in name:
                 return name.split(' (', 1)
             return name, None
@@ -268,11 +281,10 @@ class SongData(object):
             return False  # Different
 
         if not extra_data_1 and not extra_data_2:
-            known_false_positives = ['interlude']
-            for false_positive in known_false_positives:
-                if false_positive in name_1 and false_positive in name_2:
-                    return False  # Different
-
+            #known_false_positives = ['interlude']
+            #for false_positive in known_false_positives:
+            #    if false_positive in name_1 and false_positive in name_2:
+            #        return False  # Different
             return same_song_root
 
         for phrase in song_version:
