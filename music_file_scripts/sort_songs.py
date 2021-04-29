@@ -97,7 +97,7 @@ def run(actions):
     #     commit=commit
     # )
 
-    if not export_list and not move_dupes and not move_bad:
+    if not export_list and not move_dupes and not move_bad and not move_good:
         song_differ.print_results()
 
     file_actions = FileActions(file_sorting_path, verbose=verbose, commit=commit)
@@ -141,9 +141,11 @@ def run(actions):
     if move_good:
         # Get ++ songs from the text file, then get file names from the file list
         good_song_ids = song_differ.list_2.get_good_ids()
+        print(good_song_ids)  # DEBUG
 
         # TODO This is the old method
         good_song_file_names = [item for item in song_differ.list_1 if item.id in good_song_ids]
+        print(good_song_file_names)  # DEBUG
 
         # TODO What about this instead?
         # good_song_data = SongDataList(good_song_ids, "Master List")
@@ -244,9 +246,11 @@ class SongData(object):
         if phrase_trimmed in name:
             name = name.replace(phrase_trimmed, '')
 
-        phrase_feat = '(feat'
-        if phrase_feat in name:
-            name = name.replace(phrase_feat, '(')
+        #phrase_feat = '(feat '
+        #if phrase_feat in name:
+        #    name, extra = name.split(phrase_feat, 1)
+        #    unneeded, extra = extra.split(')', 1)
+        #    name += extra
 
         return name.strip()
 
@@ -261,6 +265,11 @@ class SongData(object):
 
         name_1, extra_data_1 = split_name_safe(name_1)
         name_2, extra_data_2 = split_name_safe(name_2)
+
+        # print(name_1)
+        # print(extra_data_1)
+        # print(name_2)
+        # print(extra_data_2)
 
         if abs(len(name_1) - len(name_2)) > 5:
             return False  # Different
@@ -297,14 +306,24 @@ class SongData(object):
                 return False  # Different
 
         if extra_data_1 and extra_data_2:
-            if ')' in extra_data_1 and ')' in extra_data_2:
-                phrase_1, more_1 = extra_data_1.split(')', 1)
-                phrase_2, more_2 = extra_data_2.split(')', 1)
-                if phrase_1 != phrase_2 and (more_1 != more_2 or not more_1 and not more_2):
-                    return False
-                if more_1.startswith(SPACED_HYPHEN) and more_2.startswith(SPACED_HYPHEN):
-                    return more_1 == more_2
-                return True
+            return extra_data_1 == extra_data_2
+
+            #if ')' in extra_data_1 and ')' in extra_data_2:
+            #    phrase_1, more_1 = extra_data_1.split(')', 1)
+            #    phrase_2, more_2 = extra_data_2.split(')', 1)
+            #    if phrase_1 != phrase_2:
+            #        return False
+            #    return more_1 == more_2
+            #    if more_1 != more_2:
+            #        return False
+            #    if more_1.startswith(SPACED_HYPHEN) and more_2.startswith(SPACED_HYPHEN):
+            #        return more_1 == more_2
+            #    return True
+
+        if extra_data_1 and not extra_data_2:
+            return 'feat' in extra_data_1
+        if extra_data_2 and not extra_data_1:
+            return 'feat' in extra_data_2
 
         return name_1 == name_2
 
@@ -359,11 +378,13 @@ class SongDataList(object):
         list_outputter.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
 
     def get_bad_ids(self):
+        # TODO Save the whole object, not just the id
         if not self.bad_ratings:
             self.bad_ratings = [item.id for item in self if item.rating == '--']
         return self.bad_ratings
 
     def get_good_ids(self):
+        # TODO Save the whole object, not just the id
         if not self.good_ratings:
             self.good_ratings = [item.id for item in self if item.rating == '++']
         return self.good_ratings
