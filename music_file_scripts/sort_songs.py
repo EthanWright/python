@@ -126,13 +126,13 @@ def run(actions):
 
     if move_bad:
         # Get -- songs from the text file, then get file names from the file list
-        bad_song_ids = song_differ.list_2.get_bad_ids()
+        bad_songs = song_differ.list_2.get_bad_items()
 
         # TODO This is the old method
-        bad_song_file_names = [item for item in song_differ.list_1 if item.id in bad_song_ids]
+        bad_song_file_names = [item for item in song_differ.list_1 if item in bad_songs]
 
         # TODO What about this instead?
-        # bad_song_data = SongDataList(bad_song_ids, "Master List")
+        # bad_song_data = SongDataList(bad_songs, "Master List")
         # song_differ_2 = DiffSongLists(computer_song_data, bad_song_data, commit=commit)
         # bad_song_file_names = song_differ_2.intersection
 
@@ -140,15 +140,13 @@ def run(actions):
 
     if move_good:
         # Get ++ songs from the text file, then get file names from the file list
-        good_song_ids = song_differ.list_2.get_good_ids()
-        print(good_song_ids)  # DEBUG
+        good_songs = song_differ.list_2.get_good_items()
 
         # TODO This is the old method
-        good_song_file_names = [item for item in song_differ.list_1 if item.id in good_song_ids]
-        print(good_song_file_names)  # DEBUG
+        good_song_file_names = [item for item in song_differ.list_1 if item in good_songs]
 
         # TODO What about this instead?
-        # good_song_data = SongDataList(good_song_ids, "Master List")
+        # good_song_data = SongDataList(good_songs, "Master List")
         # song_differ_2 = DiffSongLists(computer_song_data, good_song_data, commit=commit)
         # good_song_file_names = song_differ_2.intersection
 
@@ -240,7 +238,7 @@ class SongData(object):
 
         name = fix_file_names.get_new_name(name).lower()
 
-        # TODO Is song_info_prefix useful?
+        # TODO Can song_info_prefix be used here?
         # TODO Is this a good spot to do this?
         phrase_trimmed = '(trimmed)'
         if phrase_trimmed in name:
@@ -265,11 +263,6 @@ class SongData(object):
 
         name_1, extra_data_1 = split_name_safe(name_1)
         name_2, extra_data_2 = split_name_safe(name_2)
-
-        # print(name_1)
-        # print(extra_data_1)
-        # print(name_2)
-        # print(extra_data_2)
 
         if abs(len(name_1) - len(name_2)) > 5:
             return False  # Different
@@ -305,25 +298,25 @@ class SongData(object):
             if check_phrase_1 ^ check_phrase_2:
                 return False  # Different
 
-        if extra_data_1 and extra_data_2:
-            return extra_data_1 == extra_data_2
-
-            #if ')' in extra_data_1 and ')' in extra_data_2:
-            #    phrase_1, more_1 = extra_data_1.split(')', 1)
-            #    phrase_2, more_2 = extra_data_2.split(')', 1)
-            #    if phrase_1 != phrase_2:
-            #        return False
-            #    return more_1 == more_2
-            #    if more_1 != more_2:
-            #        return False
-            #    if more_1.startswith(SPACED_HYPHEN) and more_2.startswith(SPACED_HYPHEN):
-            #        return more_1 == more_2
-            #    return True
-
         if extra_data_1 and not extra_data_2:
             return 'feat' in extra_data_1
         if extra_data_2 and not extra_data_1:
             return 'feat' in extra_data_2
+
+        if extra_data_1 and extra_data_2:
+            return extra_data_1 == extra_data_2
+            # TODO Delete? What was this for?
+            # if ')' in extra_data_1 and ')' in extra_data_2:
+            #     phrase_1, more_1 = extra_data_1.split(')', 1)
+            #     phrase_2, more_2 = extra_data_2.split(')', 1)
+            #     if phrase_1 != phrase_2:
+            #         return False
+            #     return more_1 == more_2
+            #     if more_1 != more_2:
+            #         return False
+            #     if more_1.startswith(SPACED_HYPHEN) and more_2.startswith(SPACED_HYPHEN):
+            #         return more_1 == more_2
+            #     return True
 
         return name_1 == name_2
 
@@ -377,16 +370,14 @@ class SongDataList(object):
         list_outputter.print_list(self, f'All Songs On {self.name}', print_full_list=False)
         list_outputter.print_list(self.duplicate_items, f'Duplicates on {self.name}', print_full_list=True)
 
-    def get_bad_ids(self):
-        # TODO Save the whole object, not just the id
+    def get_bad_items(self):
         if not self.bad_ratings:
-            self.bad_ratings = [item.id for item in self if item.rating == '--']
+            self.bad_ratings = [item for item in self if item.rating == '--']
         return self.bad_ratings
 
-    def get_good_ids(self):
-        # TODO Save the whole object, not just the id
+    def get_good_items(self):
         if not self.good_ratings:
-            self.good_ratings = [item.id for item in self if item.rating == '++']
+            self.good_ratings = [item for item in self if item.rating == '++']
         return self.good_ratings
 
     def get_stats(self):
