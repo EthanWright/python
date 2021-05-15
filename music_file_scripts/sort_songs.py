@@ -107,13 +107,13 @@ def run(actions):
         pprint(stats)  # TODO Prettier
 
     if export_list:
-        remove_song_ids = song_differ.list_2.get_bad_ids()  # Don't include --
-        remove_song_ids += song_differ.list_2.get_good_ids()  # Don't include ++
+        remove_song_ids = song_differ.list_2.get_bad_items()  # Don't include --
+        remove_song_ids += song_differ.list_2.get_good_items()  # Don't include ++
         #for item_ in song_differ.list_2.get_good_ids():
         #    print(item_)
         all_songs = text_file_list + song_differ.unique_1
         # all_songs = sorted(all_songs)  # TODO Did this help?
-        all_songs = sorted([song for song in all_songs if song.id not in remove_song_ids])
+        all_songs = sorted([song for song in all_songs if song not in remove_song_ids])
 
         file_actions.export_new_master_list_to_file(all_songs)
 
