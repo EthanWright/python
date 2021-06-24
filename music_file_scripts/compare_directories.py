@@ -116,23 +116,27 @@ def sort_directory_contents(directory_1, directory_2, commit=False):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Compare Directories')
+    parser.add_argument('hd', help='Specify which External HD (1 or 2)')
     parser.add_argument('--commit', action='store_true', help='Commit Changes')
     args = parser.parse_args()
 
-    # TODO Specify HD via CLI arg
-    root_path = PathConfig.EXTERNAL_DRIVE_1
+    if args.hd == '1':
+        root_path = PathConfig.EXTERNAL_DRIVE_1
+    elif args.hd == '2':
+        root_path = PathConfig.EXTERNAL_DRIVE_2
+    else:
+        exit('Specify which External HD (1 or 2)')
+
     external_drive_root = PathGen.gen_path_from_root(root_path=root_path)
 
     new_music = external_drive_root.POST_ROCK
     existing_music = Paths.POST_ROCK
 
-    # new_music = os.path.join(external_drive_root.MUSIC, 'most_music', 'most_music_redownloaded')
-    # existing_music = os.path.join(Paths.MUSIC, 'most_music', 'most_music_redownloaded')
-
-    # new_music = os.path.join(external_drive_root.MUSIC, 'liked', 'liked_redownloaded')
-    # existing_music = os.path.join(Paths.MUSIC, 'liked', 'liked_redownloaded')
-
-    # new_music = os.path.join(external_drive_root.MUSIC, 'to_sort_electronic')
-    # existing_music = os.path.join(Paths.MUSIC, 'to_sort_electronic')
+    # set_1 = ('most_music', 'most_music_redownloaded')
+    # set_2 = ('liked', 'liked_redownloaded')
+    # set_3 = ('to_sort_electronic', None)
+    # dir_1, dir_2 = set_1
+    # new_music = os.path.join(external_drive_root.MUSIC, dir_1, dir_2)
+    # existing_music = os.path.join(Paths.MUSIC, dir_1, dir_2)
 
     sort_directory_contents(existing_music, new_music, commit=args.commit)
