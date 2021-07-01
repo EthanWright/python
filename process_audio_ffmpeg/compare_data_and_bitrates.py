@@ -16,13 +16,13 @@ from utils import extract_field_from_stdout, convert_timestamp_to_float_seconds
 
 class MusicFileList(object):
 
-    def __init__(self, directory, recursive=False):
+    def __init__(self, directory, folder_desc, recursive=False):
         self.directory = directory
         self.recursive = recursive
         self.music_list_pointer = 0
         self.current_song = None
 
-        self.helper = ComparisonHelper()
+        self.helper = ComparisonHelper(folder_desc=folder_desc)
 
         self.sorted_list = self._get_sorted_list()
         self.total_items = len(self.sorted_list)
@@ -40,7 +40,7 @@ class MusicFileList(object):
             self.current_song = self.sorted_list[self.music_list_pointer]
 
     def increment_position(self, match=None):
-        self.helper.check_bitratess(self.current_song, song_2=match)
+        self.helper.check_bitrates(self.current_song, song_2=match)
         self.music_list_pointer += 1
         self._set_current_song()
 
@@ -58,52 +58,6 @@ class SongItem(object):
         new_string = new_string.replace('&', 'and').replace(' x ', ' and ')
         new_string = new_string.replace('.', '').replace('\'', '').replace(',', '').replace('-', '')
         return new_string
-
-
-# Iterate through 2 lists simultaneously #
-
-
-def compare_directory_contents(directory_1, directory_2, recursive=False):
-
-    matches_count = 0
-
-    music_file_list_1 = MusicFileList(directory_1, recursive=recursive)
-    music_file_list_2 = MusicFileList(directory_2, recursive=recursive)
-
-    while music_file_list_1.current_song and music_file_list_2.current_song:
-
-        simple_string_1 = music_file_list_1.current_song.name_simplified
-        simple_string_2 = music_file_list_2.current_song.name_simplified
-
-        min_len = min(len(simple_string_1), len(simple_string_2))
-        simple_string_1 = simple_string_1[:min_len]
-        simple_string_2 = simple_string_2[:min_len]
-
-        if simple_string_1 < simple_string_2:
-            music_file_list_1.increment_position()
-
-        elif simple_string_1 > simple_string_2:
-            music_file_list_2.increment_position()
-
-        elif simple_string_1 == simple_string_2:
-            music_file_list_1.increment_position(match=music_file_list_2.current_song)
-            music_file_list_2.increment_position(match=music_file_list_1.current_song)
-            matches_count += 1
-        # if matches_count > 5:  # Testing
-        #     return
-
-    while music_file_list_1.current_song:
-        music_file_list_1.increment_position()
-
-    while music_file_list_2.current_song:
-        music_file_list_2.increment_position()
-
-    print(f'Total Items in List 1: {music_file_list_1.total_items}')
-    print(f'Total Items in List 2: {music_file_list_2.total_items}')
-    print(f'Matches: {matches_count}')
-
-    music_file_list_1.helper.write_files_to_playlist()
-    music_file_list_2.helper.write_files_to_playlist()
 
 
 # Comparison Functions #
@@ -128,6 +82,7 @@ class ComparisonHelper(object):
     def __init__(self, folder_desc=None):
         self.high_bitrates = []
         self.low_bitrates = []
+        self.matching_bitrates = []
         self.bitrates_count = {}
         self.all_bitrates_1 = {}
         self.folder_desc = folder_desc
@@ -143,27 +98,30 @@ class ComparisonHelper(object):
             print(song_2.file_name + '\n' + length_2)
             # import pdb;pdb.set_trace()
 
-    def check_bitratess(self, song_1, song_2=None):
+    def check_bitrates(self, song_1, song_2=None):
         if not song_1:
             return
         bitrate = get_song_bitrate(song_1.full_path)
         extension = song_1.file_name.rsplit('.', 1)[1]
         thresholds = self.bitrate_thresholds.get(extension.lower())
+
         if bitrate > thresholds.max:
             self.high_bitrates.append(song_1.full_path)
-            if song_2:
-                self.high_bitrates.append('# DUPLICATE FOUND')
-                self.high_bitrates.append(song_2.full_path)
+            # if song_2:
+            #     self.high_bitrates.append('# DUPLICATE FOUND')
+            #     self.high_bitrates.append(song_2.full_path)
 
         if bitrate < thresholds.min:
             self.low_bitrates.append(song_1.full_path)
-            if song_2:
-                self.low_bitrates.append('# REPLACEMENT FOUND')
-                self.low_bitrates.append(song_2.full_path)
+            # if song_2:
+            #     self.low_bitrates.append('# REPLACEMENT FOUND')
+            #     self.low_bitrates.append(song_2.full_path)
+        if song_2:
+            self.matching_bitrates.append((song_1.file_name, bitrate))
 
-        self.add_to_stats(bitrate, song_1.full_path, song_2=song_2)
+        self.add_to_stats(bitrate, song_1.full_path)
 
-    def add_to_stats(self, bitrate, song_name, song_2=None):
+    def add_to_stats(self, bitrate, song_name):
         if bitrate not in self.all_bitrates_1:
             self.all_bitrates_1[bitrate] = []
         self.all_bitrates_1[bitrate].append(song_name)
@@ -171,22 +129,28 @@ class ComparisonHelper(object):
         if bitrate not in self.bitrates_count:
             self.bitrates_count[bitrate] = 0
         self.bitrates_count[bitrate] += 1
-        if song_2:
-            pass
 
-    def write_files_to_playlist(self):
-        output_file_path_low = os.path.join(Paths.MUSIC, f'low_bitrates_{self.folder_desc}.m3u')
-        output_file_path_high = os.path.join(Paths.MUSIC, f'high_bitrates_{self.folder_desc}.m3u')
-        all_files_path = os.path.join(Paths.MUSIC, f'all_files_{self.folder_desc}.m3u')
+    def write_matching_bitrates_to_file(self):
+        file_path = os.path.join(Paths.MUSIC, f'matching_bitrates_{self.folder_desc}.txt')
+        with open(file_path, 'w') as write_file:
+            for item in self.matching_bitrates:
+                write_file.write(' '.join([str(sub_item) for sub_item in item]) + '\n')
+
+    def write_bitrate_stats_to_file(self):
+        file_path = os.path.join(Paths.MUSIC, f'all_files_{self.folder_desc}.m3u')
 
         for item in sorted(self.bitrates_count.keys()):
             print('~ ' + str(item) + ' ~')
             print(self.bitrates_count.get(item))
 
-        with open(all_files_path, 'w') as write_file:
+        with open(file_path, 'w') as write_file:
             for item in sorted(self.all_bitrates_1.keys()):
                 write_file.write('# ~ ' + str(item) + ' ~\n')
                 write_file.write('\n'.join(self.all_bitrates_1.get(item)) + '\n')
+
+    def write_outliers_to_playlist(self):
+        output_file_path_low = os.path.join(Paths.MUSIC, f'low_bitrates_{self.folder_desc}.m3u')
+        output_file_path_high = os.path.join(Paths.MUSIC, f'high_bitrates_{self.folder_desc}.m3u')
 
         with open(output_file_path_low, 'w') as write_file:
             write_file.write('\n'.join(self.low_bitrates))
@@ -194,7 +158,54 @@ class ComparisonHelper(object):
             write_file.write('\n'.join(self.high_bitrates))
 
 
-# Iterate through 1 list #
+# Iterate through 2 lists simultaneously #
+
+
+def compare_directory_contents(music_file_list_1, music_file_list_2):
+
+    matches_count = 0
+    while music_file_list_1.current_song and music_file_list_2.current_song:
+
+        simple_string_1 = music_file_list_1.current_song.name_simplified
+        simple_string_2 = music_file_list_2.current_song.name_simplified
+
+        min_len = min(len(simple_string_1), len(simple_string_2))
+        simple_string_1 = simple_string_1[:min_len]
+        simple_string_2 = simple_string_2[:min_len]
+
+        if simple_string_1 < simple_string_2:
+            music_file_list_1.increment_position()
+
+        elif simple_string_1 > simple_string_2:
+            music_file_list_2.increment_position()
+
+        elif simple_string_1 == simple_string_2:
+            music_file_list_1.increment_position(match=music_file_list_2.current_song)
+            music_file_list_2.increment_position(match=music_file_list_1.current_song)
+            matches_count += 1
+        # if matches_count > 0:  # TODO Testing
+        #     break
+    while music_file_list_1.current_song:
+        music_file_list_1.increment_position()
+
+    while music_file_list_2.current_song:
+        music_file_list_2.increment_position()
+
+
+def print_bitrate_data(music_file_list_1, music_file_list_2):
+
+    print(f'Total Items in List 1: {music_file_list_1.total_items}')
+    print(f'Total Items in List 2: {music_file_list_2.total_items}')
+    # print(f'Matches: {matches_count}')
+
+    music_file_list_1.helper.write_outliers_to_playlist()
+    music_file_list_2.helper.write_outliers_to_playlist()
+
+    music_file_list_1.helper.write_bitrate_stats_to_file()
+    music_file_list_2.helper.write_bitrate_stats_to_file()
+
+    music_file_list_1.helper.write_matching_bitrates_to_file()
+    music_file_list_2.helper.write_matching_bitrates_to_file()
 
 
 def list_files_for_directory(directory, recursive=False, return_objects=False):
@@ -214,7 +225,7 @@ def list_files_for_directory(directory, recursive=False, return_objects=False):
     return return_list
 
 
-# Aggregate Data #
+# Functions for checking only one directory at a time
 
 
 def aggregate_bitrates(directory, recursive=False):
@@ -225,9 +236,6 @@ def aggregate_bitrates(directory, recursive=False):
             bitrates[bitrate] = 0
         bitrates[bitrate] += 1
     print(bitrates)
-
-
-# Validate Data #
 
 
 def check_bitrate(full_path):
@@ -297,10 +305,15 @@ def print_bitrates():
     exit()
 
 
-def compare_directory_bitrates(directory_1, directory_2, folder_desc):
-    # helper = ComparisonHelper(folder_desc=folder_desc)
-    compare_directory_contents(directory_1, directory_2, recursive=True)
-    # helper.write_files_to_playlist(out_file_path_low, out_file_path_high)
+def compare_directory_bitrates(directory_1, directory_2):
+    folder_desc_1 = os.path.split(directory_1)[-1]
+    folder_desc_2 = os.path.split(directory_2)[-1]
+    music_file_list_1 = MusicFileList(directory_1, folder_desc_1, recursive=True)
+    music_file_list_2 = MusicFileList(directory_2, folder_desc_2, recursive=True)
+
+    compare_directory_contents(music_file_list_1, music_file_list_2)
+
+    print_bitrate_data(music_file_list_1, music_file_list_2)
 
 
 if __name__ == '__main__':
@@ -311,14 +324,14 @@ if __name__ == '__main__':
 
     music_path = Paths.MUSIC
 
-    most_music = os.path.join(music_path, 'most_music_original')
-    most_music_redownloaded = os.path.join(music_path, 'most_music_redownloaded')
-    liked = os.path.join(music_path, 'liked', 'liked_original')
-    liked_redownloaded = os.path.join(music_path, 'liked', 'liked_redownloaded')
+    good = os.path.join(music_path, 'good', 'good_original')
+    good_redownloaded = os.path.join(music_path, 'good', 'good_redownloaded')
+    phone = os.path.join(music_path, 'phone', 'phone_original')
+    phone_redownloaded = os.path.join(music_path, 'phone', 'phone_redownloaded')
 
-    # compare_directory_contents(path_1, path_2, recursive=True, commit=args.commit)
-    # print_data_for_directory(most_music_redownloaded, recursive=True)
-    # print_data_for_directory(liked_redownloaded, recursive=True)
+    # compare_directory_contents(path_1, path_2, recursive=True)
+    # print_data_for_directory(good_redownloaded, recursive=True)
+    # print_data_for_directory(phone_redownloaded, recursive=True)
 
-    compare_directory_bitrates(liked, liked_redownloaded, 'old_liked')
-    # compare_directory_bitrates(most_music, most_music_redownloaded, 'old_most_music')
+    # compare_directory_bitrates(phone, phone_redownloaded)
+    compare_directory_bitrates(good, good_redownloaded)
