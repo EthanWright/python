@@ -101,6 +101,8 @@ class ComparisonHelper(object):
     def check_bitrates(self, song_1, song_2=None):
         if not song_1:
             return
+        if not song_2:
+            return
         bitrate = get_song_bitrate(song_1.full_path)
         extension = song_1.file_name.rsplit('.', 1)[1]
         thresholds = self.bitrate_thresholds.get(extension.lower())
@@ -117,7 +119,7 @@ class ComparisonHelper(object):
             #     self.low_bitrates.append('# REPLACEMENT FOUND')
             #     self.low_bitrates.append(song_2.full_path)
         if song_2:
-            self.matching_bitrates.append((song_1.file_name, bitrate))
+            self.matching_bitrates.append((song_1.full_path, '#', bitrate))
 
         self.add_to_stats(bitrate, song_1.full_path)
 
@@ -135,6 +137,11 @@ class ComparisonHelper(object):
         with open(file_path, 'w') as write_file:
             for item in self.matching_bitrates:
                 write_file.write(' '.join([str(sub_item) for sub_item in item]) + '\n')
+        
+        file_path_2 = os.path.join(Paths.MUSIC, f'matching_bitrates_{self.folder_desc}_playlist.m3u')
+        with open(file_path_2, 'w') as write_file:
+            for item in self.matching_bitrates:
+                write_file.write(item[0] + '\n')
 
     def write_bitrate_stats_to_file(self):
         file_path = os.path.join(Paths.MUSIC, f'all_files_{self.folder_desc}.m3u')
