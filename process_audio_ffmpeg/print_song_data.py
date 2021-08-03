@@ -9,8 +9,8 @@ import io
 import os
 import re
 
-from call_ffmpeg import call_ffmpeg, get_metadata
-from file_scripts_common import list_music_files
+from call_ffmpeg import get_metadata
+from music_file_scripts_common import list_music_files
 from paths import Paths
 from utils import SPACED_HYPHEN, get_track_data_from_metadata, format_into_timestamp, convert_float_to_str_safe
 

@@ -9,7 +9,7 @@ import copy
 import os
 
 from call_ffmpeg import get_metadata
-from file_scripts_common import list_music_files, remove_file_extension
+from music_file_scripts_common import list_music_files, remove_file_extension
 from paths import Paths, PathGen, PathConfig
 from utils import extract_field_from_stdout, convert_timestamp_to_float_seconds
 

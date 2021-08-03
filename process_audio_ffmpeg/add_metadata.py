@@ -24,7 +24,7 @@ import io
 import os
 
 from call_ffmpeg import call_ffmpeg
-from file_scripts_common import list_music_files
+from music_file_scripts_common import list_music_files
 from paths import Paths
 from utils import SPACED_HYPHEN, get_track_data_from_file, convert_float_to_str_safe, extract_field_from_stdout
 

@@ -21,7 +21,7 @@ import os
 import re
 
 from call_ffmpeg import call_ffmpeg, get_metadata
-from file_scripts_common import list_music_files
+from music_file_scripts_common import list_music_files
 from paths import Paths
 from utils import (
     SPACED_HYPHEN,
