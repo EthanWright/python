@@ -105,6 +105,7 @@ remove_phrases = [
     'added_metadata_',
     'Melodic Dubstep',
     'MrSuicideSheep',
+    'Ophelia Records',
     'lyrics',
     'Lyrics',
     # 'HD',

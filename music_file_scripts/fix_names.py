@@ -480,7 +480,7 @@ if __name__ == '__main__':
     elif args.directory:
         music_directory = args.directory
     else:  # Default
-        music_directory = Paths.NEW_ALBUMS
+        music_directory = Paths.NEW_SONGS
 
     if not music_directory.startswith('C:/') and not music_directory.startswith('/'):
         music_directory = os.path.join(Paths.MUSIC_DIR, music_directory)
