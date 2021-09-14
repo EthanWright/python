@@ -73,32 +73,18 @@ def compare_video_id_lists():
     links_done = read_video_ids_from_file(file_links_done)
     link_ids_done = set(links_done)
 
-    # Read in melee links
-    file_links_done_melee = 'input/links_done_melee.txt'
-    links_done_melee = read_video_ids_from_file(file_links_done_melee)
-    links_ids_done_melee = set(links_done_melee)
-    link_ids_done = link_ids_done.union(links_ids_done_melee)
-
-    # Read in aoe links
-    file_links_done_aoe = 'input/links_done_aoe.txt'
-    links_done_aoe = read_video_ids_from_file(file_links_done_aoe)
-    link_ids_done_aoe = set(links_done_aoe)
-    link_ids_done = link_ids_done.union(link_ids_done_aoe)
-
-    # Read in dead links
-    file_links_dead = 'input/links_lost.txt'
-    links_dead = read_video_ids_from_file(file_links_dead)
-    link_ids_dead = set(links_dead)
-    link_ids_done = link_ids_done.union(link_ids_dead)
-
     files_list = [
-        'input/links_done.txt'
-        'input/links_done_melee.txt'
-        'input/links_done_aoe.txt'
-        'input/links_lost.txt'
+        #'input/links_done.txt',
+        'input/links_done_melee.txt',
+        'input/links_done_aoe.txt',
+        'input/links_done_documentaries.txt',
+        'input/links_lost.txt',
     ]
-    # TODO loop through files
-    # for file in files_list:
+    # Loop through files
+    for file_path_rel in files_list:
+        more_link_ids_done = read_video_ids_from_file(file_path_rel)
+        more_link_ids_done_set = set(more_link_ids_done)
+        link_ids_done = link_ids_done.union(more_link_ids_done_set)
 
     # Compare lists
     missing = link_ids_all - link_ids_done
