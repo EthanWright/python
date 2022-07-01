@@ -65,7 +65,7 @@ def read_video_ids_from_file(file_path, use_mapping_dict=False):
 
 def compare_video_id_lists():
     # Generate mapping dictionary from list of all links
-    file_links_all = 'input/links_all.txt'
+    file_links_all = 'input/all_youtube_links.txt'
     links_all = read_video_ids_from_file(file_links_all, use_mapping_dict=True)
     link_ids_all = set(links_all.keys())
 

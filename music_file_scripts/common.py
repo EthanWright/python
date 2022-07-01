@@ -35,12 +35,6 @@ def list_music_file_names_1(directory):
     return [remove_file_extension(file_name) for file_name in list_music_files(directory)]
 
 
-def split_file_name_simple(file_name):
-    if '.' not in file_name:
-        return file_name, None
-    return file_name.rsplit('.', 1)
-
-
 def is_extension_valid(extension):
     if extension:
         if len(extension) <= 5:
@@ -50,16 +44,3 @@ def is_extension_valid(extension):
                 return False
             return True
     return False
-
-
-def split_file_name(file_name):
-    name, extension = split_file_name_simple(file_name)
-
-    if is_extension_valid(extension):
-        return name, extension
-
-    return file_name, None
-
-
-def remove_file_extension(file_name):
-    return split_file_name(file_name)[0]

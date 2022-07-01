@@ -34,6 +34,7 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
             '-c', 'copy',
             '-ss', start,
             '-to', end,
+            #'-avoid_negative_ts','make_zero',
             output_path
         ]
         # windows_command = ' '.join(command)
@@ -46,6 +47,7 @@ def trim_media_file(source_file_path, start, end, command_version=1, suffix='', 
             '-to', end,
             '-i', source_file_path,
             '-c', 'copy',
+            #'-avoid_negative_ts','make_zero',
             output_path
         ]
         # windows_command = ' '.join(command)
@@ -112,6 +114,9 @@ if __name__ == '__main__':
 
 
 """
+# Show key frames
+ffprobe -select_streams v:0 -skip_frame nokey -show_entries frame=pkt_pts_time FILE | grep -v FRAME > key_frames.txt
+
 python trim_file.py "FILE" xx:xx xx:xx --commit
 python trim_file.py "" --commit 
 

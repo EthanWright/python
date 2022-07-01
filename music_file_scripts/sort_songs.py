@@ -108,7 +108,7 @@ def run(actions):
 
     if export_list:
         remove_song_ids = song_differ.list_2.get_bad_items()  # Don't include --
-        remove_song_ids += song_differ.list_2.get_good_items()  # Don't include ++
+        remove_song_ids += song_differ.list_2.get_good_items()  # Don't include ++  TODO Double check I don't remove songs still in trim
         #for item_ in song_differ.list_2.get_good_ids():
         #    print(item_)
         all_songs = text_file_list + song_differ.unique_1

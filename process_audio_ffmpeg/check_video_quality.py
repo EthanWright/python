@@ -85,10 +85,15 @@ def check_file_properties(directory, file_name, verbose=0):
 
 
 def search_all_file_bitrates(directory, verbose=0):
+    video_list = []
 
     for file_name in list_files(directory):
         result = check_file_properties(directory, file_name, verbose=verbose)
-        # TODO Write results to a file
+        if not result:
+            video_list.append(file_name)
+
+    with open('videos_redo.txt', 'w') as write_file:
+        write_file.write('\n'.join(video_list))
 
 
 if __name__ == '__main__':
