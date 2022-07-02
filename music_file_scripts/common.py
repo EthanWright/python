@@ -3,6 +3,8 @@ Common music script functions
 """
 import os
 
+from file_scripts_common import remove_file_extension, split_file_name
+
 invalid_music_extensions = ['txt', 'jpg', 'png', 'py', 'ini']
 music_extensions = ['mp3', 'ogg', 'm4a', 'opus']
 

@@ -40,19 +40,10 @@ def rename_file_safe(directory, file_name, new_file_name, verbose=True,  commit=
     move_file(source_file_path, target_file_path, verbose=verbose, commit=commit)
 
 
-def split_file_name_simple(file_name):
+def split_file_name(file_name):
     if '.' not in file_name:
         return file_name, None
     return file_name.rsplit('.', 1)
-
-
-def split_file_name(file_name):
-    name, extension = split_file_name_simple(file_name)
-
-    if is_extension_valid(extension):
-        return name, extension
-
-    return file_name, None
 
 
 def remove_file_extension(file_name):
