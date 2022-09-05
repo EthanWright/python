@@ -1,11 +1,14 @@
 import configparser
+import os
+
+from paths import PYTHON_DIR
 
 
 class Credentials(object):
     """
     Load API Credentials
     """
-    credentials_file_path = 'input/credentials.txt'
+    credentials_file_path = os.path.join(PYTHON_DIR, 'youtube_api', 'input', 'credentials.txt')
 
     def __init__(self, api):
         self.api = api

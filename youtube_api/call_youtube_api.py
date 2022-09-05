@@ -32,8 +32,8 @@ def call_youtube_api(url_base, api_endpoint, params, headers=None):
     if response.status_code == 200:
         result = response.json()
     else:
-        import pdb;pdb.set_trace()
-        result = ''
+        #import pdb;pdb.set_trace()
+        raise Exception(response.text)
 
     response.close()
     return result
